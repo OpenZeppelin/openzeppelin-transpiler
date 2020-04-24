@@ -1,8 +1,2 @@
 node_modules/
-lib/
-coverage/
-coverage.json
-.node-xmlhttprequest-sync-*
-.session
-__upgradable__
-build
+/dist
