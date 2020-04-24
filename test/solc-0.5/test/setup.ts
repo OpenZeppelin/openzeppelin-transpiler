@@ -21,7 +21,7 @@ export async function transpileAndSaveContracts(contracts: string[], dir: string
 }
 
 export async function compileContracts(): Promise<void> {
-  await exec('npm run compile:contracts');
+  await exec('oz compile --no-interactive');
 }
 
 export const artifacts = fs.readdirSync('./build/contracts/').map(file => {

@@ -11,7 +11,7 @@
     "oz-transpile": "dist/cli.js"
   },
   "scripts": {
-    "test": "npm run test --prefix ./test/solc-0.5",
+    "test": "bash -x test/solc-0.5/test.sh",
     "compile:ts": "rm -rf lib && tsc",
     "prepare": "npm run compile:ts",
     "watch": "tsc -w",
@@ -41,6 +41,9 @@
     "lodash": "^4.17.15"
   },
   "devDependencies": {
+    "@openzeppelin/cli": "^2.8.2",
+    "@openzeppelin/contracts": "^2.4.0",
+    "@types/jest": "^25.2.1",
     "@types/lodash": "^4.14.149",
     "@types/node": "^13.1.4",
     "@typescript-eslint/eslint-plugin": "^2.15.0",
@@ -48,7 +51,11 @@
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.9.0",
     "eslint-plugin-prettier": "^3.1.2",
+    "fs-extra": "^9.0.0",
+    "jest": "^25.4.0",
     "prettier": "^1.19.1",
+    "ts-jest": "^25.4.0",
+    "ts-node": "^8.9.0",
     "typescript": "^3.7.4"
   }
 }
