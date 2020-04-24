@@ -1,15 +1,17 @@
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "./lib",
-    "noEmitOnError": true,
+    "incremental": true,
+    "pretty": true,
+    "disableSizeLimit": true,
+    "module": "commonjs",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "target": "es2017",
     "declaration": true,
+    "declarationMap": true,
     "sourceMap": true,
     "strict": true,
-    "allowJs": false,
-    "lib": [
-      "es2019"
-    ]
+    "outDir": "dist"
   },
-  "include": ["./src"]
+  "include": ["src"]
 }

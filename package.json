@@ -2,10 +2,10 @@
   "name": "@openzeppelin/upgradeability-transpiler",
   "version": "0.1.0",
   "description": "Transpiles Solidity contracts to updgradable versions compatible with OpenZeppelin SDK.",
-  "main": "./lib/index.js",
-  "types": "./lib/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
-    "lib"
+    "dist"
   ],
   "scripts": {
     "test": "npm run test --prefix ./test/solc-0.5",
