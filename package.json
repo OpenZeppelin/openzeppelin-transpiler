@@ -7,6 +7,9 @@
   "files": [
     "dist"
   ],
+  "bin": {
+    "oz-transpile": "dist/cli.js"
+  },
   "scripts": {
     "test": "npm run test --prefix ./test/solc-0.5",
     "compile:ts": "rm -rf lib && tsc",
