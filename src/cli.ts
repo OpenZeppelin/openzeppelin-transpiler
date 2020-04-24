@@ -2,6 +2,8 @@
 
 import { promises as fs } from 'fs';
 import path from 'path';
+import 'source-map-support/register';
+
 import { transpileContracts } from '.';
 import { Artifact } from './solc/artifact';
 
