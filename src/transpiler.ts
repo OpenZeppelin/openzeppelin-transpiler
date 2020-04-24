@@ -1,6 +1,6 @@
 import { Transformation } from './transformation';
 
-export function transpile(source: string, transformations: Transformation[]): string {
+export function transpile(sourcePath: string, source: string, transformations: Transformation[]): string {
   let cursor = 0;
 
   const sorted = transformations.sort((a, b) => {
@@ -8,12 +8,13 @@ export function transpile(source: string, transformations: Transformation[]): st
   });
 
   for (let i = 0; i < sorted.length - 1; i++) {
-    if (sorted[i].end > sorted[i + 1].start)
+    const a = sorted[i];
+    const b = sorted[i + 1];
+    if (a.end > b.start) {
       throw new Error(
-        `Transformations ${sorted[i].start}:${sorted[i].end}:${sorted[i].text.slice(20)}... and ${
-          sorted[i + 1].start
-        }:${sorted[i + 1].end}:${sorted[i + 1].text.slice(20)}... overlap over the source file`,
+        `${sourcePath}: transformations ${a.kind} and ${b.kind} overlap`,
       );
+    }
   }
 
   let transpiledCode = sorted.reduce((output, trans) => {

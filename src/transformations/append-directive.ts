@@ -4,6 +4,7 @@ import { Transformation } from '../transformation';
 
 export function appendDirective(fileNode: Node, directive: string): Transformation {
   const retVal = {
+    kind: 'append-directive',
     start: 0,
     end: 0,
     text: directive,

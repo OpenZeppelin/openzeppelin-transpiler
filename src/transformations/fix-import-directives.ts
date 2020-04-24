@@ -23,10 +23,11 @@ export function fixImportDirectives(
       return !isLocal && !isTranspiled
         ? null
         : {
+            kind: 'fix-import-directives',
             start: start,
             end: start + len,
             text: finalTransformation,
-          };
+          } as Transformation;
     })
     .filter((transformation): transformation is Transformation => transformation !== null);
 }

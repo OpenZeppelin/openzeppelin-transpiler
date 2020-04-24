@@ -13,6 +13,7 @@ export function transformContractName(
   if (subStart === -1) throw new Error(`Can't find ${contractNode.name} in ${nodeSource}`);
 
   return {
+    kind: 'transform-contract-name',
     start: start + subStart,
     end: start + subStart + contractNode.name.length,
     text: newName,

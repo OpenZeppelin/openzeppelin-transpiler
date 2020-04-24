@@ -9,6 +9,7 @@ export function purgeExceptContracts(astNode: SourceUnit, contracts: Artifact[])
     const [start, len] = getSourceIndices(contractNode);
 
     return {
+      kind: 'purge-except-contracts',
       start,
       end: start + len,
       text: '',

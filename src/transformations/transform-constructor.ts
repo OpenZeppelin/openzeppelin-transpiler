@@ -37,6 +37,7 @@ export function transformConstructor(
     const [start, len] = getNodeSources(constructorNode, source);
 
     removeConstructor = {
+      kind: 'transform-constructor',
       start: start,
       end: start + len,
       text: '',
@@ -70,6 +71,7 @@ export function transformConstructor(
   return [
     removeConstructor,
     {
+      kind: 'transform-constructor',
       start: start + match[0].length,
       end: start + match[0].length,
       text: `${initializeFuncText}\n

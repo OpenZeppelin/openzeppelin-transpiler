@@ -18,6 +18,7 @@ export function transformParentsNames(
         const [, len] = getNodeSources(base, source);
 
         return {
+          kind: 'transform-parent-names',
           start: start,
           end: start + len,
           text: `${base.baseName.name}Upgradeable`,

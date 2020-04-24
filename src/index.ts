@@ -95,7 +95,7 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
 
     const fileTran = fileTrans[art.sourcePath];
     if (!fileTran.source) {
-      fileTran.source = transpile(source, fileTran.transformations);
+      fileTran.source = transpile(art.sourcePath, source, fileTran.transformations);
     }
     const entry = acc.find(o => o.fileName === path.basename(art.sourcePath));
     if (!entry) {

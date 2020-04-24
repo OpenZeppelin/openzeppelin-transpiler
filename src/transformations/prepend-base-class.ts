@@ -13,6 +13,7 @@ export function prependBaseClass(contractNode: ContractDefinition, source: strin
   if (!match) throw new Error(`Can't find ${contractNode.name} in ${nodeSource}`);
 
   return {
+    kind: 'prepend-base-class',
     start: start + match.index + match[0].length,
     end: start + match.index + match[0].length,
     text: hasInheritance ? ` ${cls},` : ` is ${cls}`,
