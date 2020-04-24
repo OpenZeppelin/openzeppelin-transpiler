@@ -18,7 +18,7 @@ async function main() {
   const contracts = artifacts.map(a => a.contractName);
   const transpiled = transpileContracts(contracts, artifacts, 'contracts');
 
-  const outDir = 'contracts/upgradeable';
+  const outDir = 'contracts/__upgradeable__';
   await fs.mkdir(outDir, { recursive: true });
 
   await Promise.all(transpiled.map(t =>
