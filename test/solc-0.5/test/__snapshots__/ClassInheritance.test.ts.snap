@@ -2,7 +2,7 @@
 
 exports[`ClassInheritance contract is converted to a valid CIBUpgradeable contract 1`] = `
 "pragma solidity ^0.5.0;
-import \\"@openzeppelin/upgrades/contracts/Initializable.sol\\";
+import \\"./Initializable.sol\\";
 
 contract CIAUpgradeable is Initializable {
     function initialize(uint bar) external initializer {

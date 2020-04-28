@@ -7,6 +7,7 @@ export function shouldTranspileToValidContract(contract: string, output: Record<
 
     for (const file of files) {
       const key = file.contracts[0];
+      if (key === 'Initializable') continue;
       expect(file.source).toMatchSnapshot();
       expect(file.fileName).toBe(`${output[key].fileName}.sol`);
       expect(file.path).toBe(`contracts/__upgradeable__/${output[key].path}Upgradeable.sol`);

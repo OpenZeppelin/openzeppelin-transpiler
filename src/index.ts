@@ -65,7 +65,8 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
     const contractNode = getContract(art);
 
     if (!fileTrans[art.sourcePath]) {
-      const directive = `\nimport "@openzeppelin/upgrades/contracts/Initializable.sol";`;
+      const initializablePath = path.relative(path.dirname(art.sourcePath), 'Initializable.sol');
+      const directive = `\nimport "./${initializablePath}";`;
 
       fileTrans[art.sourcePath] = {
         transformations: [
@@ -114,6 +115,13 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
       entry.contracts.push(contractName);
     }
   }
+
+  outputFiles.push({
+    source: fs.readFileSync(require.resolve('../Initializable.sol'), 'utf8'),
+    path: './contracts/__upgradeable__/Initializable.sol',
+    fileName: 'Initializable.sol',
+    contracts: ['Initializable'],
+  });
 
   return outputFiles;
 }

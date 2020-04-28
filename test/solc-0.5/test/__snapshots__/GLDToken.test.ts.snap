@@ -7,7 +7,7 @@ import \\"@openzeppelin/contracts/token/ERC20/ERC20.sol\\";
 import \\"./@openzeppelin/contracts/token/ERC20/ERC20Upgradeable.sol\\";
 import \\"@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol\\";
 import \\"./@openzeppelin/contracts/token/ERC20/ERC20DetailedUpgradeable.sol\\";
-import \\"@openzeppelin/upgrades/contracts/Initializable.sol\\";
+import \\"./Initializable.sol\\";
 
 contract GLDTokenUpgradeable is Initializable, ERC20Upgradeable, ERC20DetailedUpgradeable {
     function initialize(uint256 initialSupply) external initializer {
@@ -35,7 +35,7 @@ exports[`GLDToken contract is converted to a valid GLDTokenUpgradeable contract 
 "pragma solidity ^0.5.0;
 
 import \\"@openzeppelin/contracts/token/ERC20/IERC20.sol\\";
-import \\"@openzeppelin/upgrades/contracts/Initializable.sol\\";
+import \\"./../../../../Initializable.sol\\";
 
 /**
  * @dev Optional functions from the ERC20 standard.
@@ -104,7 +104,7 @@ import \\"@openzeppelin/contracts/GSN/Context.sol\\";
 import \\"../../GSN/ContextUpgradeable.sol\\";
 import \\"@openzeppelin/contracts/token/ERC20/IERC20.sol\\";
 import \\"@openzeppelin/contracts/math/SafeMath.sol\\";
-import \\"@openzeppelin/upgrades/contracts/Initializable.sol\\";
+import \\"./../../../../Initializable.sol\\";
 
 /**
  * @dev Implementation of the {IERC20} interface.
@@ -347,7 +347,7 @@ contract ERC20Upgradeable is Initializable, ContextUpgradeable, IERC20 {
 
 exports[`GLDToken contract is converted to a valid GLDTokenUpgradeable contract 4`] = `
 "pragma solidity ^0.5.0;
-import \\"@openzeppelin/upgrades/contracts/Initializable.sol\\";
+import \\"./../../../Initializable.sol\\";
 
 /*
  * @dev Provides information about the current execution context, including the
