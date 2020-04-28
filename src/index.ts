@@ -31,8 +31,9 @@ interface FileTransformation {
   source: string;
 }
 
-export function transpileContracts(contracts: string[], artifacts: Artifact[], contractsFolder: string): OutputFile[] {
-  contractsFolder = path.normalize(contractsFolder);
+export function transpileContracts(contracts: string[], artifacts: Artifact[], contractsDir: string): OutputFile[] {
+  artifacts = artifacts.map(a => normalizeSourcePath(a, contractsDir));
+
   // check that we have valid ast tree
   for (const art of artifacts) {
     throwIfInvalidNode(art.ast);
@@ -100,26 +101,9 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
     const entry = outputFiles.find(o => o.fileName === path.basename(art.sourcePath));
     if (!entry) {
       const upgradeablePath = path.normalize(art.sourcePath).replace('.sol', 'Upgradeable.sol');
-      let patchedFilePath = upgradeablePath;
-      // Truffle stores an absolute file path in a sourcePath of an artifact field
-      // "sourcePath": "/Users/iYalovoy/repo/openzeppelin-sdk/tests/cli/workdir/contracts/Samples.sol"
-      // OpenZeppelin stores relative paths
-      // "sourcePath": "contracts/Foo.sol"
-      // OpenZeppelin sourcePath would start with `contracts` for contracts present in the `contracts` folder of a project
-      // Both Truffle and OpenZeppelin support packages
-      // "sourcePath": "@openzeppelin/upgrades/contracts/Initializable.sol",
-      // Relative paths can only be specified using `.` and `..` for both compilers
 
-      // if path exists then it is a local contract build by Truffle
-      if (fs.existsSync(art.sourcePath)) {
-        patchedFilePath = upgradeablePath.replace(contractsFolder, '');
-      } else {
-        if (upgradeablePath.startsWith('contracts')) {
-          patchedFilePath = upgradeablePath.replace('contracts/', '');
-        }
-      }
+      const patchedFilePath = path.join('./contracts/__upgradeable__', upgradeablePath);
 
-      patchedFilePath = `./contracts/__upgradeable__/${patchedFilePath}`;
       outputFiles.push({
         source: fileTran.source,
         path: patchedFilePath,
@@ -132,4 +116,23 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
   }
 
   return outputFiles;
+}
+
+function normalizeSourcePath(art: Artifact, contractsDir: string): Artifact {
+  // Truffle stores an absolute file path in a sourcePath of an artifact field
+  // "sourcePath": "/Users/iYalovoy/repo/openzeppelin-sdk/tests/cli/workdir/contracts/Samples.sol"
+  // OpenZeppelin CLI stores relative paths
+  // "sourcePath": "contracts/Foo.sol"
+  // OpenZeppelin sourcePath would start with `contracts` for contracts present in the `contracts` folder of a project
+  // Both Truffle and OpenZeppelin support packages
+  // "sourcePath": "@openzeppelin/upgrades/contracts/Initializable.sol",
+  // Relative paths can only be specified using `.` and `..` for both compilers
+
+  // if path resolves to a path in the contrcts directory then it is a local contract
+  if (path.resolve(art.sourcePath).startsWith(path.resolve(contractsDir))) {
+    const sourcePath = path.relative(contractsDir, art.sourcePath);
+    return { ...art, sourcePath }
+  } else {
+    return art;
+  }
 }
