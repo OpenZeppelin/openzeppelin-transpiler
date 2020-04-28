@@ -66,8 +66,6 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
     if (!fileTrans[art.sourcePath]) {
       const directive = `\nimport "@openzeppelin/upgrades/contracts/Initializable.sol";`;
 
-      console.log(art.sourcePath, contractsFolder);
-
       fileTrans[art.sourcePath] = {
         transformations: [
           appendDirective(art.ast, directive),
