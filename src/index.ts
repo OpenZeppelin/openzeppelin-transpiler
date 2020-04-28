@@ -39,12 +39,12 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
   }
 
   // create contract name | id to artifact map for quick access to artifacts
-  const contractsToArtifactsMap = artifacts.reduce<Record<string | number, Artifact>>((acc, art) => {
-    acc[art.contractName] = art;
+  const contractsToArtifactsMap: Record<string | number, Artifact> = {};
+  for (const art of artifacts) {
+    contractsToArtifactsMap[art.contractName] = art;
     const contract = getContract(art);
-    acc[contract.id] = art;
-    return acc;
-  }, {});
+    contractsToArtifactsMap[contract.id] = art;
+  }
 
   // build a list of all contracts to transpile
   const contractsToTranspile = [
@@ -55,17 +55,20 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
   });
 
   // build a array of transformations per Solidity file
-  const fileTrans = contractsToTranspile.reduce<Record<string, FileTransformation>>((acc, art) => {
+  const fileTrans: Record<string, FileTransformation> = {};
+  for (const art of contractsToTranspile) {
     const contractName = art.contractName;
 
     const source = art.source;
 
     const contractNode = getContract(art);
 
-    if (!acc[art.sourcePath]) {
+    if (!fileTrans[art.sourcePath]) {
       const directive = `\nimport "@openzeppelin/upgrades/contracts/Initializable.sol";`;
 
-      acc[art.sourcePath] = {
+      console.log(art.sourcePath, contractsFolder);
+
+      fileTrans[art.sourcePath] = {
         transformations: [
           appendDirective(art.ast, directive),
           ...fixImportDirectives(art, artifacts, contractsToTranspile),
@@ -75,20 +78,19 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
       };
     }
 
-    acc[art.sourcePath].transformations = [
-      ...acc[art.sourcePath].transformations,
+    fileTrans[art.sourcePath].transformations = [
+      ...fileTrans[art.sourcePath].transformations,
       prependBaseClass(contractNode, source, 'Initializable'),
       ...transformParentsNames(contractNode, source, contractsToTranspile),
       ...transformConstructor(contractNode, source, contractsToTranspile, contractsToArtifactsMap),
       ...purgeVarInits(contractNode, source),
       transformContractName(contractNode, source, `${contractName}Upgradeable`),
     ];
-
-    return acc;
-  }, {});
+  }
 
   // build a final array of files to return
-  return contractsToTranspile.reduce<OutputFile[]>((acc, art) => {
+  const outputFiles: OutputFile[] = [];
+  for (const art of contractsToTranspile) {
     const contractName = art.contractName;
 
     const source = art.source;
@@ -97,7 +99,7 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
     if (!fileTran.source) {
       fileTran.source = transpile(art.sourcePath, source, fileTran.transformations);
     }
-    const entry = acc.find(o => o.fileName === path.basename(art.sourcePath));
+    const entry = outputFiles.find(o => o.fileName === path.basename(art.sourcePath));
     if (!entry) {
       const upgradeablePath = path.normalize(art.sourcePath).replace('.sol', 'Upgradeable.sol');
       let patchedFilePath = upgradeablePath;
@@ -120,7 +122,7 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
       }
 
       patchedFilePath = `./contracts/__upgradeable__/${patchedFilePath}`;
-      acc.push({
+      outputFiles.push({
         source: fileTran.source,
         path: patchedFilePath,
         fileName: path.basename(art.sourcePath),
@@ -129,6 +131,7 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
     } else {
       entry.contracts.push(contractName);
     }
-    return acc;
-  }, []);
+  }
+
+  return outputFiles;
 }
