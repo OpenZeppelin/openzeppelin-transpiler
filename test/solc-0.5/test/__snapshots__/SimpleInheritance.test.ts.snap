@@ -28,7 +28,7 @@ contract SIBUpgradeable is Initializable, SIAUpgradeable {
     }
 
     function __init(bool callChain) internal {
-        if(callChain) {
+        if (callChain) {
             SIAUpgradeable.__init(false);
         }
         
@@ -45,7 +45,7 @@ contract SICUpgradeable is Initializable, SIBUpgradeable {
     }
 
     function __init(bool callChain) internal {
-        if(callChain) {
+        if (callChain) {
             SIAUpgradeable.__init(false);
             SIBUpgradeable.__init(false);
         }

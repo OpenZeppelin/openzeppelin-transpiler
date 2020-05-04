@@ -15,7 +15,7 @@ contract GLDTokenUpgradeable is Initializable, ERC20Upgradeable, ERC20DetailedUp
     }
 
     function __init(bool callChain, uint256 initialSupply) internal {
-        if(callChain) {
+        if (callChain) {
             ContextUpgradeable.__init(false);
             ERC20Upgradeable.__init(false);
             ERC20DetailedUpgradeable.__init(false, \\"Gold\\", \\"GLD\\", 18);
@@ -136,7 +136,7 @@ contract ERC20Upgradeable is Initializable, ContextUpgradeable, IERC20 {
     }
 
     function __init(bool callChain) internal {
-        if(callChain) {
+        if (callChain) {
             ContextUpgradeable.__init(false);
         }
         

@@ -59,7 +59,7 @@ export function transformConstructor(
     : '';
 
   const superCallsBlock = superCalls
-    ? `if(callChain) {${superCalls}
+    ? `if (callChain) {${superCalls}
         }`
     : '';
 

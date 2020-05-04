@@ -29,7 +29,7 @@ contract CIBUpgradeable is Initializable, CIAUpgradeable {
     }
 
     function __init(bool callChain) internal {
-        if(callChain) {
+        if (callChain) {
             CIAUpgradeable.__init(false, 324);
         }
         
