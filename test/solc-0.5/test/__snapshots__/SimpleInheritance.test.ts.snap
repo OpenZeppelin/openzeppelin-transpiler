@@ -5,12 +5,11 @@ exports[`SimpleInheritance contract is converted to a valid SICUpgradeable contr
 import \\"./Initializable.sol\\";
 
 contract SIAUpgradeable is Initializable {
-    function initialize() external initializer {
-        __init(true);
+    function __SIA_init() internal {
+        __SIA_init_unchained();
     }
 
-    function __init(bool callChain) internal {
-        
+    function __SIA_init_unchained() internal {
         
         
         emit log(\\"SIA\\");
@@ -23,14 +22,12 @@ contract SIAUpgradeable is Initializable {
 }
 
 contract SIBUpgradeable is Initializable, SIAUpgradeable {
-    function initialize() external initializer {
-        __init(true);
+    function __SIB_init() internal {
+        __SIA_init_unchained();
+        __SIB_init_unchained();
     }
 
-    function __init(bool callChain) internal {
-        if (callChain) {
-            SIAUpgradeable.__init(false);
-        }
+    function __SIB_init_unchained() internal {
         
         val = 123;
         
@@ -40,15 +37,13 @@ contract SIBUpgradeable is Initializable, SIAUpgradeable {
 }
 
 contract SICUpgradeable is Initializable, SIBUpgradeable {
-    function initialize() external initializer {
-        __init(true);
+    function __SIC_init() internal {
+        __SIA_init_unchained();
+        __SIB_init_unchained();
+        __SIC_init_unchained();
     }
 
-    function __init(bool callChain) internal {
-        if (callChain) {
-            SIAUpgradeable.__init(false);
-            SIBUpgradeable.__init(false);
-        }
+    function __SIC_init_unchained() internal {
         
         bar = \\"hello\\";
         

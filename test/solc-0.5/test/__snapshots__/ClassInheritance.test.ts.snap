@@ -5,12 +5,11 @@ exports[`ClassInheritance contract is converted to a valid CIBUpgradeable contra
 import \\"./Initializable.sol\\";
 
 contract CIAUpgradeable is Initializable {
-    function initialize(uint bar) external initializer {
-        __init(true, bar);
+    function __CIA_init(uint bar) internal {
+        __CIA_init_unchained(bar);
     }
 
-    function __init(bool callChain, uint bar) internal {
-        
+    function __CIA_init_unchained(uint bar) internal {
         
         
         foo = bar;
@@ -24,14 +23,12 @@ contract CIAUpgradeable is Initializable {
 }
 
 contract CIBUpgradeable is Initializable, CIAUpgradeable {
-    function initialize() external initializer {
-        __init(true);
+    function __CIB_init() internal {
+        __CIA_init_unchained(324);
+        __CIB_init_unchained();
     }
 
-    function __init(bool callChain) internal {
-        if (callChain) {
-            CIAUpgradeable.__init(false, 324);
-        }
+    function __CIB_init_unchained() internal {
         
         val = 123;
         

@@ -9,12 +9,9 @@ import { Artifact } from '../solc/artifact';
 // builds an __init call with given arguments, for example
 // ERC20DetailedUpgradeable.__init(false, "Gold", "GLD", 18)
 function buildSuperCall(args: Literal[], name: string, source: string): string {
-  let superCall = `\n            ${name}Upgradeable.__init(false`;
+  let superCall = `\n        __${name}_init_unchained(`;
   if (args && args.length) {
-    superCall += args.reduce((acc, arg) => {
-      const [, , argSource] = getNodeSources(arg, source);
-      return acc + `, ${argSource}`;
-    }, '');
+    superCall += args.map(arg => getNodeSources(arg, source)[2]).join(', ');
   }
   return superCall + ');';
 }

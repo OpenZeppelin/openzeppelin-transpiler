@@ -5,12 +5,11 @@ exports[`ElementaryTypesWithConstructor contract is converted to a valid Element
 import \\"./Initializable.sol\\";
 
 contract ElementaryTypesWithConstructorUpgradeable is Initializable  {
-    function initialize() external initializer {
-        __init(true);
+    function __ElementaryTypesWithConstructor_init() internal {
+        __ElementaryTypesWithConstructor_init_unchained();
     }
 
-    function __init(bool callChain) internal {
-        
+    function __ElementaryTypesWithConstructor_init_unchained() internal {
         
         
         owner = address(0x123);

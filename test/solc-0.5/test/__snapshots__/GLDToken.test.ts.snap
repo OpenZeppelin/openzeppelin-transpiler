@@ -10,16 +10,14 @@ import \\"./@openzeppelin/contracts/token/ERC20/ERC20DetailedUpgradeable.sol\\";
 import \\"./Initializable.sol\\";
 
 contract GLDTokenUpgradeable is Initializable, ERC20Upgradeable, ERC20DetailedUpgradeable {
-    function initialize(uint256 initialSupply) external initializer {
-        __init(true, initialSupply);
+    function __GLDToken_init(uint256 initialSupply) internal {
+        __Context_init_unchained();
+        __ERC20_init_unchained();
+        __ERC20Detailed_init_unchained(\\"Gold\\", \\"GLD\\", 18);
+        __GLDToken_init_unchained(initialSupply);
     }
 
-    function __init(bool callChain, uint256 initialSupply) internal {
-        if (callChain) {
-            ContextUpgradeable.__init(false);
-            ERC20Upgradeable.__init(false);
-            ERC20DetailedUpgradeable.__init(false, \\"Gold\\", \\"GLD\\", 18);
-        }
+    function __GLDToken_init_unchained(uint256 initialSupply) internal {
         
         
         _mint(msg.sender, initialSupply);
@@ -41,9 +39,11 @@ import \\"./../../../../Initializable.sol\\";
  * @dev Optional functions from the ERC20 standard.
  */
 contract ERC20DetailedUpgradeable is Initializable, IERC20 {
+    function __ERC20Detailed_init(string memory name, string memory symbol, uint8 decimals) internal {
+        __ERC20Detailed_init_unchained(name, symbol, decimals);
+    }
 
-    function __init(bool callChain, string memory name, string memory symbol, uint8 decimals) internal {
-        
+    function __ERC20Detailed_init_unchained(string memory name, string memory symbol, uint8 decimals) internal {
         
         
         _name = name;
@@ -131,14 +131,12 @@ import \\"./../../../../Initializable.sol\\";
  * allowances. See {IERC20-approve}.
  */
 contract ERC20Upgradeable is Initializable, ContextUpgradeable, IERC20 {
-    function initialize() external initializer {
-        __init(true);
+    function __ERC20_init() internal {
+        __Context_init_unchained();
+        __ERC20_init_unchained();
     }
 
-    function __init(bool callChain) internal {
-        if (callChain) {
-            ContextUpgradeable.__init(false);
-        }
+    function __ERC20_init_unchained() internal {
         
         
     }
@@ -360,12 +358,11 @@ import \\"./../../../Initializable.sol\\";
  * This contract is only required for intermediate, library-like contracts.
  */
 contract ContextUpgradeable is Initializable {
-    function initialize() external initializer {
-        __init(true);
+    function __Context_init() internal {
+        __Context_init_unchained();
     }
 
-    function __init(bool callChain) internal {
-        
+    function __Context_init_unchained() internal {
         
          
     }

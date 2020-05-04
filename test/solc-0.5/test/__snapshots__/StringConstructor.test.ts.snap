@@ -5,12 +5,11 @@ exports[`StringConstructor contract is converted to a valid StringConstructorUpg
 import \\"./Initializable.sol\\";
 
 contract StringConstructorUpgradeable is Initializable {
-    function initialize(string calldata message) external initializer {
-        __init(true, message);
+    function __StringConstructor_init(string memory message) internal {
+        __StringConstructor_init_unchained(message);
     }
 
-    function __init(bool callChain, string memory message) internal {
-        
+    function __StringConstructor_init_unchained(string memory message) internal {
         
         
 

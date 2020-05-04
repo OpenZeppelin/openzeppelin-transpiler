@@ -23,8 +23,6 @@ export function transformConstructor(
 
   const constructorNode = getConstructor(contractNode);
 
-  const isFullyImplemented = contractNode.fullyImplemented;
-
   let removeConstructor = null;
   let constructorBodySource = null;
   let constructorParameterList = null;
@@ -43,25 +41,12 @@ export function transformConstructor(
       text: '',
     };
 
-    constructorArgsList = constructorNode.parameters.parameters.map(par => par.name).join(',');
+    constructorArgsList = constructorNode.parameters.parameters.map(par => par.name).join(', ');
   }
 
   constructorParameterList = constructorParameterList ?? '';
-  const constructorParameterListWithComma = constructorParameterList ? `, ${constructorParameterList}` : '';
   constructorBodySource = constructorBodySource ?? '';
-  constructorArgsList = constructorArgsList ? `, ${constructorArgsList}` : '';
-
-  const initializeFuncText = isFullyImplemented
-    ? `
-    function initialize(${constructorParameterList.replace('string memory', 'string calldata')}) external initializer {
-        __init(true${constructorArgsList});
-    }`
-    : '';
-
-  const superCallsBlock = superCalls
-    ? `if (callChain) {${superCalls}
-        }`
-    : '';
+  constructorArgsList = constructorArgsList ?? '';
 
   const [start, , contractSource] = getNodeSources(contractNode, source);
 
@@ -74,9 +59,12 @@ export function transformConstructor(
       kind: 'transform-constructor',
       start: start + match[0].length,
       end: start + match[0].length,
-      text: `${initializeFuncText}\n
-    function __init(bool callChain${constructorParameterListWithComma}) internal {
-        ${superCallsBlock}
+      text: `
+    function __${contractNode.name}_init(${constructorParameterList}) internal {${superCalls}
+        __${contractNode.name}_init_unchained(${constructorArgsList});
+    }
+
+    function __${contractNode.name}_init_unchained(${constructorParameterList}) internal {
         ${declarationInserts}
         ${constructorBodySource}
     }\n`,
