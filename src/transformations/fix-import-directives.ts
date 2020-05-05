@@ -20,18 +20,6 @@ export function* fixImportDirectives(
       art => art.ast.id === imp.sourceUnit && art.sourcePath.startsWith('.')
     );
 
-    // imports the original file
-    if (isLocal) {
-      transformed.push(
-        path.relative(
-          path.join('__upgradeable__', dirname),
-          path.join(dirname, imp.file),
-        )
-      );
-    } else {
-      transformed.push(imp.file);
-    }
-
     const isTranspiled = artifacts.some(
       art => art.ast.id === imp.sourceUnit && contracts.includes(art)
     );
@@ -42,6 +30,17 @@ export function* fixImportDirectives(
         transformed.unshift(imp.file); // TODO: may not be a relative path
       } else {
         transformed.unshift(path.relative(dirname, imp.file));
+      }
+    } else {
+      if (isLocal) {
+        transformed.push(
+          path.relative(
+            path.join('__upgradeable__', dirname),
+            path.join(dirname, imp.file),
+          )
+        );
+      } else {
+        transformed.push(imp.file);
       }
     }
 

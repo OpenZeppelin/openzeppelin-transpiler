@@ -2,6 +2,7 @@
 
 exports[`ClassInheritance contract is converted to a valid CIBUpgradeable contract 1`] = `
 "pragma solidity ^0.5.0;
+import \\"../ClassInheritance.sol\\";
 import \\"./Initializable.sol\\";
 
 contract CIAUpgradeable is Initializable {

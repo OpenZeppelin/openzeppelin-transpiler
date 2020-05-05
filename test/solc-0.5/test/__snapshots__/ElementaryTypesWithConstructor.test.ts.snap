@@ -2,6 +2,7 @@
 
 exports[`ElementaryTypesWithConstructor contract is converted to a valid ElementaryTypesWithConstructorUpgradeable contract 1`] = `
 "pragma solidity ^0.5.0;
+import \\"../ElementaryTypesWithConstructor.sol\\";
 import \\"./Initializable.sol\\";
 
 contract ElementaryTypesWithConstructorUpgradeable is Initializable  {

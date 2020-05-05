@@ -2,6 +2,7 @@
 
 exports[`SimpleInheritance contract is converted to a valid SICUpgradeable contract 1`] = `
 "pragma solidity ^0.5.0;
+import \\"../SimpleInheritance.sol\\";
 import \\"./Initializable.sol\\";
 
 contract SIAUpgradeable is Initializable {

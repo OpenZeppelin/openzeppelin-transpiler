@@ -65,9 +65,25 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
     const contractNode = getContract(art);
 
     if (!fileTrans[art.sourcePath]) {
-      const initializablePath = path.relative(path.dirname(art.sourcePath), 'Initializable.sol');
-      const prefix = initializablePath.startsWith('.') ? '' : './';
-      const directive = `\nimport "${prefix}${initializablePath}";`;
+      let initializablePath = path.relative(path.dirname(art.sourcePath), 'Initializable.sol');
+      if (!initializablePath.startsWith('.')) {
+        initializablePath = './' + initializablePath;
+      }
+
+      const imports = [initializablePath];
+
+      if (art.sourcePath.startsWith('.')) {
+        imports.unshift(
+          path.relative(
+            path.join('__upgradeable__', path.dirname(art.sourcePath)),
+            path.join(art.sourcePath),
+          )
+        );
+      } else {
+        imports.unshift(art.sourcePath);
+      }
+
+      const directive = '\n' + imports.map(i => `import "${i}";`).join('\n');
 
       fileTrans[art.sourcePath] = {
         transformations: [
