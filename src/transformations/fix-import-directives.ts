@@ -1,3 +1,5 @@
+import path from 'path';
+
 import { getImportDirectives, getSourceIndices } from '../solc/ast-utils';
 import { Artifact } from '../solc/artifact';
 import { Transformation } from '../transformation';
@@ -7,19 +9,46 @@ export function fixImportDirectives(
   artifacts: Artifact[],
   contracts: Artifact[],
 ): Transformation[] {
+  const dirname = path.dirname(artifact.sourcePath);
+
   const imports = getImportDirectives(artifact.ast);
+
   return imports
     .map(imp => {
+      const transformed = [];
+
+      const isLocal = artifacts.some(
+        art => art.ast.id === imp.sourceUnit && art.sourcePath.startsWith('.')
+      );
+
+      // imports the original file
+      if (isLocal) {
+        transformed.push(
+          path.relative(
+            path.join('__upgradeable__', dirname),
+            path.join(dirname, imp.file),
+          )
+        );
+      } else {
+        transformed.push(imp.file);
+      }
+
+      const isTranspiled = artifacts.some(
+        art => art.ast.id === imp.sourceUnit && contracts.includes(art)
+      );
+
+      // imports the transpiled file
+      if (isTranspiled) {
+        if (isLocal) {
+          transformed.unshift(imp.file); // TODO: may not be a relative path
+        } else {
+          transformed.unshift(path.relative(dirname, imp.file));
+        }
+      }
+
+      const finalTransformation = transformed.map(t => `import "${t}";`).join('\n');
       const [start, len] = getSourceIndices(imp);
-      const isTranspiled = artifacts.some(art => art.ast.id === imp.sourceUnit && contracts.includes(art));
-      const isLocal = imp.file.startsWith('.');
-      const prefix = !isLocal ? './' : '';
-      const fixedPath = `import "${prefix}${imp.file}";`;
-      const absoluteOriginalImport = `import "${imp.absolutePath}";`;
-      const finalImportDirective = !isTranspiled ? absoluteOriginalImport : fixedPath;
-      const finalTransformation = isTranspiled
-        ? `${absoluteOriginalImport}\n${finalImportDirective}`
-        : absoluteOriginalImport;
+
       return !isLocal && !isTranspiled
         ? null
         : {

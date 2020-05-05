@@ -138,7 +138,10 @@ function normalizeSourcePath(art: Artifact, contractsDir: string): Artifact {
 
   // if path resolves to a path in the contrcts directory then it is a local contract
   if (path.resolve(art.sourcePath).startsWith(path.resolve(contractsDir))) {
-    const sourcePath = path.relative(contractsDir, art.sourcePath);
+    let sourcePath = path.relative(contractsDir, art.sourcePath);
+    if (!sourcePath.startsWith('.')) {
+      sourcePath = './' + sourcePath;
+    }
     return { ...art, sourcePath }
   } else {
     return art;
