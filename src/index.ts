@@ -101,7 +101,7 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
     }
     const entry = outputFiles.find(o => o.fileName === path.basename(art.sourcePath));
     if (!entry) {
-      const upgradeablePath = path.normalize(art.sourcePath).replace('.sol', 'Upgradeable.sol');
+      const upgradeablePath = path.normalize(art.sourcePath);
 
       const patchedFilePath = path.join('./contracts/__upgradeable__', upgradeablePath);
 

@@ -14,7 +14,7 @@ export function fixImportDirectives(
       const isTranspiled = artifacts.some(art => art.ast.id === imp.sourceUnit && contracts.includes(art));
       const isLocal = imp.file.startsWith('.');
       const prefix = !isLocal ? './' : '';
-      const fixedPath = `import "${prefix}${imp.file.replace('.sol', 'Upgradeable.sol')}";`;
+      const fixedPath = `import "${prefix}${imp.file}";`;
       const absoluteOriginalImport = `import "${imp.absolutePath}";`;
       const finalImportDirective = !isTranspiled ? absoluteOriginalImport : fixedPath;
       const finalTransformation = isTranspiled
