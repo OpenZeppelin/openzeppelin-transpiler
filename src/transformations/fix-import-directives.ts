@@ -26,7 +26,7 @@ export function* fixImportDirectives(
 
     // imports the transpiled file
     if (isTranspiled) {
-      if (isLocal) {
+      if (imp.file.startsWith('.')) {
         transformed.unshift(imp.file); // TODO: may not be a relative path
       } else {
         transformed.unshift(path.relative(dirname, imp.file));
@@ -40,20 +40,18 @@ export function* fixImportDirectives(
           )
         );
       } else {
-        transformed.push(imp.file);
+        transformed.push(path.normalize(path.join(dirname, imp.file)));
       }
     }
 
     const finalTransformation = transformed.map(t => `import "${t}";`).join('\n');
     const [start, len] = getSourceIndices(imp);
 
-    if (isLocal || isTranspiled) {
-      yield {
-        kind: 'fix-import-directives',
-        start: start,
-        end: start + len,
-        text: finalTransformation,
-      };
-    }
+    yield {
+      kind: 'fix-import-directives',
+      start: start,
+      end: start + len,
+      text: finalTransformation,
+    };
   }
 }
