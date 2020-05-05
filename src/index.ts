@@ -66,7 +66,8 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
 
     if (!fileTrans[art.sourcePath]) {
       const initializablePath = path.relative(path.dirname(art.sourcePath), 'Initializable.sol');
-      const directive = `\nimport "./${initializablePath}";`;
+      const prefix = initializablePath.startsWith('.') ? '' : './';
+      const directive = `\nimport "${prefix}${initializablePath}";`;
 
       fileTrans[art.sourcePath] = {
         transformations: [
