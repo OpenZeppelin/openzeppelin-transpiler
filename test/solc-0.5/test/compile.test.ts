@@ -13,6 +13,8 @@ describe('When all the contracts transpilied and saved to contracts folder', ():
           'DC',
           'CIB',
           'StringConstructor',
+          'ERC20',
+          'ERC20Detailed',
         ],
         './build/contracts/',
       );

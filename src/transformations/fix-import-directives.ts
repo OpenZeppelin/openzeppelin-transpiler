@@ -3,6 +3,7 @@ import path from 'path';
 import { getImportDirectives, getSourceIndices } from '../solc/ast-utils';
 import { Artifact } from '../solc/artifact';
 import { Transformation } from '../transformation';
+import { relativePath } from '../utils';
 
 export function* fixImportDirectives(
   artifact: Artifact,
@@ -29,12 +30,12 @@ export function* fixImportDirectives(
       if (imp.file.startsWith('.')) {
         transformed.unshift(imp.file); // TODO: may not be a relative path
       } else {
-        transformed.unshift(path.relative(dirname, imp.file));
+        transformed.unshift(relativePath(dirname, imp.file));
       }
     } else {
       if (isLocal) {
         transformed.push(
-          path.relative(
+          relativePath(
             path.join('__upgradeable__', dirname),
             path.join(dirname, imp.file),
           )

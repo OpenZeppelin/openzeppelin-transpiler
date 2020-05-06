@@ -19,6 +19,7 @@ import {
 import { getInheritanceChain } from './solc/get-inheritance-chain';
 import { Artifact } from './solc/artifact';
 import { Transformation } from './transformation';
+import { relativePath } from './utils';
 
 export interface OutputFile {
   fileName: string;
@@ -66,16 +67,13 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
     const contractNode = getContract(art);
 
     if (!fileTrans[art.sourcePath]) {
-      let initializablePath = path.relative(path.dirname(art.sourcePath), 'Initializable.sol');
-      if (!initializablePath.startsWith('.')) {
-        initializablePath = './' + initializablePath;
-      }
+      let initializablePath = relativePath(path.dirname(art.sourcePath), 'Initializable.sol');
 
       const imports = [initializablePath];
 
       if (art.sourcePath.startsWith('.')) {
         imports.unshift(
-          path.relative(
+          relativePath(
             path.join('__upgradeable__', path.dirname(art.sourcePath)),
             path.join(art.sourcePath),
           )
@@ -157,10 +155,7 @@ function normalizeSourcePath(art: Artifact, contractsDir: string): Artifact {
 
   // if path resolves to a path in the contrcts directory then it is a local contract
   if (path.resolve(art.sourcePath).startsWith(path.resolve(contractsDir))) {
-    let sourcePath = path.relative(contractsDir, art.sourcePath);
-    if (!sourcePath.startsWith('.')) {
-      sourcePath = './' + sourcePath;
-    }
+    let sourcePath = relativePath(contractsDir, art.sourcePath);
     return { ...art, sourcePath }
   } else {
     return art;
