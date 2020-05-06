@@ -14,7 +14,8 @@ export type NodeType =
   | 'ElementaryTypeName'
   | 'UserDefinedTypeName'
   | 'ParameterList'
-  | 'PragmaDirective';
+  | 'PragmaDirective'
+  | 'OverrideSpecifier';
 
 export interface Node {
   id: number;
@@ -38,6 +39,7 @@ export interface ContractDefinition extends Node {
   contractKind: ContractKind;
   baseContracts: InheritanceSpecifier[];
   fullyImplemented: boolean;
+  nodes: AnyNode[];
 }
 
 export interface InheritanceSpecifier extends Node {
@@ -65,6 +67,7 @@ export interface FunctionDefinition extends Node {
   returnParameters: ParameterList;
   modifiers: ModifierInvocation[];
   body: Block;
+  overrides: OverrideSpecifier | null;
 }
 
 export interface EventDefinition extends Node {
@@ -100,6 +103,7 @@ export interface Literal extends Node {
 export interface UserDefinedTypeName extends Node {
   name: string;
   nodeType: 'UserDefinedTypeName';
+  referencedDeclaration: number;
   typeDescriptions: {
     typeString: string;
   };
@@ -130,6 +134,11 @@ export interface Block extends Node {
 export interface ParameterList extends Node {
   nodeType: 'ParameterList';
   parameters: VariableDeclaration[];
+}
+
+export interface OverrideSpecifier extends Node {
+  nodeType: 'OverrideSpecifier';
+  overrides: UserDefinedTypeName[];
 }
 
 export type AnyNode = Node | VariableDeclaration | FunctionDefinition | EventDefinition | ModifierDefinition;

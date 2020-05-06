@@ -1,0 +1,23 @@
+{
+  "manifestVersion": "2.2",
+  "contracts": [],
+  "dependencies": {},
+  "name": "transpiler-test",
+  "version": "1.0.0",
+  "telemetryOptIn": false,
+  "compiler": {
+    "manager": "openzeppelin",
+    "solcVersion": "0.6.7",
+    "compilerSettings": {
+      "optimizer": {
+        "enabled": false,
+        "runs": "200"
+      }
+    },
+    "artifactsDir": "build/contracts",
+    "contractsDir": "contracts",
+    "typechain": {
+      "enabled": false
+    }
+  }
+}

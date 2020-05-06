@@ -12,7 +12,7 @@
     "oz-transpile": "dist/cli.js"
   },
   "scripts": {
-    "test": "bash test/solc-0.5/test.sh",
+    "test": "bash test/solc-0.5/test.sh && bash test/solc-0.6/test.sh",
     "compile:ts": "rm -rf lib && tsc",
     "prepare": "npm run compile:ts",
     "watch": "tsc -w",

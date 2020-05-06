@@ -1,0 +1,58 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SimpleInheritance contract is converted to a valid ChildUpgradeable contract 1`] = `
+"pragma solidity ^0.6.0;
+import \\"../Override.sol\\";
+import \\"./Initializable.sol\\";
+
+contract Parent1Upgradeable is Initializable {
+    function __Parent1_init() internal {
+        __Parent1_init_unchained();
+    }
+
+    function __Parent1_init_unchained() internal {
+        
+        
+    }
+
+  function foo() public virtual {
+  }
+
+  function bar() public virtual {
+  }
+}
+
+contract Parent2Upgradeable is Initializable {
+    function __Parent2_init() internal {
+        __Parent2_init_unchained();
+    }
+
+    function __Parent2_init_unchained() internal {
+        
+        
+    }
+
+  function foo() public virtual {
+  }
+}
+
+contract ChildUpgradeable is Initializable, Parent1Upgradeable, Parent2Upgradeable {
+    function __Child_init() internal {
+        __Parent1_init_unchained();
+        __Parent2_init_unchained();
+        __Child_init_unchained();
+    }
+
+    function __Child_init_unchained() internal {
+        
+        
+    }
+
+  function foo() public override(Parent1Upgradeable, Parent2Upgradeable) {
+  }
+
+  function bar() public override {
+  }
+}
+"
+`;
