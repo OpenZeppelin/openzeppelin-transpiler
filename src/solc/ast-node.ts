@@ -39,13 +39,14 @@ export interface ContractDefinition extends Node {
   contractKind: ContractKind;
   baseContracts: InheritanceSpecifier[];
   fullyImplemented: boolean;
+  abstract: boolean;
   nodes: AnyNode[];
 }
 
 export interface InheritanceSpecifier extends Node {
   nodeType: 'InheritanceSpecifier';
   baseName: UserDefinedTypeName;
-  arguments: Literal[];
+  arguments: Literal[] | null;
 }
 
 export interface VariableDeclaration extends Node {
@@ -93,7 +94,8 @@ export interface ModifierInvocation extends Node {
 
 export interface Identifier extends Node {
   nodeType: 'Identifier';
-  name: 'Identifier';
+  name: string;
+  referencedDeclaration: number;
 }
 
 export interface Literal extends Node {
