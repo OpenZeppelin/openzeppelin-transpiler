@@ -46,7 +46,7 @@ export interface ContractDefinition extends Node {
 export interface InheritanceSpecifier extends Node {
   nodeType: 'InheritanceSpecifier';
   baseName: UserDefinedTypeName;
-  arguments: Literal[] | null;
+  arguments: Node[] | null;
 }
 
 export interface VariableDeclaration extends Node {
@@ -88,7 +88,7 @@ export interface ModifierDefinition extends Node {
 export interface ModifierInvocation extends Node {
   nodeType: 'ModifierInvocation';
   name: string;
-  arguments: Literal[];
+  arguments: Node[];
   modifierName: Identifier;
 }
 
