@@ -24,9 +24,9 @@ export function transformConstructor(
   const constructorNode = getConstructor(contractNode);
 
   let removeConstructor = null;
-  let constructorBodySource = null;
-  let constructorParameterList = null;
-  let constructorArgsList = null;
+  let constructorBodySource = '';
+  let constructorParameterList = '';
+  let constructorArgsList = '';
   if (constructorNode) {
     constructorBodySource = stripBraces(getNodeSources(constructorNode.body, source)[2]);
 
@@ -43,10 +43,6 @@ export function transformConstructor(
 
     constructorArgsList = constructorNode.parameters.parameters.map(par => par.name).join(', ');
   }
-
-  constructorParameterList = constructorParameterList ?? '';
-  constructorBodySource = constructorBodySource ?? '';
-  constructorArgsList = constructorArgsList ?? '';
 
   const [start, , contractSource] = getNodeSources(contractNode, source);
 
