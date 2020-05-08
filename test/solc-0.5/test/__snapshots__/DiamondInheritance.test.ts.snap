@@ -6,11 +6,11 @@ import \\"../DiamondInheritance.sol\\";
 import \\"./Initializable.sol\\";
 
 contract DAUpgradeable is Initializable {
-    function __DA_init() internal {
+    function __DA_init() internal initializer {
         __DA_init_unchained();
     }
 
-    function __DA_init_unchained() internal {
+    function __DA_init_unchained() internal initializer {
         
         foo = 42;
         
@@ -24,12 +24,12 @@ contract DAUpgradeable is Initializable {
 }
 
 contract DB1Upgradeable is Initializable, DAUpgradeable {
-    function __DB1_init() internal {
+    function __DB1_init() internal initializer {
         __DA_init_unchained();
         __DB1_init_unchained();
     }
 
-    function __DB1_init_unchained() internal {
+    function __DB1_init_unchained() internal initializer {
         
         hello = \\"hello\\";
         
@@ -42,12 +42,12 @@ contract DB1Upgradeable is Initializable, DAUpgradeable {
 }
 
 contract DB2Upgradeable is Initializable, DAUpgradeable {
-    function __DB2_init() internal {
+    function __DB2_init() internal initializer {
         __DA_init_unchained();
         __DB2_init_unchained();
     }
 
-    function __DB2_init_unchained() internal {
+    function __DB2_init_unchained() internal initializer {
         
         bar = true;
         
@@ -60,14 +60,14 @@ contract DB2Upgradeable is Initializable, DAUpgradeable {
 }
 
 contract DCUpgradeable is Initializable, DB2Upgradeable, DB1Upgradeable {
-    function __DC_init() internal {
+    function __DC_init() internal initializer {
         __DA_init_unchained();
         __DB2_init_unchained();
         __DB1_init_unchained();
         __DC_init_unchained();
     }
 
-    function __DC_init_unchained() internal {
+    function __DC_init_unchained() internal initializer {
         
         owner = address(0x123);
         

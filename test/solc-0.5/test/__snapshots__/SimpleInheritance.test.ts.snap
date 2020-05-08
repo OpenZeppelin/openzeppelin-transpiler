@@ -6,11 +6,11 @@ import \\"../SimpleInheritance.sol\\";
 import \\"./Initializable.sol\\";
 
 contract SIAUpgradeable is Initializable {
-    function __SIA_init() internal {
+    function __SIA_init() internal initializer {
         __SIA_init_unchained();
     }
 
-    function __SIA_init_unchained() internal {
+    function __SIA_init_unchained() internal initializer {
         
         
         emit log(\\"SIA\\");
@@ -23,12 +23,12 @@ contract SIAUpgradeable is Initializable {
 }
 
 contract SIBUpgradeable is Initializable, SIAUpgradeable {
-    function __SIB_init() internal {
+    function __SIB_init() internal initializer {
         __SIA_init_unchained();
         __SIB_init_unchained();
     }
 
-    function __SIB_init_unchained() internal {
+    function __SIB_init_unchained() internal initializer {
         
         val = 123;
         
@@ -38,13 +38,13 @@ contract SIBUpgradeable is Initializable, SIAUpgradeable {
 }
 
 contract SICUpgradeable is Initializable, SIBUpgradeable {
-    function __SIC_init() internal {
+    function __SIC_init() internal initializer {
         __SIA_init_unchained();
         __SIB_init_unchained();
         __SIC_init_unchained();
     }
 
-    function __SIC_init_unchained() internal {
+    function __SIC_init_unchained() internal initializer {
         
         bar = \\"hello\\";
         

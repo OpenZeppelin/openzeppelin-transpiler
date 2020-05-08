@@ -6,11 +6,11 @@ import \\"../StringConstructor.sol\\";
 import \\"./Initializable.sol\\";
 
 contract StringConstructorUpgradeable is Initializable {
-    function __StringConstructor_init(string memory message) internal {
+    function __StringConstructor_init(string memory message) internal initializer {
         __StringConstructor_init_unchained(message);
     }
 
-    function __StringConstructor_init_unchained(string memory message) internal {
+    function __StringConstructor_init_unchained(string memory message) internal initializer {
         
         
 

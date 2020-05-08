@@ -6,11 +6,11 @@ import \\"../ClassInheritance.sol\\";
 import \\"./Initializable.sol\\";
 
 contract CIAUpgradeable is Initializable {
-    function __CIA_init(uint bar) internal {
+    function __CIA_init(uint bar) internal initializer {
         __CIA_init_unchained(bar);
     }
 
-    function __CIA_init_unchained(uint bar) internal {
+    function __CIA_init_unchained(uint bar) internal initializer {
         
         
         foo = bar;
@@ -24,12 +24,12 @@ contract CIAUpgradeable is Initializable {
 }
 
 contract CIBUpgradeable is Initializable, CIAUpgradeable {
-    function __CIB_init() internal {
+    function __CIB_init() internal initializer {
         __CIA_init_unchained(324);
         __CIB_init_unchained();
     }
 
-    function __CIB_init_unchained() internal {
+    function __CIB_init_unchained() internal initializer {
         
         val = 123;
         

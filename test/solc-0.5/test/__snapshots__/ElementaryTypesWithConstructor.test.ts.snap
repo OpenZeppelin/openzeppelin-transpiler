@@ -6,11 +6,11 @@ import \\"../ElementaryTypesWithConstructor.sol\\";
 import \\"./Initializable.sol\\";
 
 contract ElementaryTypesWithConstructorUpgradeable is Initializable  {
-    function __ElementaryTypesWithConstructor_init() internal {
+    function __ElementaryTypesWithConstructor_init() internal initializer {
         __ElementaryTypesWithConstructor_init_unchained();
     }
 
-    function __ElementaryTypesWithConstructor_init_unchained() internal {
+    function __ElementaryTypesWithConstructor_init_unchained() internal initializer {
         
         
         owner = address(0x123);

@@ -60,11 +60,11 @@ export function transformConstructor(
       start: start + match[0].length,
       end: start + match[0].length,
       text: `
-    function __${contractNode.name}_init(${constructorParameterList}) internal {${superCalls}
+    function __${contractNode.name}_init(${constructorParameterList}) internal initializer {${superCalls}
         __${contractNode.name}_init_unchained(${constructorArgsList});
     }
 
-    function __${contractNode.name}_init_unchained(${constructorParameterList}) internal {
+    function __${contractNode.name}_init_unchained(${constructorParameterList}) internal initializer {
         ${declarationInserts}
         ${constructorBodySource}
     }\n`,

@@ -6,11 +6,11 @@ import \\"../Override.sol\\";
 import \\"./Initializable.sol\\";
 
 contract Parent1Upgradeable is Initializable {
-    function __Parent1_init() internal {
+    function __Parent1_init() internal initializer {
         __Parent1_init_unchained();
     }
 
-    function __Parent1_init_unchained() internal {
+    function __Parent1_init_unchained() internal initializer {
         
         
     }
@@ -23,11 +23,11 @@ contract Parent1Upgradeable is Initializable {
 }
 
 contract Parent2Upgradeable is Initializable {
-    function __Parent2_init() internal {
+    function __Parent2_init() internal initializer {
         __Parent2_init_unchained();
     }
 
-    function __Parent2_init_unchained() internal {
+    function __Parent2_init_unchained() internal initializer {
         
         
     }
@@ -37,13 +37,13 @@ contract Parent2Upgradeable is Initializable {
 }
 
 contract ChildUpgradeable is Initializable, Parent1Upgradeable, Parent2Upgradeable {
-    function __Child_init() internal {
+    function __Child_init() internal initializer {
         __Parent1_init_unchained();
         __Parent2_init_unchained();
         __Child_init_unchained();
     }
 
-    function __Child_init_unchained() internal {
+    function __Child_init_unchained() internal initializer {
         
         
     }
