@@ -6,6 +6,14 @@ import \\"../ElementaryTypesWithConstructor.sol\\";
 import \\"./Initializable.sol\\";
 
 contract ElementaryTypesWithConstructorUpgradeable is Initializable  {
+    address public owner;
+    bool active;
+    string hello;
+    int count;
+    uint ucount;
+    bytes32 samevar;
+
+    
     function __ElementaryTypesWithConstructor_init() internal initializer {
         __ElementaryTypesWithConstructor_init_unchained();
     }
@@ -22,14 +30,6 @@ contract ElementaryTypesWithConstructorUpgradeable is Initializable  {
     
     }
 
-    address public owner;
-    bool active;
-    string hello;
-    int count;
-    uint ucount;
-    bytes32 samevar;
-
-    
 }
 "
 `;

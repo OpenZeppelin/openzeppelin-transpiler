@@ -16,46 +16,48 @@ export function transformConstructor(
   source: string,
   contracts: Artifact[],
   contractsToArtifactsMap: Record<string, Artifact>,
-): Transformation[] {
+): Transformation {
   const superCalls = buildSuperCallsForChain(contractNode, source, contracts, contractsToArtifactsMap);
 
   const declarationInserts = getVarInitsPart(contractNode, source);
 
   const constructorNode = getConstructor(contractNode);
 
-  let removeConstructor = null;
   let constructorBodySource = '';
   let constructorParameterList = '';
   let constructorArgsList = '';
+
   if (constructorNode) {
     constructorBodySource = stripBraces(getNodeSources(constructorNode.body, source)[2]);
-
     constructorParameterList = stripBraces(getNodeSources(constructorNode.parameters, source)[2]);
-
-    const [start, len] = getNodeSources(constructorNode, source);
-
-    removeConstructor = {
-      kind: 'transform-constructor',
-      start: start,
-      end: start + len,
-      text: '',
-    };
-
     constructorArgsList = constructorNode.parameters.parameters.map(par => par.name).join(', ');
   }
 
-  const [start, , contractSource] = getNodeSources(contractNode, source);
+  let bounds: { start: number, end: number };
 
-  const match = /.*\bcontract[^\{]*{/.exec(contractSource);
-  if (!match) throw new Error(`Can't find contract pattern in ${contractSource}`);
+  if (constructorNode) {
+    const [start, len] = getNodeSources(constructorNode, source);
+    bounds = {
+      start,
+      end: start + len,
+    };
+  } else {
+    const [contractStart, , contractSource] = getNodeSources(contractNode, source);
+    const match = /.*\bcontract[^\{]*{/.exec(contractSource);
+    if (match == undefined) {
+      throw new Error(`Can't find contract pattern in ${contractSource}`);
+    }
+    const inside = contractStart + match[0].length;
+    bounds = {
+      start: inside,
+      end: inside,
+    };
+  }
 
-  return [
-    removeConstructor,
-    {
-      kind: 'transform-constructor',
-      start: start + match[0].length,
-      end: start + match[0].length,
-      text: `
+  return {
+    ...bounds,
+    kind: 'transform-constructor',
+    text: `
     function __${contractNode.name}_init(${constructorParameterList}) internal initializer {${superCalls}
         __${contractNode.name}_init_unchained(${constructorArgsList});
     }
@@ -64,6 +66,5 @@ export function transformConstructor(
         ${declarationInserts}
         ${constructorBodySource}
     }\n`,
-    },
-  ].filter(tran => tran !== null) as Transformation[];
+  };
 }

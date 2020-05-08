@@ -98,7 +98,7 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
       ...fileTrans[art.sourcePath].transformations,
       prependBaseClass(contractNode, source, 'Initializable'),
       ...transformParentsNames(contractNode, source, contractsToTranspile),
-      ...transformConstructor(contractNode, source, contractsToTranspile, contractsToArtifactsMap),
+      transformConstructor(contractNode, source, contractsToTranspile, contractsToArtifactsMap),
       ...purgeVarInits(contractNode, source),
       transformContractName(contractNode, source, `${contractName}Upgradeable`),
       ...transformOverrides(contractNode, source, contractsToTranspile, contractsToArtifactsMap),

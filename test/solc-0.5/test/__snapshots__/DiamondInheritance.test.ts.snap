@@ -6,6 +6,9 @@ import \\"../DiamondInheritance.sol\\";
 import \\"./Initializable.sol\\";
 
 contract DAUpgradeable is Initializable {
+    event Log(string);
+    uint256 public foo ;
+    
     function __DA_init() internal initializer {
         __DA_init_unchained();
     }
@@ -18,12 +21,11 @@ contract DAUpgradeable is Initializable {
     
     }
 
-    event Log(string);
-    uint256 public foo ;
-    
 }
 
 contract DB1Upgradeable is Initializable, DAUpgradeable {
+    string public hello ;
+    
     function __DB1_init() internal initializer {
         __DA_init_unchained();
         __DB1_init_unchained();
@@ -37,11 +39,11 @@ contract DB1Upgradeable is Initializable, DAUpgradeable {
     
     }
 
-    string public hello ;
-    
 }
 
 contract DB2Upgradeable is Initializable, DAUpgradeable {
+    bool public bar ;
+    
     function __DB2_init() internal initializer {
         __DA_init_unchained();
         __DB2_init_unchained();
@@ -55,11 +57,11 @@ contract DB2Upgradeable is Initializable, DAUpgradeable {
     
     }
 
-    bool public bar ;
-    
 }
 
 contract DCUpgradeable is Initializable, DB2Upgradeable, DB1Upgradeable {
+    address public owner ;
+    
     function __DC_init() internal initializer {
         __DA_init_unchained();
         __DB2_init_unchained();
@@ -75,7 +77,5 @@ contract DCUpgradeable is Initializable, DB2Upgradeable, DB1Upgradeable {
     
     }
 
-    address public owner ;
-    
 }"
 `;

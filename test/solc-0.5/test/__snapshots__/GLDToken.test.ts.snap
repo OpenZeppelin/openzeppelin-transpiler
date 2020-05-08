@@ -9,6 +9,7 @@ import \\"../GLDToken.sol\\";
 import \\"./Initializable.sol\\";
 
 contract GLDTokenUpgradeable is Initializable, ERC20Upgradeable, ERC20DetailedUpgradeable {
+    
     function __GLDToken_init(uint256 initialSupply) internal initializer {
         __Context_init_unchained();
         __ERC20_init_unchained();
@@ -23,7 +24,6 @@ contract GLDTokenUpgradeable is Initializable, ERC20Upgradeable, ERC20DetailedUp
     
     }
 
-    
 }
 "
 `;
@@ -39,6 +39,16 @@ import \\"../../../../Initializable.sol\\";
  * @dev Optional functions from the ERC20 standard.
  */
 contract ERC20DetailedUpgradeable is Initializable, IERC20 {
+    string private _name;
+    string private _symbol;
+    uint8 private _decimals;
+
+    /**
+     * @dev Sets the values for \`name\`, \`symbol\`, and \`decimals\`. All three of
+     * these values are immutable: they can only be set once during
+     * construction.
+     */
+    
     function __ERC20Detailed_init(string memory name, string memory symbol, uint8 decimals) internal initializer {
         __ERC20Detailed_init_unchained(name, symbol, decimals);
     }
@@ -52,16 +62,6 @@ contract ERC20DetailedUpgradeable is Initializable, IERC20 {
     
     }
 
-    string private _name;
-    string private _symbol;
-    uint8 private _decimals;
-
-    /**
-     * @dev Sets the values for \`name\`, \`symbol\`, and \`decimals\`. All three of
-     * these values are immutable: they can only be set once during
-     * construction.
-     */
-    
 
     /**
      * @dev Returns the name of the token.
@@ -359,6 +359,9 @@ import \\"../../../Initializable.sol\\";
  * This contract is only required for intermediate, library-like contracts.
  */
 contract ContextUpgradeable is Initializable {
+    // Empty internal constructor, to prevent people from mistakenly deploying
+    // an instance of this contract, which should be used via inheritance.
+    
     function __Context_init() internal initializer {
         __Context_init_unchained();
     }
@@ -368,9 +371,6 @@ contract ContextUpgradeable is Initializable {
          
     }
 
-    // Empty internal constructor, to prevent people from mistakenly deploying
-    // an instance of this contract, which should be used via inheritance.
-    
     // solhint-disable-previous-line no-empty-blocks
 
     function _msgSender() internal view returns (address payable) {

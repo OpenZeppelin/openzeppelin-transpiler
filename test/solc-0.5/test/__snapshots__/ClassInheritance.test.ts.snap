@@ -6,6 +6,9 @@ import \\"../ClassInheritance.sol\\";
 import \\"./Initializable.sol\\";
 
 contract CIAUpgradeable is Initializable {
+    uint256 public foo;
+    event log(string);
+    
     function __CIA_init(uint bar) internal initializer {
         __CIA_init_unchained(bar);
     }
@@ -18,9 +21,6 @@ contract CIAUpgradeable is Initializable {
     
     }
 
-    uint256 public foo;
-    event log(string);
-    
 }
 
 contract CIBUpgradeable is Initializable, CIAUpgradeable {
