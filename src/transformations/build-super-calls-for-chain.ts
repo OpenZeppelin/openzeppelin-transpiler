@@ -3,12 +3,12 @@ import { flatten, keyBy } from 'lodash';
 import { getNodeSources, getConstructor, getContract, isModifierInvocation } from '../solc/ast-utils';
 
 import { getInheritanceChain } from '../solc/get-inheritance-chain';
-import { ContractDefinition, ModifierInvocation, InheritanceSpecifier, Literal, FunctionDefinition } from '../solc/ast-node';
+import { ContractDefinition, ModifierInvocation, InheritanceSpecifier, Node, FunctionDefinition } from '../solc/ast-node';
 import { Artifact } from '../solc/artifact';
 
 // builds an __init call with given arguments, for example
 // ERC20DetailedUpgradeable.__init(false, "Gold", "GLD", 18)
-function buildSuperCall(args: Literal[], name: string, source: string): string {
+function buildSuperCall(args: Node[], name: string, source: string): string {
   let superCall = `\n        __${name}_init_unchained(`;
   if (args && args.length) {
     superCall += args.map(arg => getNodeSources(arg, source)[2]).join(', ');
