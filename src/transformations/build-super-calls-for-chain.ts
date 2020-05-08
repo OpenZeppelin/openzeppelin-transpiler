@@ -21,7 +21,6 @@ function buildSuperCall(args: Node[], name: string, source: string): string {
 // ERC20DetailedUpgradeable.__init(false, 'Gold', 'GLD', 18);
 export function buildSuperCallsForChain(
   contractNode: ContractDefinition,
-  source: string,
   contractsToTranspile: Artifact[],
   contractsToArtifactsMap: Record<string, Artifact>,
 ): string {
@@ -38,47 +37,48 @@ export function buildSuperCallsForChain(
   // since the contract was compiled successfully, we are guaranteed that each base contract
   // will show up in at most one of these two places across all contracts in the chain (can also be zero)
   const ctorCalls = keyBy(flatten(
-    chain.map(base => {
+    chain.map(parentNode => {
       const res = [];
-      const constructorNode = getConstructor(base);
+      const constructorNode = getConstructor(parentNode);
+      const { source } = contractsToArtifactsMap[parentNode.name];
       if (constructorNode) {
-        for (const mod of constructorNode.modifiers) {
+        for (const call of constructorNode.modifiers) {
           // we only care about modifiers that reference base contracts
-          if (chainIds.has(mod.modifierName.referencedDeclaration)) {
-            res.push(mod);
+          if (chainIds.has(call.modifierName.referencedDeclaration)) {
+            res.push({ call, source });
           }
         }
       }
-      for (const spec of base.baseContracts) {
-        if (spec.arguments != null) {
-          res.push(spec)
+      for (const call of parentNode.baseContracts) {
+        if (call.arguments != null) {
+          res.push({ call, source })
         }
       }
       return res;
     }),
   ), mod => (
-    mod.nodeType === 'ModifierInvocation'
-    ? mod.modifierName.referencedDeclaration
-    : mod.baseName.referencedDeclaration
+    mod.call.nodeType === 'ModifierInvocation'
+    ? mod.call.modifierName.referencedDeclaration
+    : mod.call.baseName.referencedDeclaration
   ));
 
   // once we have gathered all constructor calls for each parent, we linearize
   // them according to chain. we also fill in the implicit constructor calls
   const linearizedCtorCalls: string[] = [];
 
-  for (const art of chain) {
-    if (art === contractNode) continue;
+  for (const parentNode of chain) {
+    if (parentNode === contractNode) continue;
 
-    let args = ctorCalls[art.id]?.arguments;
+    let args = ctorCalls[parentNode.id]?.call?.arguments;
 
-    if (args == undefined && isImplicitlyConstructed(art)) {
+    if (args == undefined && isImplicitlyConstructed(parentNode)) {
       args = [];
     }
 
     if (args) {
       // TODO: we have to use the name in the lexical context and not necessarily
       // the original contract name
-      linearizedCtorCalls.push(buildSuperCall(args, art.name, source));
+      linearizedCtorCalls.push(buildSuperCall(args, parentNode.name, ctorCalls[parentNode.id]?.source));
     }
   }
 

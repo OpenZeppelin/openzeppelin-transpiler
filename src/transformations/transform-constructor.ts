@@ -17,7 +17,7 @@ export function transformConstructor(
   contracts: Artifact[],
   contractsToArtifactsMap: Record<string, Artifact>,
 ): Transformation {
-  const superCalls = buildSuperCallsForChain(contractNode, source, contracts, contractsToArtifactsMap);
+  const superCalls = buildSuperCallsForChain(contractNode, contracts, contractsToArtifactsMap);
 
   const declarationInserts = getVarInitsPart(contractNode, source);
 

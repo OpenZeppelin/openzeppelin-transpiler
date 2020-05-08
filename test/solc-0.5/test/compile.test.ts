@@ -15,6 +15,7 @@ describe('When all the contracts transpilied and saved to contracts folder', ():
           'StringConstructor',
           'ERC20',
           'ERC20Detailed',
+          'Local',
         ],
         './build/contracts/',
       );
