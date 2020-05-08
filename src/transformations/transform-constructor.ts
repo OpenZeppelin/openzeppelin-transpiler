@@ -54,10 +54,25 @@ export function transformConstructor(
     };
   }
 
+  const isMock = contractsToArtifactsMap[contractNode.name].sourcePath.includes('mocks');
+  const isERC20Owned = contractNode.name === '__unstable__ERC20Owned';
+
+  const mockConstructor = !(isMock || isERC20Owned) ? '' : `
+    constructor(${constructorParameterList}) public {
+        __${contractNode.name}_init(${constructorArgsList});
+    }\n`;
+
+  const isPreset = contractNode.name.includes('Preset');
+
+  const presetConstructor = !isPreset ? '' : `
+    function initialize(${constructorParameterList}) public {
+        __${contractNode.name}_init(${constructorArgsList});
+    }\n`;
+
   return {
     ...bounds,
     kind: 'transform-constructor',
-    text: `
+    text: `${mockConstructor}${presetConstructor}
     function __${contractNode.name}_init(${constructorParameterList}) internal initializer {${superCalls}
         __${contractNode.name}_init_unchained(${constructorArgsList});
     }

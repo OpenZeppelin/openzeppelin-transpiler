@@ -71,24 +71,24 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
 
       const imports = [initializablePath];
 
-      if (art.sourcePath.startsWith('.')) {
-        imports.unshift(
-          relativePath(
-            path.join('__upgradeable__', path.dirname(art.sourcePath)),
-            path.join(art.sourcePath),
-          )
-        );
-      } else {
-        imports.unshift(art.sourcePath);
-      }
+      // if (art.sourcePath.startsWith('.')) {
+      //   imports.unshift(
+      //     relativePath(
+      //       path.join('__upgradeable__', path.dirname(art.sourcePath)),
+      //       path.join(art.sourcePath),
+      //     )
+      //   );
+      // } else {
+      //   imports.unshift(art.sourcePath);
+      // }
 
       const directive = '\n' + imports.map(i => `import "${i}";`).join('\n');
 
       fileTrans[art.sourcePath] = {
         transformations: [
           appendDirective(art.ast, directive),
-          ...fixImportDirectives(art, artifacts, contractsToTranspile),
-          ...purgeExceptContracts(art.ast, contractsToTranspile),
+          // ...fixImportDirectives(art, artifacts, contractsToTranspile),
+          // ...purgeExceptContracts(art.ast, contractsToTranspile),
         ],
         source: '',
       };
