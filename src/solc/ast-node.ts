@@ -69,6 +69,7 @@ export interface FunctionDefinition extends Node {
   modifiers: ModifierInvocation[];
   body: Block;
   overrides: OverrideSpecifier | null;
+  stateMutability: 'payable' | 'unpayable';
 }
 
 export interface EventDefinition extends Node {

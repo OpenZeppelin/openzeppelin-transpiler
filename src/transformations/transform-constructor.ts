@@ -57,8 +57,10 @@ export function transformConstructor(
   const isMock = contractsToArtifactsMap[contractNode.name].sourcePath.includes('mocks');
   const isERC20Owned = contractNode.name === '__unstable__ERC20Owned';
 
+  const isConstructorPayable = constructorNode?.stateMutability === 'payable';
+
   const mockConstructor = !(isMock || isERC20Owned) ? '' : `
-    constructor(${constructorParameterList}) public {
+    constructor(${constructorParameterList}) public ${isConstructorPayable ? 'payable' : ''} {
         __${contractNode.name}_init(${constructorArgsList});
     }\n`;
 
