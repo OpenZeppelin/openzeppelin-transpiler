@@ -12,10 +12,13 @@ export function transformContractName(
   const subStart = nodeSource.indexOf(contractNode.name);
   if (subStart === -1) throw new Error(`Can't find ${contractNode.name} in ${nodeSource}`);
 
+  const oldName = contractNode.name;
+  const keepName = oldName === '__unstable__ERC20Owned';
+
   return {
     kind: 'transform-contract-name',
     start: start + subStart,
     end: start + subStart + contractNode.name.length,
-    text: newName,
+    text: keepName ? oldName : newName,
   };
 }
