@@ -15,6 +15,7 @@ import {
   fixImportDirectives,
   purgeVarInits,
   transformOverrides,
+  addStorageGaps,
 } from './transformations';
 import { getInheritanceChain } from './solc/get-inheritance-chain';
 import { Artifact } from './solc/artifact';
@@ -102,6 +103,7 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
       ...purgeVarInits(contractNode, source),
       transformContractName(contractNode, source, `${contractName}Upgradeable`),
       ...transformOverrides(contractNode, source, contractsToTranspile, contractsToArtifactsMap),
+      ...addStorageGaps(art, contractNode),
     ];
   }
 

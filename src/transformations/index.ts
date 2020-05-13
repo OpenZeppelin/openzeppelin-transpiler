@@ -7,3 +7,4 @@ export { transformConstructor } from './transform-constructor';
 export { purgeExceptContracts } from './purge-contracts';
 export { fixImportDirectives } from './fix-import-directives';
 export { transformOverrides } from './transform-overrides';
+export { addStorageGaps } from './add-storage-gaps';
