@@ -1,6 +1,6 @@
 import { flatten, keyBy } from 'lodash';
 
-import { getNodeSources, getConstructor, getContract, isModifierInvocation } from '../solc/ast-utils';
+import { getNodeSources, getConstructor, getContract, isModifierInvocation, getVarDeclarations } from '../solc/ast-utils';
 
 import { getInheritanceChain } from '../solc/get-inheritance-chain';
 import { ContractDefinition, ModifierInvocation, InheritanceSpecifier, Node, FunctionDefinition } from '../solc/ast-node';
@@ -87,7 +87,6 @@ export function buildSuperCallsForChain(
 
 function isImplicitlyConstructed(contract: ContractDefinition): boolean {
   const ctor = getConstructor(contract);
-  return !contract.abstract &&
-    contract.fullyImplemented &&
-    (ctor == undefined || ctor.parameters.parameters.length === 0);
+
+  return (contract.contractKind === 'contract') && (ctor == undefined || ctor.parameters.parameters.length === 0);
 }
