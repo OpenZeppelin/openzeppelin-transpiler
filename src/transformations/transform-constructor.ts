@@ -64,7 +64,7 @@ export function transformConstructor(
         __${contractNode.name}_init(${constructorArgsList});
     }\n`;
 
-  const isPreset = contractNode.name.includes('Preset') && !isMock;
+  const isPreset = (contractNode.name.includes('Preset') || contractNode.name === 'Escrow') && !isMock;
 
   const presetConstructor = !isPreset ? '' : `
     function initialize(${constructorParameterList}) public {
