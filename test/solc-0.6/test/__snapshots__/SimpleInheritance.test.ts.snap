@@ -1,0 +1,60 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SimpleInheritance contract is converted to a valid SICUpgradeable contract 1`] = `
+"pragma solidity ^0.6.0;
+import \\"../SimpleInheritance.sol\\";
+import \\"./Initializable.sol\\";
+
+contract SIAUpgradeable is Initializable {
+    uint256 public foo;
+    event log(string);
+    
+    function __SIA_init() internal initializer {
+        __SIA_init_unchained();
+    }
+
+    function __SIA_init_unchained() internal initializer {
+        
+        
+        emit log(\\"SIA\\");
+    
+    }
+
+}
+
+contract SIBUpgradeable is Initializable, SIAUpgradeable {
+    function __SIB_init() internal initializer {
+        __SIA_init_unchained();
+        __SIB_init_unchained();
+    }
+
+    function __SIB_init_unchained() internal initializer {
+        
+        val = 123;
+        
+    }
+
+    uint256 public val ;
+}
+
+contract SICUpgradeable is Initializable, SIBUpgradeable {
+    string public bar ;
+    
+    function __SIC_init() internal initializer {
+        __SIA_init_unchained();
+        __SIB_init_unchained();
+        __SIC_init_unchained();
+    }
+
+    function __SIC_init_unchained() internal initializer {
+        
+        bar = \\"hello\\";
+        
+        bar = \\"changed\\";
+        emit log(\\"SIC\\");
+    
+    }
+
+}
+"
+`;

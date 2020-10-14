@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`StringConstructor contract is converted to a valid StringConstructorUpgradeable contract 1`] = `
+"pragma solidity ^0.6.0;
+import \\"../StringConstructor.sol\\";
+import \\"./Initializable.sol\\";
+
+contract StringConstructorUpgradeable is Initializable {
+    
+    function __StringConstructor_init(string memory message) internal initializer {
+        __StringConstructor_init_unchained(message);
+    }
+
+    function __StringConstructor_init_unchained(string memory message) internal initializer {
+        
+        
+
+    
+    }
+
+}
+"
+`;

@@ -5,6 +5,14 @@ describe('When all the contracts transpilied and saved to contracts folder', ():
     async (): Promise<void> => {
       await transpileAndSaveContracts(
         [
+          'ElementaryTypesWithConstructor',
+          'ElementaryTypes',
+          'Deep',
+          'SIC',
+          'DC',
+          'CIB',
+          'StringConstructor',
+          'Local',
           'Parent1',
           'Parent2',
           'Child',
