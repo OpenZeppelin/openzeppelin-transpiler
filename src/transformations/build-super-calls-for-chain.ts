@@ -44,7 +44,8 @@ export function buildSuperCallsForChain(
       if (constructorNode) {
         for (const call of constructorNode.modifiers) {
           // we only care about modifiers that reference base contracts
-          if (chainIds.has(call.modifierName.referencedDeclaration)) {
+          const { referencedDeclaration } = call.modifierName;
+          if (referencedDeclaration != null && chainIds.has(referencedDeclaration)) {
             res.push({ call, source });
           }
         }
@@ -56,11 +57,16 @@ export function buildSuperCallsForChain(
       }
       return res;
     }),
-  ), mod => (
-    mod.call.nodeType === 'ModifierInvocation'
-    ? mod.call.modifierName.referencedDeclaration
-    : mod.call.baseName.referencedDeclaration
-  ));
+  ), mod => {
+    if (mod.call.nodeType === 'ModifierInvocation') {
+      if (mod.call.modifierName.referencedDeclaration == null) {
+        throw new Error('Missing referencedDeclaration field');
+      }
+      return mod.call.modifierName.referencedDeclaration;
+    } else {
+      return mod.call.baseName.referencedDeclaration;
+    }
+  });
 
   // once we have gathered all constructor calls for each parent, we linearize
   // them according to chain. we also fill in the implicit constructor calls

@@ -1,6 +1,7 @@
 import Ajv from 'ajv';
 import util from 'util';
-import astNodeSchema from './schemas/ast';
+import astNodeSchema from 'solidity-ast/schema.json';
+import { findAll } from 'solidity-ast/utils';
 import {
   AnyNode,
   Node,
@@ -15,17 +16,13 @@ import {
 import { Artifact } from './artifact';
 
 const nodeSchemaValidator = new Ajv({ allErrors: true });
+nodeSchemaValidator.addMetaSchema(require('ajv/lib/refs/json-schema-draft-06.json'));
 
 const isASTNode = nodeSchemaValidator.compile(astNodeSchema);
 
 export function throwIfInvalidNode(node: AnyNode): void {
   if (!isASTNode(node)) {
     throw new Error(util.inspect(node) + ' is not a valid AST node.');
-  }
-  if (node.nodes) {
-    for (const child of node.nodes) {
-      throwIfInvalidNode(child);
-    }
   }
 }
 
@@ -81,50 +78,47 @@ export function getNodeSources(node: Node, source: string): [number, number, str
   return [start, len, source.slice(start, start + len)];
 }
 
-export function getFirstNode<T extends AnyNode>(node: Node, predicate: (node: AnyNode) => node is T): T | null {
-  const ret = getNodes(node, predicate);
-  return ret.length ? ret[0] : null;
-}
-
-export function getNodes<T extends AnyNode>(node: AnyNode, predicate: (node: AnyNode) => node is T): T[] {
-  if (!node.nodes) throw new Error('Node has to have nodes defined');
-  return node.nodes.filter(predicate);
-}
-
 export function getImportDirectives(node: Node): ImportDirective[] {
-  return getNodes(node, isImportDirective);
+  return [...findAll('ImportDirective', node)];
 }
 
 export function getPragmaDirectives(node: Node): PragmaDirective[] {
-  return getNodes(node, isPragmaDirective);
+  return [...findAll('PragmaDirective', node)];
 }
 
 export function getVarDeclarations(node: Node): VariableDeclaration[] {
-  return getNodes(node, isVarDeclaration);
+  return [...findAll('VariableDeclaration', node)];
 }
 
 export function getContracts(node: Node): ContractDefinition[] {
-  return getNodes(node, isContractType);
+  return [...findAll('ContractDefinition', node)];
 }
 
 export function getConstructor(node: ContractDefinition): FunctionDefinition | null {
-  return getFirstNode(
-    node,
-    (node): node is FunctionDefinition => isFunctionDefinition(node) && node.kind === 'constructor',
-  );
+  for (const fndef of findAll('FunctionDefinition', node)) {
+    if (fndef.kind === 'constructor') {
+      return fndef;
+    }
+  }
+  return null;
 }
 
 export function getContract(art: Artifact): ContractDefinition {
-  const ret = getFirstNode(
-    art.ast,
-    (node): node is ContractDefinition => isContractDefinition(node) && node.name === art.contractName,
-  );
-  if (ret == null) throw new Error(`Can't find ${art.contractName} in ${util.inspect(art)}`);
-  return ret;
+  for (const contract of findAll('ContractDefinition', art.ast)) {
+    if (contract.name === art.contractName) {
+      return contract;
+    }
+  }
+  throw new Error(`Can't find ${art.contractName} in ${util.inspect(art)}`);
 }
 
 export function getContractById(node: Node, id: number): ContractDefinition | null {
-  return getFirstNode(node, (node): node is ContractDefinition => isContractDefinition(node) && node.id === id);
+  for (const contract of findAll('ContractDefinition', node)) {
+    if (contract.id === id) {
+      return contract;
+    }
+  }
+  return null;
 }
 
 export function stripBraces(source: string): string {

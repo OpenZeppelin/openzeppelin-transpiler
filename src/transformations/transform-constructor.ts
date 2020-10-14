@@ -28,6 +28,7 @@ export function transformConstructor(
   let constructorArgsList = '';
 
   if (constructorNode) {
+    if (constructorNode.body == null) throw new Error('Missing body for constructor definition');
     constructorBodySource = stripBraces(getNodeSources(constructorNode.body, source)[2]);
     constructorParameterList = stripBraces(getNodeSources(constructorNode.parameters, source)[2]);
     constructorArgsList = constructorNode.parameters.parameters.map(par => par.name).join(', ');

@@ -6,6 +6,7 @@
     "module": "commonjs",
     "moduleResolution": "Node",
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "target": "es2017",
     "declaration": true,
     "declarationMap": true,
