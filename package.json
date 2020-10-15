@@ -41,7 +41,7 @@
   "dependencies": {
     "ajv": "^6.10.2",
     "lodash": "^4.17.15",
-    "solidity-ast": "^0.4.6",
+    "solidity-ast": "^0.4.10",
     "source-map-support": "^0.5.19"
   },
   "devDependencies": {
