@@ -98,27 +98,12 @@ function transpileFile(
   contractsToArtifactsMap: ContractsToArtifactsMap
 ): Transformation[] {
 
-  const initializablePath = relativePath(path.dirname(file), 'Initializable.sol');
-
-  const imports = [initializablePath];
-
-  if (file.startsWith('.')) {
-    imports.unshift(
-      relativePath(
-        path.join('__upgradeable__', path.dirname(file)),
-        path.join(file),
-      )
-    );
-  } else {
-    imports.unshift(file);
-  }
-
-  const directive = '\n' + imports.map(i => `import "${i}";`).join('\n');
-
   const transformations = [];
 
+  const initializablePath = relativePath(path.dirname(file), 'Initializable.sol');
+
   transformations.push(
-    appendDirective(data.ast, directive),
+    appendDirective(data.ast, `\nimport "${initializablePath}";`),
     ...fixImportDirectives(data.ast, file, allArtifacts),
   );
 
