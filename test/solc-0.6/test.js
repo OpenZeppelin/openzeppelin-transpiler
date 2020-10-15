@@ -30,6 +30,6 @@ for (const fileName of fileNames) {
   test(fileName, t => {
     const file = t.context.files.find(f => f.fileName === fileName);
     t.truthy(file, 'file not found');
-    t.snapshot(file.source);
+    t.snapshot(file);
   });
 }
