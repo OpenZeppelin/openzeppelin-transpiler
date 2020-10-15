@@ -50,11 +50,9 @@ export function transpileContracts(artifacts: Artifact[], contractsDir: string):
 
   // build a array of transformations per Solidity file
   const fileTrans: Record<string, FileTransformation> = {};
+
   for (const art of artifacts) {
-    const contractName = art.contractName;
-
-    const source = art.source;
-
+    const { contractName, source } = art;
     const contractNode = getContract(art);
 
     if (!fileTrans[art.sourcePath]) {
@@ -96,16 +94,18 @@ export function transpileContracts(artifacts: Artifact[], contractsDir: string):
 
   // build a final array of files to return
   const outputFiles: OutputFile[] = [];
-  for (const art of artifacts) {
-    const contractName = art.contractName;
 
-    const source = art.source;
+  for (const art of artifacts) {
+    const { contractName, source } = art;
 
     const fileTran = fileTrans[art.sourcePath];
+
     if (fileTran.source === undefined) {
       fileTran.source = applyTransformations(art.sourcePath, source, fileTran.transformations);
     }
+
     const entry = outputFiles.find(o => o.fileName === path.basename(art.sourcePath));
+
     if (!entry) {
       const upgradeablePath = path.normalize(art.sourcePath);
 
