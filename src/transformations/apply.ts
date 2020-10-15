@@ -1,6 +1,6 @@
-import { Transformation } from './transformation';
+import { Transformation } from './type';
 
-export function transpile(sourcePath: string, source: string, transformations: Transformation[]): string {
+export function applyTransformations(sourcePath: string, source: string, transformations: Transformation[]): string {
   let cursor = 0;
 
   const sorted = transformations.sort((a, b) => {
@@ -17,7 +17,7 @@ export function transpile(sourcePath: string, source: string, transformations: T
     }
   }
 
-  let transpiledCode = sorted.reduce((output, trans) => {
+  let transformedSource = sorted.reduce((output, trans) => {
     const { start, end, text } = trans;
     output += source.slice(cursor, start);
     output += text;
@@ -25,6 +25,6 @@ export function transpile(sourcePath: string, source: string, transformations: T
     return output;
   }, '');
 
-  transpiledCode += source.slice(cursor);
-  return transpiledCode;
+  transformedSource += source.slice(cursor);
+  return transformedSource;
 }

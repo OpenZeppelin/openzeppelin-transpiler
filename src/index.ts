@@ -4,7 +4,7 @@ import fs from 'fs';
 import { flatten } from 'lodash';
 
 import { getContract, isContract, throwIfInvalidNode } from './solc/ast-utils';
-import { transpile } from './transpiler';
+import { applyTransformations } from './transformations/apply';
 import {
   transformConstructor,
   transformContractName,
@@ -106,7 +106,7 @@ export function transpileContracts(artifacts: Artifact[], contractsDir: string):
 
     const fileTran = fileTrans[art.sourcePath];
     if (!fileTran.source) {
-      fileTran.source = transpile(art.sourcePath, source, fileTran.transformations);
+      fileTran.source = applyTransformations(art.sourcePath, source, fileTran.transformations);
     }
     const entry = outputFiles.find(o => o.fileName === path.basename(art.sourcePath));
     if (!entry) {
