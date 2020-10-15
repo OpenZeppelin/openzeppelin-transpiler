@@ -20,7 +20,7 @@ import { getInheritanceChain } from './solc/get-inheritance-chain';
 import { Artifact } from './solc/artifact';
 import { Transformation } from './transformations/type';
 import { relativePath } from './utils/relative-path';
-import { renameContract } from './rename';
+import { renameContract, renamePath } from './rename';
 
 export interface OutputFile {
   fileName: string;
@@ -63,7 +63,7 @@ export function transpileContracts(artifacts: Artifact[], contractsDir: string):
 
   const fileTransformations = mapValues(
     fileData,
-    (data, file) => transpileFile(file, data, artifacts, contractsToArtifactsMap),
+    (data, file) => transpileFile(file, data, artifacts, contractsToArtifactsMap, contractsDir),
   );
 
   // build a final array of files to return
@@ -73,18 +73,17 @@ export function transpileContracts(artifacts: Artifact[], contractsDir: string):
     const data = fileData[file];
 
     const transformedSource = applyTransformations(file, data.source, fileTransformations[file]);
-    const patchedFilePath = path.join('./contracts/__upgradeable__', path.normalize(file));
 
     outputFiles.push({
       source: transformedSource,
-      path: patchedFilePath,
+      path: renamePath(file),
       fileName: path.basename(file),
     });
   }
 
   outputFiles.push({
     source: fs.readFileSync(require.resolve('../Initializable.sol'), 'utf8'),
-    path: './contracts/__upgradeable__/Initializable.sol',
+    path: path.join(contractsDir, 'Initializable.sol'),
     fileName: 'Initializable.sol',
   });
 
@@ -95,12 +94,13 @@ function transpileFile(
   file: string,
   data: FileData,
   allArtifacts: Artifact[],
-  contractsToArtifactsMap: ContractsToArtifactsMap
+  contractsToArtifactsMap: ContractsToArtifactsMap,
+  contractsDir: string,
 ): Transformation[] {
 
   const transformations = [];
 
-  const initializablePath = relativePath(path.dirname(file), 'Initializable.sol');
+  const initializablePath = relativePath(path.dirname(file), path.join(contractsDir, 'Initializable.sol'));
 
   transformations.push(
     appendDirective(data.ast, `\nimport "${initializablePath}";`),
@@ -136,7 +136,7 @@ function normalizeSourcePath(art: Artifact, contractsDir: string): Artifact {
 
   // if path resolves to a path in the contrcts directory then it is a local contract
   if (path.resolve(art.sourcePath).startsWith(path.resolve(contractsDir))) {
-    let sourcePath = relativePath(contractsDir, art.sourcePath);
+    let sourcePath = relativePath(path.dirname(contractsDir), art.sourcePath);
     return { ...art, sourcePath }
   } else {
     return art;

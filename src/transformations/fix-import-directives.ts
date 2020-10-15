@@ -5,6 +5,7 @@ import { getImportDirectives, getSourceIndices } from '../solc/ast-utils';
 import { Artifact } from '../solc/artifact';
 import { Transformation } from './type';
 import { relativePath } from '../utils/relative-path';
+import { renamePath } from '../rename';
 
 export function* fixImportDirectives(
   ast: SourceUnit,
@@ -24,7 +25,7 @@ export function* fixImportDirectives(
       transformed.unshift(relativePath(dirname, imp.file));
     }
 
-    const finalTransformation = transformed.map(t => `import "${t}";`).join('\n');
+    const finalTransformation = transformed.map(t => `import "${renamePath(t)}";`).join('\n');
     const [start, len] = getSourceIndices(imp);
 
     yield {
