@@ -10,8 +10,7 @@ test.before('artifacts', t => {
 });
 
 test.before('transpile', t => {
-  const contracts = t.context.artifacts.map(a => a.contractName);
-  t.context.files = transpileContracts(contracts, t.context.artifacts, './contracts/');
+  t.context.files = transpileContracts(t.context.artifacts, './contracts/');
 });
 
 const fileNames = [

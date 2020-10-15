@@ -17,8 +17,7 @@ async function readArtifacts(): Promise<Artifact[]> {
 
 async function main() {
   const artifacts = await readArtifacts();
-  const contracts = artifacts.map(a => a.contractName);
-  const transpiled = transpileContracts(contracts, artifacts, 'contracts');
+  const transpiled = transpileContracts(artifacts, 'contracts');
 
   await Promise.all(transpiled.map(async t => {
     await fs.mkdir(path.dirname(t.path), { recursive: true });

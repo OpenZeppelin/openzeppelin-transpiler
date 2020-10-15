@@ -33,7 +33,7 @@ interface FileTransformation {
   source: string;
 }
 
-export function transpileContracts(contracts: string[], artifacts: Artifact[], contractsDir: string): OutputFile[] {
+export function transpileContracts(artifacts: Artifact[], contractsDir: string): OutputFile[] {
   artifacts = artifacts.map(a => normalizeSourcePath(a, contractsDir));
 
   // check that we have valid ast tree
@@ -49,17 +49,9 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
     contractsToArtifactsMap[contract.id] = art;
   }
 
-  // build a list of all contracts to transpile
-  const contractsToTranspile = [
-    ...new Set(flatten(contracts.map(contract => getInheritanceChain(contract, contractsToArtifactsMap)))),
-  ].filter(art => {
-    const contractNode = getContract(art);
-    return isContract(contractNode);
-  });
-
   // build a array of transformations per Solidity file
   const fileTrans: Record<string, FileTransformation> = {};
-  for (const art of contractsToTranspile) {
+  for (const art of artifacts) {
     const contractName = art.contractName;
 
     const source = art.source;
@@ -87,8 +79,8 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
       fileTrans[art.sourcePath] = {
         transformations: [
           appendDirective(art.ast, directive),
-          ...fixImportDirectives(art, artifacts, contractsToTranspile),
-          ...purgeExceptContracts(art.ast, contractsToTranspile),
+          ...fixImportDirectives(art, artifacts, artifacts),
+          ...purgeExceptContracts(art.ast, artifacts),
         ],
         source: '',
       };
@@ -97,17 +89,17 @@ export function transpileContracts(contracts: string[], artifacts: Artifact[], c
     fileTrans[art.sourcePath].transformations = [
       ...fileTrans[art.sourcePath].transformations,
       prependBaseClass(contractNode, source, 'Initializable'),
-      ...transformParentsNames(contractNode, source, contractsToTranspile),
-      transformConstructor(contractNode, source, contractsToTranspile, contractsToArtifactsMap),
+      ...transformParentsNames(contractNode, source, artifacts),
+      transformConstructor(contractNode, source, artifacts, contractsToArtifactsMap),
       ...purgeVarInits(contractNode, source),
       transformContractName(contractNode, source, `${contractName}Upgradeable`),
-      ...transformOverrides(contractNode, source, contractsToTranspile, contractsToArtifactsMap),
+      ...transformOverrides(contractNode, source, artifacts, contractsToArtifactsMap),
     ];
   }
 
   // build a final array of files to return
   const outputFiles: OutputFile[] = [];
-  for (const art of contractsToTranspile) {
+  for (const art of artifacts) {
     const contractName = art.contractName;
 
     const source = art.source;
