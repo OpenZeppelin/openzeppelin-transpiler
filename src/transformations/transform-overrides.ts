@@ -2,6 +2,7 @@ import { Artifact } from '../solc/artifact';
 import { ContractDefinition, AnyNode, FunctionDefinition } from '../solc/ast-node';
 import { getSourceIndices } from '../solc/ast-utils';
 import { Transformation } from './type';
+import { renameContract } from '../rename-contract';
 
 type ArtifactsMap = {
   [N in number]?: Artifact;
@@ -28,7 +29,7 @@ export function* transformOverrides(
             kind: 'transform-overrides',
             start,
             end: start + len,
-            text: o.name + 'Upgradeable',
+            text: renameContract(o.name),
           };
         }
       }

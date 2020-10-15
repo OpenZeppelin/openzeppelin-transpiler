@@ -2,6 +2,7 @@ import { getNodeSources } from '../solc/ast-utils';
 import { ContractDefinition } from '../solc/ast-node';
 import { Transformation } from './type';
 import { Artifact } from '../solc/artifact';
+import { renameContract } from '../rename-contract';
 
 export function transformParentsNames(
   contractNode: ContractDefinition,
@@ -21,7 +22,7 @@ export function transformParentsNames(
           kind: 'transform-parent-names',
           start: start,
           end: start + len,
-          text: `${base.baseName.name}Upgradeable`,
+          text: renameContract(base.baseName.name),
         };
       });
   } else return [];

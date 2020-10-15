@@ -20,6 +20,7 @@ import { getInheritanceChain } from './solc/get-inheritance-chain';
 import { Artifact } from './solc/artifact';
 import { Transformation } from './transformations/type';
 import { relativePath } from './utils/relative-path';
+import { renameContract } from './rename-contract';
 
 export interface OutputFile {
   fileName: string;
@@ -130,7 +131,7 @@ function transpileFile(
       ...transformParentsNames(contractNode, source, allArtifacts),
       transformConstructor(contractNode, source, allArtifacts, contractsToArtifactsMap),
       ...purgeVarInits(contractNode, source),
-      transformContractName(contractNode, source, `${contractName}Upgradeable`),
+      transformContractName(contractNode, source, renameContract(contractName)),
       ...transformOverrides(contractNode, source, allArtifacts, contractsToArtifactsMap),
     );
   }
