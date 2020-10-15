@@ -1,7 +1,8 @@
 import path from 'path';
 import fs from 'fs';
 
-import { flatten } from 'lodash';
+import { flatten, groupBy, mapValues } from 'lodash';
+import { SourceUnit } from 'solidity-ast';
 
 import { getContract, isContract, throwIfInvalidNode } from './solc/ast-utils';
 import { applyTransformations } from './transformations/apply';
@@ -26,10 +27,13 @@ export interface OutputFile {
   path: string;
 }
 
-interface FileTransformation {
-  transformations: Transformation[];
-  source?: string;
+interface FileData {
+  artifacts: Artifact[];
+  ast: SourceUnit;
+  source: string;
 }
+
+type ContractsToArtifactsMap = Record<string | number, Artifact>;
 
 export function transpileContracts(artifacts: Artifact[], contractsDir: string): OutputFile[] {
   artifacts = artifacts.map(a => normalizeSourcePath(a, contractsDir));
@@ -40,82 +44,41 @@ export function transpileContracts(artifacts: Artifact[], contractsDir: string):
   }
 
   // create contract name | id to artifact map for quick access to artifacts
-  const contractsToArtifactsMap: Record<string | number, Artifact> = {};
+  const contractsToArtifactsMap: ContractsToArtifactsMap = {};
   for (const art of artifacts) {
     contractsToArtifactsMap[art.contractName] = art;
     const contract = getContract(art);
     contractsToArtifactsMap[contract.id] = art;
   }
 
-  // build a array of transformations per Solidity file
-  const fileTrans: Record<string, FileTransformation> = {};
+  const fileData = mapValues(
+    groupBy(artifacts, 'sourcePath'),
+    fileArtifacts => ({
+      artifacts: fileArtifacts,
+      ast: fileArtifacts[0].ast,
+      source: fileArtifacts[0].source,
+    })
+  );
 
-  for (const art of artifacts) {
-    const { contractName, source } = art;
-    const contractNode = getContract(art);
-
-    if (!fileTrans[art.sourcePath]) {
-      let initializablePath = relativePath(path.dirname(art.sourcePath), 'Initializable.sol');
-
-      const imports = [initializablePath];
-
-      if (art.sourcePath.startsWith('.')) {
-        imports.unshift(
-          relativePath(
-            path.join('__upgradeable__', path.dirname(art.sourcePath)),
-            path.join(art.sourcePath),
-          )
-        );
-      } else {
-        imports.unshift(art.sourcePath);
-      }
-
-      const directive = '\n' + imports.map(i => `import "${i}";`).join('\n');
-
-      fileTrans[art.sourcePath] = {
-        transformations: [
-          appendDirective(art.ast, directive),
-          ...fixImportDirectives(art, artifacts),
-        ],
-      };
-    }
-
-    fileTrans[art.sourcePath].transformations = [
-      ...fileTrans[art.sourcePath].transformations,
-      prependBaseClass(contractNode, source, 'Initializable'),
-      ...transformParentsNames(contractNode, source, artifacts),
-      transformConstructor(contractNode, source, artifacts, contractsToArtifactsMap),
-      ...purgeVarInits(contractNode, source),
-      transformContractName(contractNode, source, `${contractName}Upgradeable`),
-      ...transformOverrides(contractNode, source, artifacts, contractsToArtifactsMap),
-    ];
-  }
+  const fileTransformations = mapValues(
+    fileData,
+    (data, file) => transpileFile(file, data, artifacts, contractsToArtifactsMap),
+  );
 
   // build a final array of files to return
   const outputFiles: OutputFile[] = [];
 
-  for (const art of artifacts) {
-    const { contractName, source } = art;
+  for (const file in fileData) {
+    const data = fileData[file];
 
-    const fileTran = fileTrans[art.sourcePath];
+    const transformedSource = applyTransformations(file, data.source, fileTransformations[file]);
+    const patchedFilePath = path.join('./contracts/__upgradeable__', path.normalize(file));
 
-    if (fileTran.source === undefined) {
-      fileTran.source = applyTransformations(art.sourcePath, source, fileTran.transformations);
-    }
-
-    const entry = outputFiles.find(o => o.fileName === path.basename(art.sourcePath));
-
-    if (!entry) {
-      const upgradeablePath = path.normalize(art.sourcePath);
-
-      const patchedFilePath = path.join('./contracts/__upgradeable__', upgradeablePath);
-
-      outputFiles.push({
-        source: fileTran.source,
-        path: patchedFilePath,
-        fileName: path.basename(art.sourcePath),
-      });
-    }
+    outputFiles.push({
+      source: transformedSource,
+      path: patchedFilePath,
+      fileName: path.basename(file),
+    });
   }
 
   outputFiles.push({
@@ -125,6 +88,54 @@ export function transpileContracts(artifacts: Artifact[], contractsDir: string):
   });
 
   return outputFiles;
+}
+
+function transpileFile(
+  file: string,
+  data: FileData,
+  allArtifacts: Artifact[],
+  contractsToArtifactsMap: ContractsToArtifactsMap
+): Transformation[] {
+
+  const initializablePath = relativePath(path.dirname(file), 'Initializable.sol');
+
+  const imports = [initializablePath];
+
+  if (file.startsWith('.')) {
+    imports.unshift(
+      relativePath(
+        path.join('__upgradeable__', path.dirname(file)),
+        path.join(file),
+      )
+    );
+  } else {
+    imports.unshift(file);
+  }
+
+  const directive = '\n' + imports.map(i => `import "${i}";`).join('\n');
+
+  const transformations = [];
+
+  transformations.push(
+    appendDirective(data.ast, directive),
+    ...fixImportDirectives(data.ast, file, allArtifacts),
+  );
+
+  for (const art of data.artifacts) {
+    const { contractName, source } = art;
+    const contractNode = getContract(art);
+
+    transformations.push(
+      prependBaseClass(contractNode, source, 'Initializable'),
+      ...transformParentsNames(contractNode, source, allArtifacts),
+      transformConstructor(contractNode, source, allArtifacts, contractsToArtifactsMap),
+      ...purgeVarInits(contractNode, source),
+      transformContractName(contractNode, source, `${contractName}Upgradeable`),
+      ...transformOverrides(contractNode, source, allArtifacts, contractsToArtifactsMap),
+    );
+  }
+
+  return transformations;
 }
 
 function normalizeSourcePath(art: Artifact, contractsDir: string): Artifact {
