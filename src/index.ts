@@ -19,7 +19,7 @@ import {
 import { getInheritanceChain } from './solc/get-inheritance-chain';
 import { Artifact } from './solc/artifact';
 import { Transformation } from './transformations/type';
-import { relativePath } from './utils';
+import { relativePath } from './utils/relative-path';
 
 export interface OutputFile {
   fileName: string;
