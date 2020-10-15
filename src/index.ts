@@ -30,7 +30,7 @@ export interface OutputFile {
 
 interface FileTransformation {
   transformations: Transformation[];
-  source: string;
+  source?: string;
 }
 
 export function transpileContracts(artifacts: Artifact[], contractsDir: string): OutputFile[] {
@@ -82,7 +82,6 @@ export function transpileContracts(artifacts: Artifact[], contractsDir: string):
           ...fixImportDirectives(art, artifacts),
           ...purgeExceptContracts(art.ast, artifacts),
         ],
-        source: '',
       };
     }
 
@@ -105,7 +104,7 @@ export function transpileContracts(artifacts: Artifact[], contractsDir: string):
     const source = art.source;
 
     const fileTran = fileTrans[art.sourcePath];
-    if (!fileTran.source) {
+    if (fileTran.source === undefined) {
       fileTran.source = applyTransformations(art.sourcePath, source, fileTran.transformations);
     }
     const entry = outputFiles.find(o => o.fileName === path.basename(art.sourcePath));
