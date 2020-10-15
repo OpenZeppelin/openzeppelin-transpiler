@@ -79,7 +79,7 @@ export function transpileContracts(artifacts: Artifact[], contractsDir: string):
       fileTrans[art.sourcePath] = {
         transformations: [
           appendDirective(art.ast, directive),
-          ...fixImportDirectives(art, artifacts, artifacts),
+          ...fixImportDirectives(art, artifacts),
           ...purgeExceptContracts(art.ast, artifacts),
         ],
         source: '',

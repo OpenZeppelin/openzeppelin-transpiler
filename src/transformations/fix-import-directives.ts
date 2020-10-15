@@ -8,7 +8,6 @@ import { relativePath } from '../utils';
 export function* fixImportDirectives(
   artifact: Artifact,
   artifacts: Artifact[],
-  contracts: Artifact[],
 ): Generator<Transformation> {
   const dirname = path.dirname(artifact.sourcePath);
 
@@ -17,32 +16,10 @@ export function* fixImportDirectives(
   for (const imp of imports) {
     const transformed = [];
 
-    const isLocal = artifacts.some(
-      art => art.ast.id === imp.sourceUnit && art.sourcePath.startsWith('.')
-    );
-
-    const isTranspiled = artifacts.some(
-      art => art.ast.id === imp.sourceUnit && contracts.includes(art)
-    );
-
-    // imports the transpiled file
-    if (isTranspiled) {
-      if (imp.file.startsWith('.')) {
-        transformed.unshift(imp.file); // TODO: may not be a relative path
-      } else {
-        transformed.unshift(relativePath(dirname, imp.file));
-      }
+    if (imp.file.startsWith('.')) {
+      transformed.unshift(imp.file); // TODO: may not be a relative path
     } else {
-      if (isLocal) {
-        transformed.push(
-          relativePath(
-            path.join('__upgradeable__', dirname),
-            path.join(dirname, imp.file),
-          )
-        );
-      } else {
-        transformed.push(path.normalize(path.join(dirname, imp.file)));
-      }
+      transformed.unshift(relativePath(dirname, imp.file));
     }
 
     const finalTransformation = transformed.map(t => `import "${t}";`).join('\n');
