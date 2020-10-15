@@ -2,7 +2,7 @@ import { getNodeSources } from '../solc/ast-utils';
 import { ContractDefinition } from '../solc/ast-node';
 import { Transformation } from './type';
 import { Artifact } from '../solc/artifact';
-import { renameContract } from '../rename-contract';
+import { renameContract } from '../rename';
 
 export function transformParentsNames(
   contractNode: ContractDefinition,

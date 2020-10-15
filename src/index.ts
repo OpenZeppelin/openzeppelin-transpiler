@@ -20,7 +20,7 @@ import { getInheritanceChain } from './solc/get-inheritance-chain';
 import { Artifact } from './solc/artifact';
 import { Transformation } from './transformations/type';
 import { relativePath } from './utils/relative-path';
-import { renameContract } from './rename-contract';
+import { renameContract } from './rename';
 
 export interface OutputFile {
   fileName: string;
