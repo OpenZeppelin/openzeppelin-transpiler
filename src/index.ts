@@ -24,7 +24,6 @@ export interface OutputFile {
   fileName: string;
   source: string;
   path: string;
-  contracts: string[];
 }
 
 interface FileTransformation {
@@ -115,10 +114,7 @@ export function transpileContracts(artifacts: Artifact[], contractsDir: string):
         source: fileTran.source,
         path: patchedFilePath,
         fileName: path.basename(art.sourcePath),
-        contracts: [contractName],
       });
-    } else {
-      entry.contracts.push(contractName);
     }
   }
 
@@ -126,7 +122,6 @@ export function transpileContracts(artifacts: Artifact[], contractsDir: string):
     source: fs.readFileSync(require.resolve('../Initializable.sol'), 'utf8'),
     path: './contracts/__upgradeable__/Initializable.sol',
     fileName: 'Initializable.sol',
-    contracts: ['Initializable'],
   });
 
   return outputFiles;
