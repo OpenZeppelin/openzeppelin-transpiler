@@ -1,6 +1,6 @@
 import { getNodeSources } from '../solc/ast-utils';
 import { ContractDefinition } from '../solc/ast-node';
-import { Transformation } from '../transformation';
+import { Transformation } from './type';
 
 export function transformContractName(
   contractNode: ContractDefinition,

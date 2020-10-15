@@ -1,6 +1,6 @@
 import { getNodeSources } from '../solc/ast-utils';
 import { ContractDefinition } from '../solc/ast-node';
-import { Transformation } from '../transformation';
+import { Transformation } from './type';
 
 export function prependBaseClass(contractNode: ContractDefinition, source: string, cls: string): Transformation {
   const hasInheritance = contractNode.baseContracts.length;

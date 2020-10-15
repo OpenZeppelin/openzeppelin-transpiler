@@ -1,6 +1,6 @@
 import { getImportDirectives, getPragmaDirectives, getSourceIndices } from '../solc/ast-utils';
 import { Node } from '../solc/ast-node';
-import { Transformation } from '../transformation';
+import { Transformation } from './type';
 
 export function appendDirective(fileNode: Node, directive: string): Transformation {
   const retVal = {

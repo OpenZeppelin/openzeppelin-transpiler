@@ -2,7 +2,7 @@ import path from 'path';
 
 import { getImportDirectives, getSourceIndices } from '../solc/ast-utils';
 import { Artifact } from '../solc/artifact';
-import { Transformation } from '../transformation';
+import { Transformation } from './type';
 import { relativePath } from '../utils';
 
 export function* fixImportDirectives(

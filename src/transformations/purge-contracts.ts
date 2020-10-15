@@ -1,6 +1,6 @@
 import { getSourceIndices, getContracts } from '../solc/ast-utils';
 import { SourceUnit } from '../solc/ast-node';
-import { Transformation } from '../transformation';
+import { Transformation } from './type';
 import { Artifact } from '../solc/artifact';
 
 export function purgeExceptContracts(astNode: SourceUnit, contracts: Artifact[]): Transformation[] {

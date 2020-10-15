@@ -1,7 +1,7 @@
 import { Artifact } from '../solc/artifact';
 import { ContractDefinition, AnyNode, FunctionDefinition } from '../solc/ast-node';
 import { getSourceIndices } from '../solc/ast-utils';
-import { Transformation } from '../transformation';
+import { Transformation } from './type';
 
 type ArtifactsMap = {
   [N in number]?: Artifact;
