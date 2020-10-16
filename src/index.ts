@@ -20,7 +20,7 @@ import { getInheritanceChain } from './solc/get-inheritance-chain';
 import { Artifact } from './solc/artifact';
 import { Transformation } from './transformations/type';
 import { relativePath } from './utils/relative-path';
-import { renameContract, renamePath } from './rename';
+import { renameContract, renamePath, isRenamed } from './rename';
 
 export interface OutputFile {
   fileName: string;
@@ -37,7 +37,9 @@ interface FileData {
 type ContractsToArtifactsMap = Record<string | number, Artifact>;
 
 export function transpileContracts(artifacts: Artifact[], contractsDir: string): OutputFile[] {
-  artifacts = artifacts.map(a => normalizeSourcePath(a, contractsDir));
+  artifacts = artifacts
+    .map(a => normalizeSourcePath(a, contractsDir))
+    .filter(a => !isRenamed(a.contractName));
 
   // check that we have valid ast tree
   for (const art of artifacts) {

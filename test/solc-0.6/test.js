@@ -32,7 +32,12 @@ const fileNames = [
 for (const fileName of fileNames) {
   test(fileName, t => {
     const file = t.context.files.find(f => f.fileName === fileName);
-    t.truthy(file, 'file not found');
+    t.not(file, undefined, 'file not found');
     t.snapshot(file);
   });
 }
+
+test('AlreadyUpgradeSafe.sol', t => {
+  const file = t.context.files.find(f => f.fileName === 'AlreadyUpgradeSafe.sol');
+  t.is(file, undefined);
+});

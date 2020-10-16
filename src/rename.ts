@@ -1,7 +1,13 @@
 import path from 'path';
 
+const suffix = 'UpgradeSafe';
+
+export function isRenamed(name: string): boolean {
+  return name.endsWith(suffix);
+}
+
 export function renameContract(name: string): string {
-  return name + 'UpgradeSafe';
+  return name + suffix;
 }
 
 export function renamePath(filePath: string): string {
