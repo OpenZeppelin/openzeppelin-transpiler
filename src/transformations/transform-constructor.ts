@@ -11,12 +11,14 @@ function getVarInitsPart(contractNode: ContractDefinition, source: string): stri
     .join('');
 }
 
-export function transformConstructor(
+export function* transformConstructor(
   contractNode: ContractDefinition,
   source: string,
   contracts: Artifact[],
   contractsToArtifactsMap: Record<string, Artifact>,
-): Transformation {
+): Generator<Transformation> {
+  if (contractNode.contractKind !== 'contract') return;
+
   const superCalls = buildSuperCallsForChain(contractNode, contracts, contractsToArtifactsMap);
 
   const declarationInserts = getVarInitsPart(contractNode, source);
@@ -55,7 +57,7 @@ export function transformConstructor(
     };
   }
 
-  return {
+  yield {
     ...bounds,
     kind: 'transform-constructor',
     text: `

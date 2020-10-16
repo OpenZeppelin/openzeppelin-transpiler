@@ -100,21 +100,23 @@ function transpileFile(
 
   const transformations = [];
 
-  const initializablePath = relativePath(path.dirname(file), path.join(contractsDir, 'Initializable.sol'));
+  if (data.artifacts.some(art => getContract(art).contractKind === 'contract')) {
+    const initializablePath = relativePath(path.dirname(file), path.join(contractsDir, 'Initializable.sol'));
 
-  transformations.push(
-    appendDirective(data.ast, `\nimport "${initializablePath}";`),
-    ...fixImportDirectives(data.ast, file, allArtifacts),
-  );
+    transformations.push(
+      appendDirective(data.ast, `\nimport "${initializablePath}";`),
+      ...fixImportDirectives(data.ast, file, allArtifacts),
+    );
+  }
 
   for (const art of data.artifacts) {
     const { contractName, source } = art;
     const contractNode = getContract(art);
 
     transformations.push(
-      prependBaseClass(contractNode, source, 'Initializable'),
+      ...prependBaseClass(contractNode, source, 'Initializable'),
       ...transformParentsNames(contractNode, source, allArtifacts),
-      transformConstructor(contractNode, source, allArtifacts, contractsToArtifactsMap),
+      ...transformConstructor(contractNode, source, allArtifacts, contractsToArtifactsMap),
       ...purgeVarInits(contractNode, source),
       transformContractName(contractNode, source, renameContract(contractName)),
       ...transformOverrides(contractNode, source, allArtifacts, contractsToArtifactsMap),

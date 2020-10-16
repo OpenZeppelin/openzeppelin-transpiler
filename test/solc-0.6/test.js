@@ -24,6 +24,9 @@ const fileNames = [
   'Local.sol',
   'SimpleInheritance.sol',
   'StringConstructor.sol',
+  'Library.sol',
+  'AbstractContract.sol',
+  'Interface.sol',
 ];
 
 for (const fileName of fileNames) {
