@@ -3,10 +3,7 @@ import { ContractDefinition, AnyNode, FunctionDefinition } from '../solc/ast-nod
 import { getSourceIndices } from '../solc/ast-utils';
 import { Transformation } from './type';
 import { renameContract } from '../rename';
-
-type ArtifactsMap = {
-  [N in number]?: Artifact;
-};
+import { ArtifactsMap } from '../artifacts-map';
 
 export function* transformOverrides(
   contractNode: ContractDefinition,

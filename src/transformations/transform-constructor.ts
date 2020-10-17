@@ -4,6 +4,7 @@ import { Transformation } from './type';
 import { buildSuperCallsForChain } from './build-super-calls-for-chain';
 import { ContractDefinition } from '../solc/ast-node';
 import { Artifact } from '../solc/artifact';
+import { ArtifactsMap } from '../artifacts-map';
 
 function getVarInitsPart(contractNode: ContractDefinition, source: string): string {
   return getVarInits(contractNode, source)
@@ -15,7 +16,7 @@ export function* transformConstructor(
   contractNode: ContractDefinition,
   source: string,
   contracts: Artifact[],
-  contractsToArtifactsMap: Record<string, Artifact>,
+  contractsToArtifactsMap: ArtifactsMap,
 ): Generator<Transformation> {
   if (contractNode.contractKind !== 'contract') return;
 

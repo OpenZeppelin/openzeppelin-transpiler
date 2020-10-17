@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 
-import { flatten, groupBy, mapValues } from 'lodash';
+import { flatten, groupBy, keyBy, mapValues } from 'lodash';
 import { SourceUnit } from 'solidity-ast';
 
 import { getContract, isContract, throwIfInvalidNode } from './solc/ast-utils';
@@ -21,6 +21,7 @@ import { Artifact } from './solc/artifact';
 import { Transformation } from './transformations/type';
 import { relativePath } from './utils/relative-path';
 import { renameContract, renamePath, isRenamed } from './rename';
+import { ArtifactsMap } from './artifacts-map';
 
 export interface OutputFile {
   fileName: string;
@@ -34,8 +35,6 @@ interface FileData {
   source: string;
 }
 
-type ContractsToArtifactsMap = Record<string | number, Artifact>;
-
 export function transpileContracts(artifacts: Artifact[], contractsDir: string): OutputFile[] {
   artifacts = artifacts
     .map(a => normalizeSourcePath(a, contractsDir))
@@ -47,12 +46,7 @@ export function transpileContracts(artifacts: Artifact[], contractsDir: string):
   }
 
   // create contract name | id to artifact map for quick access to artifacts
-  const contractsToArtifactsMap: ContractsToArtifactsMap = {};
-  for (const art of artifacts) {
-    contractsToArtifactsMap[art.contractName] = art;
-    const contract = getContract(art);
-    contractsToArtifactsMap[contract.id] = art;
-  }
+  const contractsToArtifactsMap: ArtifactsMap = keyBy(artifacts, a => getContract(a).id);
 
   const fileData = mapValues(
     groupBy(artifacts, 'sourcePath'),
@@ -96,7 +90,7 @@ function transpileFile(
   file: string,
   data: FileData,
   allArtifacts: Artifact[],
-  contractsToArtifactsMap: ContractsToArtifactsMap,
+  contractsToArtifactsMap: ArtifactsMap,
   contractsDir: string,
 ): Transformation[] {
 

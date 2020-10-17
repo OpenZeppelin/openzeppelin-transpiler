@@ -5,6 +5,7 @@ import { getNodeSources, getConstructor, getContract, isModifierInvocation, getV
 import { getInheritanceChain } from '../solc/get-inheritance-chain';
 import { ContractDefinition, ModifierInvocation, InheritanceSpecifier, Node, FunctionDefinition } from '../solc/ast-node';
 import { Artifact } from '../solc/artifact';
+import { ArtifactsMap } from '../artifacts-map';
 
 // builds an __init call with given arguments, for example
 // ERC20DetailedUpgradeable.__init(false, "Gold", "GLD", 18)
@@ -22,11 +23,11 @@ function buildSuperCall(args: Node[], name: string, source: string): string {
 export function buildSuperCallsForChain(
   contractNode: ContractDefinition,
   contractsToTranspile: Artifact[],
-  contractsToArtifactsMap: Record<string, Artifact>,
+  contractsToArtifactsMap: ArtifactsMap,
 ): string {
   // first we get the linearized inheritance chain of contracts, excluding the
   // contract we're currently looking at
-  const chain = getInheritanceChain(contractNode.name, contractsToArtifactsMap).map(getContract).reverse();
+  const chain = getInheritanceChain(contractNode, contractsToArtifactsMap).map(getContract).reverse();
 
   // we will need their ast ids for quick lookup
   const chainIds = new Set(chain.map(c => c.id));
@@ -40,7 +41,10 @@ export function buildSuperCallsForChain(
     chain.map(parentNode => {
       const res = [];
       const constructorNode = getConstructor(parentNode);
-      const { source } = contractsToArtifactsMap[parentNode.name];
+      const source = contractsToArtifactsMap[parentNode.id]?.source;
+      if (source === undefined) {
+        throw new Error(`Can't find artifact for ${parentNode.name}`);
+      }
       if (constructorNode) {
         for (const call of constructorNode.modifiers) {
           // we only care about modifiers that reference base contracts
