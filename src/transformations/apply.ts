@@ -10,9 +10,10 @@ export function applyTransformations(sourcePath: string, source: string, transfo
     const start = t.start < cursor ? t.start : t.start + offset;
     const length = t.start < cursor ? t.length + offset : t.length;
     const [pre, mid, post] = split(output, start, length);
-    offset += t.text.length - t.length;
+    const text = 'text' in t ? t.text : t.transform(mid);
+    offset += text.length - t.length;
     cursor = t.start + t.length;
-    return [pre, t.text, post].join('');
+    return [pre, text, post].join('');
   }, source);
 }
 
