@@ -10,7 +10,7 @@ export function applyTransformations(sourcePath: string, source: string, transfo
   for (let i = 0; i < sorted.length - 1; i++) {
     const a = sorted[i];
     const b = sorted[i + 1];
-    if (a.end > b.start) {
+    if (a.start + a.length > b.start) {
       throw new Error(
         `${sourcePath}: transformations ${a.kind} and ${b.kind} overlap`,
       );
@@ -18,10 +18,10 @@ export function applyTransformations(sourcePath: string, source: string, transfo
   }
 
   let transformedSource = sorted.reduce((output, trans) => {
-    const { start, end, text } = trans;
+    const { start, length, text } = trans;
     output += source.slice(cursor, start);
     output += text;
-    cursor = end;
+    cursor = start + length;
     return output;
   }, '');
 

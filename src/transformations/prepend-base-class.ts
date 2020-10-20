@@ -17,7 +17,7 @@ export function* prependBaseClass(contractNode: ContractDefinition, source: stri
   yield {
     kind: 'prepend-base-class',
     start: start + match.index + match[0].length,
-    end: start + match.index + match[0].length,
+    length: 0,
     text: hasInheritance ? ` ${cls},` : ` is ${cls}`,
   };
 }

@@ -25,7 +25,7 @@ export function* transformOverrides(
           yield {
             kind: 'transform-overrides',
             start,
-            end: start + len,
+            length: len,
             text: renameContract(o.name),
           };
         }

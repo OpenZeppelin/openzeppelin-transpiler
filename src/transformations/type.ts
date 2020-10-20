@@ -1,6 +1,6 @@
 export interface Transformation {
   kind: string;
   start: number;
-  end: number;
+  length: number;
   text: string;
 }

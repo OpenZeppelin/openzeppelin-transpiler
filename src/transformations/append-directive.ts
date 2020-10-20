@@ -6,7 +6,7 @@ export function appendDirective(fileNode: Node, directive: string): Transformati
   const retVal = {
     kind: 'append-directive',
     start: 0,
-    end: 0,
+    length: 0,
     text: directive,
   };
   const importsAndPragmas = [...getPragmaDirectives(fileNode), ...getImportDirectives(fileNode)];
@@ -14,7 +14,7 @@ export function appendDirective(fileNode: Node, directive: string): Transformati
     const [last] = importsAndPragmas.slice(-1);
     const [start, len] = getSourceIndices(last);
     retVal.start = start + len;
-    retVal.end = start + len;
+    retVal.length = 0;
   }
 
   return retVal;

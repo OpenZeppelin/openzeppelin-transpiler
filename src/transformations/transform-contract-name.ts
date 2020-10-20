@@ -15,7 +15,7 @@ export function transformContractName(
   return {
     kind: 'transform-contract-name',
     start: start + subStart,
-    end: start + subStart + contractNode.name.length,
+    length: contractNode.name.length,
     text: newName,
   };
 }

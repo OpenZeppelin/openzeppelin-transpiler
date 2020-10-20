@@ -31,7 +31,7 @@ export function* fixImportDirectives(
     yield {
       kind: 'fix-import-directives',
       start: start,
-      end: start + len,
+      length: len,
       text: finalTransformation,
     };
   }

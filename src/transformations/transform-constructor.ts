@@ -37,13 +37,13 @@ export function* transformConstructor(
     constructorArgsList = constructorNode.parameters.parameters.map(par => par.name).join(', ');
   }
 
-  let bounds: { start: number, end: number };
+  let bounds: { start: number, length: number };
 
   if (constructorNode) {
     const [start, len] = getNodeSources(constructorNode, source);
     bounds = {
       start,
-      end: start + len,
+      length: len,
     };
   } else {
     const [contractStart, , contractSource] = getNodeSources(contractNode, source);
@@ -54,7 +54,7 @@ export function* transformConstructor(
     const inside = contractStart + match[0].length;
     bounds = {
       start: inside,
-      end: inside,
+      length: 0,
     };
   }
 

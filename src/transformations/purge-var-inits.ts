@@ -6,7 +6,7 @@ export function purgeVarInits(contractNode: ContractDefinition, source: string):
   return getVarInits(contractNode, source).map(([, start, match]) => ({
     kind: 'purge-var-inits',
     start: start + match[1].length,
-    end: start + match[1].length + match[2].length,
+    length: match[2].length,
     text: '',
   }));
 }

@@ -21,7 +21,7 @@ export function transformParentsNames(
         return {
           kind: 'transform-parent-names',
           start: start,
-          end: start + len,
+          length: len,
           text: renameContract(base.baseName.name),
         };
       });
