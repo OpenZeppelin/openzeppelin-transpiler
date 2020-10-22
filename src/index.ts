@@ -15,6 +15,7 @@ import {
   fixImportDirectives,
   purgeVarInits,
   transformOverrides,
+  renameIdentifiers,
 } from './transformations';
 import { getInheritanceChain } from './solc/get-inheritance-chain';
 import { Artifact } from './solc/artifact';
@@ -115,7 +116,7 @@ function transpileFile(
       ...transformConstructor(contractNode, source, allArtifacts, contractsToArtifactsMap),
       ...purgeVarInits(contractNode, source),
       transformContractName(contractNode, source, renameContract(contractName)),
-      ...transformOverrides(contractNode, source, allArtifacts, contractsToArtifactsMap),
+      ...renameIdentifiers(contractNode, contractsToArtifactsMap),
     );
   }
 

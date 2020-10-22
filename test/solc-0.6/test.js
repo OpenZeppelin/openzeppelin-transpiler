@@ -27,6 +27,7 @@ const fileNames = [
   'Library.sol',
   'AbstractContract.sol',
   'Interface.sol',
+  'Rename.sol',
 ];
 
 for (const fileName of fileNames) {

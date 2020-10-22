@@ -6,3 +6,4 @@ export { purgeVarInits } from './purge-var-inits';
 export { transformConstructor } from './transform-constructor';
 export { fixImportDirectives } from './fix-import-directives';
 export { transformOverrides } from './transform-overrides';
+export { renameIdentifiers } from './rename-identifiers';
