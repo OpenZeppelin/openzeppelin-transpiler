@@ -22,9 +22,6 @@ export function* renameIdentifiers(contractNode: ContractDefinition, artifactsMa
 }
 
 function* findAllIdentifiers(contractNode: ContractDefinition): Generator<UserDefinedTypeName | Identifier> {
-  const prune = (node: Node) =>
-    isNodeType('InheritanceSpecifier', node) ||
-    (isNodeType('FunctionDefinition', node) && node.kind === 'constructor');
-  yield* findAll('UserDefinedTypeName', contractNode, prune);
-  yield* findAll('Identifier', contractNode, prune);
+  yield* findAll('UserDefinedTypeName', contractNode);
+  yield* findAll('Identifier', contractNode);
 }
