@@ -14,7 +14,7 @@ export function applyTransformations(sourcePath: string, source: string, transfo
     const st = shiftTransformation(shifts, t);
     const [pre, mid, post] = split(output, st.start, st.length);
     shifts.push({
-      amount: t.text.length - t.length,
+      amount: st.text.length - st.length,
       location: t.start + t.length,
       lengthZero: t.length === 0,
     });

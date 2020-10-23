@@ -149,3 +149,12 @@ test('apply realistic transformations', t => {
   const c = { kind: 'c', start: 3, length: 7, text: '' };
   t.is('aaaaaaa x;', applyTransformations('', source, [a, b, c]));
 });
+
+test('apply overlapping transformations', t => {
+  const source = 'a x = b(0); a x = b(0);';
+  const a = { kind: 'a', start: 0, length: 1, text: 'aaaa' };
+  const b = { kind: 'b', start: 6, length: 1, text: 'bbbb' };
+  const c = { kind: 'c', start: 3, length: 7, text: '' };
+  const d = { kind: 'd', start: 11, length: 0, text: ' d;' };
+  t.is('aaaa x; d; a x = b(0);', applyTransformations('', source, [a, b, c, d]));
+});

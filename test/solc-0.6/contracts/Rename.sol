@@ -9,6 +9,8 @@ contract RenameContract {
 }
 
 contract RenameDeployer {
+  RenameContract rc = RenameContract(0);
+
   constructor() public {
     new RenameContract();
   }
