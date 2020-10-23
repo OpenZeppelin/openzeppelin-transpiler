@@ -1,6 +1,6 @@
 import test from 'ava';
 
-import { applyTransformations, sortTransformations } from './apply';
+import { applyTransformations, sortTransformations, shiftTransformation } from './apply';
 
 test('sort non overlapping', t => {
   const b = { kind: 'b', start: 2, length: 1, text: '' };
@@ -67,6 +67,51 @@ test('sort complex', t => {
   t.deepEqual([a, b, c, d, e, f], sortTransformations([e, b, a, d, f, c], ''));
 });
 
+test('shift transformation start', t => {
+  const original = { kind: 't', text: 'text', start: 1, length: 2 };
+  const offsets = [ { location: 0, amount: 1, lengthZero: false } ];
+  const shifted = { ...original, start: 2, length: 2 };
+  t.deepEqual(shifted, shiftTransformation(offsets, original));
+});
+
+test('shift transformation start overlapping', t => {
+  const original = { kind: 't', text: 'text', start: 1, length: 2 };
+  const offsets = [ { location: 1, amount: 1, lengthZero: false } ];
+  const shifted = { ...original, start: 2, length: 2 };
+  t.deepEqual(shifted, shiftTransformation(offsets, original));
+});
+
+test('shift transformation length', t => {
+  const original = { kind: 't', text: 'text', start: 1, length: 2 };
+  const offsets = [ { location: 2, amount: 1, lengthZero: false } ];
+  const shifted = { ...original, start: 1, length: 3 };
+  t.deepEqual(shifted, shiftTransformation(offsets, original));
+});
+
+test('shift transformation length overlapping length nonzero', t => {
+  const original = { kind: 't', text: 'text', start: 1, length: 2 };
+  const offsets = [ { location: 3, amount: 1, lengthZero: false } ];
+  const shifted = { ...original, start: 1, length: 3 };
+  t.deepEqual(shifted, shiftTransformation(offsets, original));
+});
+
+test('shift transformation length overlapping length zero', t => {
+  const original = { kind: 't', text: 'text', start: 1, length: 2 };
+  const offsets = [ { location: 3, amount: 1, lengthZero: true } ];
+  const shifted = { ...original, start: 1, length: 2 };
+  t.deepEqual(shifted, shiftTransformation(offsets, original));
+});
+
+test('shift transformation start and length', t => {
+  const original = { kind: 't', text: 'text', start: 1, length: 2 };
+  const offsets = [
+    { location: 0, amount: 1, lengthZero: false },
+    { location: 2, amount: 1, lengthZero: false },
+  ];
+  const shifted = { ...original, start: 2, length: 3 };
+  t.deepEqual(shifted, shiftTransformation(offsets, original));
+});
+
 test('apply non overlapping length preserved', t => {
   const source = '01234567';
   const a = { kind: 'a', start: 0, length: 2, text: '00' };
@@ -95,4 +140,12 @@ test('apply non overlapping expanded', t => {
   const b = { kind: 'b', start: 2, length: 2, text: 'bbb' };
   const c = { kind: 'c', start: 4, length: 2, text: 'ccc' };
   t.is('aaabbbccc67', applyTransformations('', source, [a, b, c]));
+});
+
+test('apply realistic transformations', t => {
+  const source = 'a x = b(0);';
+  const a = { kind: 'a', start: 0, length: 1, text: 'aaaaaaa' };
+  const b = { kind: 'b', start: 6, length: 1, text: 'bbbbbbb' };
+  const c = { kind: 'c', start: 3, length: 7, text: '' };
+  t.is('aaaaaaa x;', applyTransformations('', source, [a, b, c]));
 });

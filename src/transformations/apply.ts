@@ -1,19 +1,43 @@
 import { Transformation } from './type';
 
+interface Shift {
+  amount: number;
+  location: number;
+  lengthZero: boolean;
+}
+
 export function applyTransformations(sourcePath: string, source: string, transformations: Transformation[]): string {
   const sorted = sortTransformations(transformations, sourcePath);
-
-  let offset = 0;
-  let cursor = 0;
+  const shifts: Shift[] = [];
 
   return sorted.reduce((output, t) => {
-    const start = t.start < cursor ? t.start : t.start + offset;
-    const length = t.start < cursor ? t.length + offset : t.length;
-    const [pre, mid, post] = split(output, start, length);
-    offset += t.text.length - t.length;
-    cursor = t.start + t.length;
-    return [pre, t.text, post].join('');
+    const st = shiftTransformation(shifts, t);
+    const [pre, mid, post] = split(output, st.start, st.length);
+    shifts.push({
+      amount: t.text.length - t.length,
+      location: t.start + t.length,
+      lengthZero: t.length === 0,
+    });
+    const n = [pre, t.text, post].join('');
+    return n;
   }, source);
+}
+
+export function shiftTransformation(shifts: Shift[], t: Transformation): Transformation {
+  const end = t.start + t.length;
+
+  let startOffset = 0;
+  let lengthOffset = 0;
+
+  for (const s of shifts) {
+    if (s.location <= t.start) {
+      startOffset += s.amount;
+    } else if (s.location < end || (s.location === end && !s.lengthZero)) {
+      lengthOffset += s.amount;
+    }
+  }
+
+  return { ...t, start: t.start + startOffset, length: t.length + lengthOffset };
 }
 
 function split(source: string, start: number, length: number): [string, string, string] {
