@@ -50,6 +50,21 @@ test('consider non-overlapping if length zero', t => {
   t.deepEqual([a, b], sortTransformations([a, b], ''));
 });
 
+test('sort complex', t => {
+  const tf = (kind: string, start: number, length: number) => ({ kind, start, length, text: '' });
+  const a = tf('a', 0, 1);  // x
+  const b = tf('b', 4, 1);  //     x
+  const c = tf('c', 6, 1);  //       x
+  const d = tf('d', 3, 5);  //    xxxxx
+  const e = tf('e', 9, 1);  //          x
+  const f = tf('f', 2, 9);  //   xxxxxxxxx
+                            // 0123456789A
+  t.deepEqual([a, b, c, d, e, f], sortTransformations([a, b, c, d, e, f], ''));
+  t.deepEqual([a, b, c, d, e, f], sortTransformations([b, f, a, c, e, d], ''));
+  t.deepEqual([a, b, c, d, e, f], sortTransformations([a, f, b, d, c, e], ''));
+  t.deepEqual([a, b, c, d, e, f], sortTransformations([e, b, a, d, f, c], ''));
+});
+
 test('apply non overlapping length preserved', t => {
   const source = '01234567';
   const a = { kind: 'a', start: 0, length: 2, text: '00' };
