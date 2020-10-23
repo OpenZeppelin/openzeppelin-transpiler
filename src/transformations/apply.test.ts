@@ -43,11 +43,13 @@ test('sort equal lengths', t => {
   t.pass();
 });
 
-test('consider non-overlapping if length zero', t => {
+test('sort length zero as not overlapping', t => {
   const a = { kind: 'a', start: 0, length: 1, text: '' };
   const b = { kind: 'b', start: 1, length: 0, text: '' };
-  t.deepEqual([a, b], sortTransformations([b, a], ''));
-  t.deepEqual([a, b], sortTransformations([a, b], ''));
+  const c = { kind: 'c', start: 1, length: 1, text: '' };
+  t.deepEqual([a, b, c], sortTransformations([a, b, c], ''));
+  t.deepEqual([a, b, c], sortTransformations([b, a, c], ''));
+  t.deepEqual([a, b, c], sortTransformations([c, a, b], ''));
 });
 
 test('sort complex', t => {
