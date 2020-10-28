@@ -102,9 +102,12 @@ function transpileFile(
 
     transformations.push(
       appendDirective(data.ast, `\nimport "${initializablePath}";`),
-      ...fixImportDirectives(data.ast, file, allArtifacts),
     );
   }
+
+  transformations.push(
+    ...fixImportDirectives(data.ast, file, allArtifacts),
+  );
 
   for (const art of data.artifacts) {
     const { contractName, source } = art;
