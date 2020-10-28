@@ -13,12 +13,13 @@ export function applyTransformations(sourcePath: string, source: string, transfo
   return sorted.reduce((output, t) => {
     const st = shiftTransformation(shifts, t);
     const [pre, mid, post] = split(output, st.start, st.length);
+    const text = 'text' in t ? t.text : t.transform(mid);
     shifts.push({
-      amount: st.text.length - st.length,
+      amount: text.length - st.length,
       location: t.start + t.length,
       lengthZero: t.length === 0,
     });
-    const n = [pre, t.text, post].join('');
+    const n = [pre, text, post].join('');
     return n;
   }, source);
 }

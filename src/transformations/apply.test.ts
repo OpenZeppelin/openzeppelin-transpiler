@@ -158,3 +158,16 @@ test('apply overlapping transformations', t => {
   const d = { kind: 'd', start: 11, length: 0, text: ' d;' };
   t.is('aaaa x; d; a x = b(0);', applyTransformations('', source, [a, b, c, d]));
 });
+
+test('apply non overlapping with function transformation', t => {
+  const source = '01234567';
+  const a = { kind: 'a', start: 0, length: 2, transform: (s: string) => s + '.' };
+  t.is('01.234567', applyTransformations('', source, [a]));
+});
+
+test('apply contained with function transformation', t => {
+  const source = 'abcdef';
+  const a = { kind: 'a', start: 2, length: 2, text: 'xyz' };
+  const b = { kind: 'b', start: 1, length: 4, transform: (s: string) => s.toUpperCase() };
+  t.is('aBXYZEf', applyTransformations('', source, [a, b]));
+});
