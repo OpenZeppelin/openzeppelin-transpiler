@@ -1,4 +1,4 @@
-import { getVarInits } from './get-var-inits';
+import { getVarInits } from './utils/get-var-inits';
 import { ContractDefinition } from '../solc/ast-node';
 import { Transformation } from './type';
 

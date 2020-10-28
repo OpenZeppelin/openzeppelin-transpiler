@@ -1,11 +1,11 @@
 import { flatten, keyBy } from 'lodash';
 
-import { getNodeSources, getConstructor, getContract, isModifierInvocation, getVarDeclarations } from '../solc/ast-utils';
+import { getNodeSources, getConstructor, getContract, isModifierInvocation, getVarDeclarations } from '../../solc/ast-utils';
 
-import { getInheritanceChain } from '../solc/get-inheritance-chain';
-import { ContractDefinition, ModifierInvocation, InheritanceSpecifier, Node, FunctionDefinition } from '../solc/ast-node';
-import { Artifact } from '../solc/artifact';
-import { ArtifactsMap } from '../artifacts-map';
+import { getInheritanceChain } from '../../solc/get-inheritance-chain';
+import { ContractDefinition, ModifierInvocation, InheritanceSpecifier, Node, FunctionDefinition } from '../../solc/ast-node';
+import { Artifact } from '../../solc/artifact';
+import { ArtifactsMap } from '../../artifacts-map';
 
 // builds an __init call with given arguments, for example
 // ERC20DetailedUpgradeable.__init(false, "Gold", "GLD", 18)

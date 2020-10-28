@@ -1,7 +1,7 @@
 import { getNodeSources, getConstructor, stripBraces } from '../solc/ast-utils';
-import { getVarInits } from './get-var-inits';
+import { getVarInits } from './utils/get-var-inits';
 import { Transformation } from './type';
-import { buildSuperCallsForChain } from './build-super-calls-for-chain';
+import { buildSuperCallsForChain } from './utils/build-super-calls-for-chain';
 import { ContractDefinition } from '../solc/ast-node';
 import { Artifact } from '../solc/artifact';
 import { ArtifactsMap } from '../artifacts-map';

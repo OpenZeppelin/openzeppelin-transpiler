@@ -1,5 +1,5 @@
-import { getVarDeclarations, getNodeSources } from '../solc/ast-utils';
-import { ContractDefinition, VariableDeclaration } from '../solc/ast-node';
+import { getVarDeclarations, getNodeSources } from '../../solc/ast-utils';
+import { ContractDefinition, VariableDeclaration } from '../../solc/ast-node';
 
 export function getVarInits(
   contractNode: ContractDefinition,
