@@ -63,21 +63,15 @@ export function sortTransformations(transformations: Transformation[], sourcePat
   }
 
   return transformations.sort((a, b) => {
-    const a_end = a.start + a.length;
-    const b_end = b.start + b.length;
+    const c = containment(a, b);
 
-    const x = (a.start - b.start) * (a_end - b_end);
-
-    if (x > 0) {
-      // segments are not contained one inside the other
-      if (a_end <= b.start || b_end <= a.start) {
-        return a.start - b.start
-      } else {
-        throw new Error(
-          `${sourcePath}: transformations ${a.kind} and ${b.kind} overlap`,
-        );
-      }
-    } else if (x === 0 && (a.length * b.length) === 0) {
+    if (c === 'partial overlap') {
+      throw new Error(
+        `${sourcePath}: transformations ${a.kind} and ${b.kind} overlap`,
+      );
+    } else if (c === 'disjoint') {
+      return a.start - b.start
+    } else if (c === 'shared bound' && (a.length * b.length) === 0) {
       // segments share an end but one of them is length zero
       // sort them by midpoint
       return (a.start + a.length / 2) - (b.start + b.length / 2);
@@ -87,4 +81,27 @@ export function sortTransformations(transformations: Transformation[], sourcePat
       return a.length - b.length;
     }
   });
+}
+
+type Containment =
+  | 'disjoint'
+  | 'partial overlap'
+  | 'fully contained'
+  | 'shared bound';
+
+function containment(a: Bounds, b: Bounds): Containment {
+  const a_end = a.start + a.length;
+  const b_end = b.start + b.length;
+
+  const x = (a.start - b.start) * (a_end - b_end);
+
+  if (x < 0) {
+    return 'fully contained';
+  } if (x === 0) {
+    return 'shared bound';
+  } else if (a.start + a.length <= b.start || b.start + b.length <= a.start) {
+    return 'disjoint';
+  } else {
+    return 'partial overlap';
+  }
 }
