@@ -10,12 +10,15 @@ export function applyTransformations(sourcePath: string, source: string, transfo
   const sorted = sortTransformations(transformations, sourcePath);
   const shifts: Shift[] = [];
 
-  return sorted.reduce((output, t) => {
+  return sorted.reduce((output, t, i) => {
     const sb = shiftBounds(shifts, t);
     const [pre, mid, post] = split(output, sb.start, sb.length);
 
     const readShifted = (b: Bounds) => {
       const sb = shiftBounds(shifts, b);
+      if (sorted.slice(0, i).some(t => containment(sb, t) === 'partial overlap')) {
+        throw new Error(`Can't read from segment that has been partially transformed`);
+      }
       return output.slice(sb.start, sb.start + sb.length);
     };
 
