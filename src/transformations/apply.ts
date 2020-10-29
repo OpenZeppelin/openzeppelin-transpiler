@@ -1,4 +1,4 @@
-import { Transformation } from './type';
+import { Transformation, Bounds } from './type';
 
 interface Shift {
   amount: number;
@@ -11,11 +11,18 @@ export function applyTransformations(sourcePath: string, source: string, transfo
   const shifts: Shift[] = [];
 
   return sorted.reduce((output, t) => {
-    const st = shiftTransformation(shifts, t);
-    const [pre, mid, post] = split(output, st.start, st.length);
-    const text = 'text' in t ? t.text : t.transform(mid);
+    const sb = shiftBounds(shifts, t);
+    const [pre, mid, post] = split(output, sb.start, sb.length);
+
+    const readShifted = (b: Bounds) => {
+      const sb = shiftBounds(shifts, b);
+      return output.slice(sb.start, sb.start + sb.length);
+    };
+
+    const text = 'text' in t ? t.text : t.transform(mid, readShifted);
+
     shifts.push({
-      amount: text.length - st.length,
+      amount: text.length - sb.length,
       location: t.start + t.length,
       lengthZero: t.length === 0,
     });
@@ -24,21 +31,21 @@ export function applyTransformations(sourcePath: string, source: string, transfo
   }, source);
 }
 
-export function shiftTransformation(shifts: Shift[], t: Transformation): Transformation {
-  const end = t.start + t.length;
+export function shiftBounds(shifts: Shift[], b: Bounds): Bounds {
+  const end = b.start + b.length;
 
   let startOffset = 0;
   let lengthOffset = 0;
 
   for (const s of shifts) {
-    if (s.location <= t.start) {
+    if (s.location <= b.start) {
       startOffset += s.amount;
     } else if (s.location < end || (s.location === end && !s.lengthZero)) {
       lengthOffset += s.amount;
     }
   }
 
-  return { ...t, start: t.start + startOffset, length: t.length + lengthOffset };
+  return { start: b.start + startOffset, length: b.length + lengthOffset };
 }
 
 function split(source: string, start: number, length: number): [string, string, string] {

@@ -1,15 +1,16 @@
-interface TransformationText {
-  kind: string;
+export interface Bounds {
   start: number;
-  length: number;
+  length: number
+}
+
+interface TransformationText extends Bounds {
+  kind: string;
   text: string;
 }
 
-interface TransformationFunction {
+interface TransformationFunction extends Bounds {
   kind: string;
-  start: number;
-  length: number;
-  transform: (source: string) => string;
+  transform: (source: string, readShifted: (b: Bounds) => string) => string;
 }
 
 export type Transformation = TransformationText | TransformationFunction;

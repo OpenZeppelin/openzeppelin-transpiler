@@ -1,6 +1,7 @@
 import test from 'ava';
 
-import { applyTransformations, sortTransformations, shiftTransformation } from './apply';
+import { applyTransformations, sortTransformations, shiftBounds } from './apply';
+import { Transformation } from './type';
 
 test('sort non overlapping', t => {
   const b = { kind: 'b', start: 2, length: 1, text: '' };
@@ -67,49 +68,49 @@ test('sort complex', t => {
   t.deepEqual([a, b, c, d, e, f], sortTransformations([e, b, a, d, f, c], ''));
 });
 
-test('shift transformation start', t => {
-  const original = { kind: 't', text: 'text', start: 1, length: 2 };
+test('shift start', t => {
+  const original = { start: 1, length: 2 };
   const offsets = [ { location: 0, amount: 1, lengthZero: false } ];
-  const shifted = { ...original, start: 2, length: 2 };
-  t.deepEqual(shifted, shiftTransformation(offsets, original));
+  const shifted = { start: 2, length: 2 };
+  t.deepEqual(shifted, shiftBounds(offsets, original));
 });
 
-test('shift transformation start overlapping', t => {
-  const original = { kind: 't', text: 'text', start: 1, length: 2 };
+test('shift start overlapping', t => {
+  const original = { start: 1, length: 2 };
   const offsets = [ { location: 1, amount: 1, lengthZero: false } ];
-  const shifted = { ...original, start: 2, length: 2 };
-  t.deepEqual(shifted, shiftTransformation(offsets, original));
+  const shifted = { start: 2, length: 2 };
+  t.deepEqual(shifted, shiftBounds(offsets, original));
 });
 
-test('shift transformation length', t => {
-  const original = { kind: 't', text: 'text', start: 1, length: 2 };
+test('shift length', t => {
+  const original = { start: 1, length: 2 };
   const offsets = [ { location: 2, amount: 1, lengthZero: false } ];
-  const shifted = { ...original, start: 1, length: 3 };
-  t.deepEqual(shifted, shiftTransformation(offsets, original));
+  const shifted = { start: 1, length: 3 };
+  t.deepEqual(shifted, shiftBounds(offsets, original));
 });
 
-test('shift transformation length overlapping length nonzero', t => {
-  const original = { kind: 't', text: 'text', start: 1, length: 2 };
+test('shift length overlapping length nonzero', t => {
+  const original = { start: 1, length: 2 };
   const offsets = [ { location: 3, amount: 1, lengthZero: false } ];
-  const shifted = { ...original, start: 1, length: 3 };
-  t.deepEqual(shifted, shiftTransformation(offsets, original));
+  const shifted = { start: 1, length: 3 };
+  t.deepEqual(shifted, shiftBounds(offsets, original));
 });
 
-test('shift transformation length overlapping length zero', t => {
-  const original = { kind: 't', text: 'text', start: 1, length: 2 };
+test('shift length overlapping length zero', t => {
+  const original = { start: 1, length: 2 };
   const offsets = [ { location: 3, amount: 1, lengthZero: true } ];
-  const shifted = { ...original, start: 1, length: 2 };
-  t.deepEqual(shifted, shiftTransformation(offsets, original));
+  const shifted = { start: 1, length: 2 };
+  t.deepEqual(shifted, shiftBounds(offsets, original));
 });
 
-test('shift transformation start and length', t => {
-  const original = { kind: 't', text: 'text', start: 1, length: 2 };
+test('shift start and length', t => {
+  const original = { start: 1, length: 2 };
   const offsets = [
     { location: 0, amount: 1, lengthZero: false },
     { location: 2, amount: 1, lengthZero: false },
   ];
-  const shifted = { ...original, start: 2, length: 3 };
-  t.deepEqual(shifted, shiftTransformation(offsets, original));
+  const shifted = { start: 2, length: 3 };
+  t.deepEqual(shifted, shiftBounds(offsets, original));
 });
 
 test('apply non overlapping length preserved', t => {
@@ -170,4 +171,16 @@ test('apply contained with function transformation', t => {
   const a = { kind: 'a', start: 2, length: 2, text: 'xyz' };
   const b = { kind: 'b', start: 1, length: 4, transform: (s: string) => s.toUpperCase() };
   t.is('aBXYZEf', applyTransformations('', source, [a, b]));
+});
+
+test('apply with function transformation and readShifted', t => {
+  const source = 'abcdef';
+  const a = { kind: 'a', start: 2, length: 2, text: 'xyz' };
+  const b: Transformation = {
+    kind: 'b',
+    start: 0,
+    length: 6,
+    transform: (_, read) => read({ start: 1, length: 4 }),
+  };
+  t.is('bxyze', applyTransformations('', source, [a, b]));
 });
