@@ -11,7 +11,7 @@ import {
   transformContractName,
   appendDirective,
   prependBaseClass,
-  transformParentsNames,
+  removeInheritanceListArguments,
   fixImportDirectives,
   purgeVarInits,
   transformOverrides,
@@ -115,7 +115,7 @@ function transpileFile(
 
     transformations.push(
       ...prependBaseClass(contractNode, source, 'Initializable'),
-      ...transformParentsNames(contractNode, source, allArtifacts),
+      ...removeInheritanceListArguments(contractNode),
       ...transformConstructor(contractNode, source, allArtifacts, contractsToArtifactsMap),
       ...purgeVarInits(contractNode, source),
       transformContractName(contractNode, source, renameContract(contractName)),

@@ -1,6 +1,6 @@
 export { appendDirective } from './append-directive';
 export { prependBaseClass } from './prepend-base-class';
-export { transformParentsNames } from './transform-parents';
+export { removeInheritanceListArguments } from './remove-inheritance-list-args';
 export { transformContractName } from './transform-contract-name';
 export { purgeVarInits } from './purge-var-inits';
 export { transformConstructor } from './transform-constructor';
