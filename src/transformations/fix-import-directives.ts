@@ -6,12 +6,7 @@ import { Transformation } from './type';
 import { relativePath } from '../utils/relative-path';
 import { renamePath } from '../rename';
 
-export function* fixImportDirectives(
-  ast: SourceUnit,
-  sourcePath: string,
-): Generator<Transformation> {
-  const dirname = path.dirname(sourcePath);
-
+export function* fixImportDirectives(ast: SourceUnit, sourcePath: any): Generator<Transformation> {
   const imports = getImportDirectives(ast);
 
   for (const imp of imports) {
@@ -20,6 +15,7 @@ export function* fixImportDirectives(
     if (imp.file.startsWith('.')) {
       transformed.unshift(imp.file); // TODO: may not be a relative path
     } else {
+      const dirname = path.dirname(sourcePath);
       transformed.unshift(relativePath(dirname, imp.file));
     }
 

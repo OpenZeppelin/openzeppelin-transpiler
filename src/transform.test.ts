@@ -8,6 +8,18 @@ import { getSourceIndices } from './solc/ast-utils';
 import { SolcInput, SolcOutput } from './solc/output';
 import { Transform } from './transform';
 
+import { renameIdentifiers2 } from './transformations/rename-identifiers';
+import { prependInitializableBase } from './transformations/prepend-base-class';
+import { purgeVarInits2 } from './transformations/purge-var-inits';
+import { removeInheritanceListArguments2 } from './transformations/remove-inheritance-list-args';
+import { transformContractName2 } from './transformations/transform-contract-name';
+import { fixImportDirectives } from './transformations/fix-import-directives';
+import { appendInitializableImport } from './transformations/append-directive';
+import {
+  transformConstructor2,
+  removeLeftoverConstructorHead,
+} from './transformations/transform-constructor';
+
 const test = _test as TestInterface<Context>;
 
 interface Context {
@@ -35,7 +47,7 @@ test('read', t => {
   t.deepEqual('pragma', text);
 });
 
-test('transform + read', t => {
+test('apply + read', t => {
   t.context.transform.apply(function*() {
     yield { kind: 'a', start: 1, length: 0, text: '~' };
   });
@@ -43,7 +55,7 @@ test('transform + read', t => {
   t.deepEqual('p~ragma', text);
 });
 
-test('transform + read invalid', t => {
+test('apply + read invalid', t => {
   t.context.transform.apply(function*() {
     yield { kind: 'a', start: 1, length: 2, text: '~~' };
   });
@@ -51,7 +63,7 @@ test('transform + read invalid', t => {
   t.throws(() => t.context.transform.read({ src: '2:2:0' }));
 });
 
-test('transform remove functions', t => {
+test('remove functions', t => {
   const file = 'contracts/TransformRemove.sol';
   t.context.transform.apply(function*(sourceUnit) {
     if (sourceUnit.absolutePath === file) {
@@ -62,5 +74,54 @@ test('transform remove functions', t => {
     }
   });
 
+  t.snapshot(t.context.transform.results()[file]);
+});
+
+test('rename identifiers', t => {
+  const file = 'test/solc-0.6/contracts/Rename.sol';
+  t.context.transform.apply(renameIdentifiers2);
+  t.snapshot(t.context.transform.results()[file]);
+});
+
+test('prepend Initializable base', t => {
+  const file = 'test/solc-0.6/contracts/Rename.sol';
+  t.context.transform.apply(prependInitializableBase);
+  t.snapshot(t.context.transform.results()[file]);
+});
+
+test('purge var inits', t => {
+  const file = 'test/solc-0.6/contracts/ElementaryTypes.sol';
+  t.context.transform.apply(purgeVarInits2);
+  t.snapshot(t.context.transform.results()[file]);
+});
+
+test('remove inheritance args', t => {
+  const file = 'contracts/TransformInheritanceArgs.sol';
+  t.context.transform.apply(removeInheritanceListArguments2);
+  t.snapshot(t.context.transform.results()[file]);
+});
+
+test('transform contract name', t => {
+  const file = 'test/solc-0.6/contracts/Rename.sol';
+  t.context.transform.apply(transformContractName2);
+  t.snapshot(t.context.transform.results()[file]);
+});
+
+test('fix import directives', t => {
+  const file = 'test/solc-0.6/contracts/Local.sol';
+  t.context.transform.apply(fixImportDirectives);
+  t.snapshot(t.context.transform.results()[file]);
+});
+
+test('append initializable import', t => {
+  const file = 'test/solc-0.6/contracts/Local.sol';
+  t.context.transform.apply(su => appendInitializableImport('test/solc-0.6/contracts', su));
+  t.snapshot(t.context.transform.results()[file]);
+});
+
+test('transform constructor', t => {
+  const file = 'contracts/TransformConstructor.sol';
+  t.context.transform.apply(transformConstructor2);
+  t.context.transform.apply(removeLeftoverConstructorHead);
   t.snapshot(t.context.transform.results()[file]);
 });

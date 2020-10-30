@@ -12,9 +12,11 @@ test.serial.before('compile', async () => {
 });
 
 test.before('transpile', async t => {
+  const solcInputPath = path.join(bre.config.paths.cache, 'solc-input.json');
+  const solcInput = JSON.parse(await fs.readFile(solcInputPath, 'utf8'));
   const solcOutputPath = path.join(bre.config.paths.cache, 'solc-output.json');
   const solcOutput = JSON.parse(await fs.readFile(solcOutputPath, 'utf8'));
-  t.context.files = await transpile(solcOutput, bre.config.paths);
+  t.context.files = await transpile(solcInput, solcOutput, bre.config.paths);
 });
 
 const fileNames = [

@@ -76,4 +76,3 @@ test('sort complex', t => {
   t.deepEqual([a, b, c, d, e, f], sortTransformations([a, f, b, d, c, e]));
   t.deepEqual([a, b, c, d, e, f], sortTransformations([e, b, a, d, f, c]));
 });
-

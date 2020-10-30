@@ -3,7 +3,7 @@ import path from 'path';
 const suffix = 'UpgradeSafe';
 
 export function isRenamed(name: string): boolean {
-  return name.endsWith(suffix);
+  return path.basename(name, '.sol').endsWith(suffix);
 }
 
 export function renameContract(name: string): string {

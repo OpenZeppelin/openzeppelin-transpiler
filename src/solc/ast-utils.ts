@@ -15,7 +15,7 @@ import {
 } from './ast-node';
 import { Artifact } from './artifact';
 
-import { WithSrc } from '../transformations/type';
+import { Bounds, WithSrc } from '../transformations/type';
 
 const nodeSchemaValidator = new Ajv({ allErrors: true });
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -67,6 +67,11 @@ export function isContractDefinition(node: Node): node is ContractDefinition {
 
 export function isFunctionDefinition(node: Node): node is FunctionDefinition {
   return node.nodeType === 'FunctionDefinition';
+}
+
+export function getNodeBounds(node: WithSrc): Bounds {
+  const [start, length] = getSourceIndices(node);
+  return { start, length };
 }
 
 export function getSourceIndices(node: WithSrc): [number, number] {
