@@ -1,12 +1,38 @@
-import { Transformation, Bounds, WithSrc } from './type';
+import { Transformation, Bounds, WithSrc, TransformHelper } from './type';
 import { getSourceIndices } from '../solc/ast-utils';
 
 import { compareTransformations, containment } from './compare';
 
-interface Shift {
+export interface Shift {
   amount: number;
   location: number;
   lengthZero: boolean;
+}
+
+interface ApplyResult {
+  result: string;
+  shift: Shift;
+}
+
+export function applyTransformation(
+  t: Transformation,
+  content: string,
+  shifts: Shift[],
+  helper: TransformHelper,
+): ApplyResult {
+  const sb = shiftBounds(shifts, t);
+  const [pre, mid, post] = split(content, sb.start, sb.length);
+  const text = 'text' in t ? t.text : t.transform(mid, helper);
+
+  const shift = {
+    amount: text.length - sb.length,
+    location: t.start + t.length,
+    lengthZero: t.length === 0,
+  };
+
+  const result = [pre, text, post].join('');
+
+  return { result, shift };
 }
 
 export function applyTransformations(
@@ -20,9 +46,6 @@ export function applyTransformations(
   const shifts: Shift[] = [];
 
   return transformations.reduce((output, t, i) => {
-    const sb = shiftBounds(shifts, t);
-    const [pre, mid, post] = split(output, sb.start, sb.length);
-
     const read = (node: WithSrc) => {
       const [start, length] = getSourceIndices(node);
       const sb = shiftBounds(shifts, { start, length });
@@ -32,15 +55,10 @@ export function applyTransformations(
       return output.slice(sb.start, sb.start + sb.length);
     };
 
-    const text = 'text' in t ? t.text : t.transform(mid, { read });
+    const { result, shift } = applyTransformation(t, output, shifts, { read });
 
-    shifts.push({
-      amount: text.length - sb.length,
-      location: t.start + t.length,
-      lengthZero: t.length === 0,
-    });
-    const n = [pre, text, post].join('');
-    return n;
+    shifts.push(shift);
+    return result;
   }, source);
 }
 

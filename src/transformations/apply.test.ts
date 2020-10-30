@@ -1,7 +1,22 @@
 import test from 'ava';
 
-import { applyTransformations, shiftBounds } from './apply';
-import { Transformation } from './type';
+import { applyTransformation, shiftBounds, Shift } from './apply';
+import { Transformation, TransformHelper } from './type';
+
+const defaultHelper: TransformHelper = {
+  read() {
+    throw new Error('unimplemented');
+  },
+};
+
+function applyAll(content: string, ts: Transformation[], helper = defaultHelper): string {
+  const shifts: Shift[] = [];
+  return ts.reduce((content, t) => {
+    const { result, shift } = applyTransformation(t, content, shifts, helper);
+    shifts.push(shift);
+    return result;
+  }, content);
+}
 
 test('shift start', t => {
   const original = { start: 1, length: 2 };
@@ -52,14 +67,14 @@ test('apply non overlapping length preserved', t => {
   const source = '01234567';
   const a = { kind: 'a', start: 0, length: 2, text: '00' };
   const b = { kind: 'b', start: 2, length: 2, text: '00' };
-  t.is('00004567', applyTransformations('', source, [a, b]));
+  t.is('00004567', applyAll(source, [a, b]));
 });
 
 test('apply contained length preserved', t => {
   const source = '01234567';
   const a = { kind: 'a', start: 2, length: 2, text: '00' };
   const b = { kind: 'b', start: 0, length: 6, text: '000000' };
-  t.is('00000067', applyTransformations('', source, [a, b]));
+  t.is('00000067', applyAll(source, [a, b]));
 });
 
 test('apply non overlapping contracted', t => {
@@ -67,7 +82,7 @@ test('apply non overlapping contracted', t => {
   const a = { kind: 'a', start: 0, length: 2, text: 'a' };
   const b = { kind: 'b', start: 2, length: 2, text: 'b' };
   const c = { kind: 'c', start: 4, length: 2, text: 'c' };
-  t.is('abc67', applyTransformations('', source, [a, b, c]));
+  t.is('abc67', applyAll(source, [a, b, c]));
 });
 
 test('apply non overlapping expanded', t => {
@@ -75,7 +90,7 @@ test('apply non overlapping expanded', t => {
   const a = { kind: 'a', start: 0, length: 2, text: 'aaa' };
   const b = { kind: 'b', start: 2, length: 2, text: 'bbb' };
   const c = { kind: 'c', start: 4, length: 2, text: 'ccc' };
-  t.is('aaabbbccc67', applyTransformations('', source, [a, b, c]));
+  t.is('aaabbbccc67', applyAll(source, [a, b, c]));
 });
 
 test('apply realistic transformations', t => {
@@ -83,7 +98,7 @@ test('apply realistic transformations', t => {
   const a = { kind: 'a', start: 0, length: 1, text: 'aaaaaaa' };
   const b = { kind: 'b', start: 6, length: 1, text: 'bbbbbbb' };
   const c = { kind: 'c', start: 3, length: 7, text: '' };
-  t.is('aaaaaaa x;', applyTransformations('', source, [a, b, c]));
+  t.is('aaaaaaa x;', applyAll(source, [a, b, c]));
 });
 
 test('apply overlapping transformations', t => {
@@ -92,7 +107,7 @@ test('apply overlapping transformations', t => {
   const b = { kind: 'b', start: 6, length: 1, text: 'bbbb' };
   const c = { kind: 'c', start: 3, length: 7, text: '' };
   const d = { kind: 'd', start: 11, length: 0, text: ' d;' };
-  t.is('aaaa x; d; a x = b(0);', applyTransformations('', source, [a, b, c, d]));
+  t.is('aaaa x; d; a x = b(0);', applyAll(source, [a, b, c, d]));
 });
 
 test('apply non overlapping with function transformation', t => {
@@ -103,7 +118,7 @@ test('apply non overlapping with function transformation', t => {
     length: 2,
     transform: (s: string) => s + '.',
   };
-  t.is('01.234567', applyTransformations('', source, [a]));
+  t.is('01.234567', applyAll(source, [a]));
 });
 
 test('apply contained with function transformation', t => {
@@ -115,29 +130,5 @@ test('apply contained with function transformation', t => {
     length: 4,
     transform: (s: string) => s.toUpperCase(),
   };
-  t.is('aBXYZEf', applyTransformations('', source, [a, b]));
-});
-
-test('apply with function transformation and readShifted', t => {
-  const source = 'abcdef';
-  const a = { kind: 'a', start: 2, length: 2, text: 'xyz' };
-  const b: Transformation = {
-    kind: 'b',
-    start: 0,
-    length: 6,
-    transform: (_, h) => h.read({ src: '1:4' }),
-  };
-  t.is('bxyze', applyTransformations('', source, [a, b]));
-});
-
-test('apply with invalid readShifted bounds', t => {
-  const source = 'abcdef';
-  const a = { kind: 'a', start: 2, length: 2, text: 'xyz' };
-  const b: Transformation = {
-    kind: 'b',
-    start: 0,
-    length: 6,
-    transform: (_, h) => h.read({ src: '3:2' }),
-  };
-  t.throws(() => applyTransformations('', source, [a, b]));
+  t.is('aBXYZEf', applyAll(source, [a, b]));
 });
