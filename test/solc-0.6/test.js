@@ -7,7 +7,7 @@ const { transpile } = require('../..');
 process.chdir(__dirname);
 const bre = require('@nomiclabs/buidler');
 
-test.before('compile', async () => {
+test.serial.before('compile', async () => {
   await bre.run('compile');
 });
 
