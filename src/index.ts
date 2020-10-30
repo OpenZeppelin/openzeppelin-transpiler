@@ -116,9 +116,9 @@ function transpileFile(
     transformations.push(
       ...renameIdentifiers(contractNode, contractsToArtifactsMap),
       ...prependBaseClass(contractNode, source, 'Initializable'),
-      ...removeInheritanceListArguments(contractNode),
       ...transformConstructor(contractNode, source, allArtifacts, contractsToArtifactsMap),
       ...purgeVarInits(contractNode, source),
+      ...removeInheritanceListArguments(contractNode),
       transformContractName(contractNode, source, renameContract(contractName)),
     );
   }
