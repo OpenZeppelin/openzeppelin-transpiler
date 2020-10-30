@@ -46,4 +46,3 @@ test('shift start and length', t => {
   const shifted = { start: 2, length: 3 };
   t.deepEqual(shifted, shiftBounds(offsets, original));
 });
-

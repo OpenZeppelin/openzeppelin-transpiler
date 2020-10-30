@@ -69,6 +69,7 @@ export function* transformConstructor2(
       `}`,
       ``,
       `function __${name}_init_unchained(${argsList}) internal initializer {`,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       varInitNodes.map(v => `${v.name} = ${helper.read(v.value!)};`),
       `}`,
     ];
@@ -89,6 +90,7 @@ export function* transformConstructor2(
         kind: 'transform-constructor',
         transform: (_, helper) => {
           const source = helper.read(constructorNode);
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           const [, argsList] = source.match(/\((.*?)\)/)!;
           return format(1, initializer(helper, argsList, argNames).slice(0, -1)).replace(
             /^\s+/,
