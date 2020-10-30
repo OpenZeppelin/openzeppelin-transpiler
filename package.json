@@ -12,8 +12,8 @@
     "oz-transpile": "dist/cli.js"
   },
   "scripts": {
-    "test": "tsc && bash test/solc-0.6/test.sh",
-    "test:watch": "fgbg 'bash test/solc-0.6/test.sh --watch' 'tsc -w'",
+    "test": "tsc && ava",
+    "test:watch": "fgbg 'ava -w' 'tsc -w'",
     "compile:ts": "rm -rf lib && tsc",
     "prepare": "npm run compile:ts",
     "watch": "tsc -w",
@@ -41,9 +41,10 @@
   },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
-    "@openzeppelin/cli": "^2.8.2",
+    "@nomiclabs/buidler": "^1.4.8",
     "@openzeppelin/contracts": "^2.4.0",
     "@types/lodash": "^4.14.149",
+    "@types/mocha": "^7.0.2",
     "@types/node": "^13.1.4",
     "@typescript-eslint/eslint-plugin": "^4.6.0",
     "@typescript-eslint/parser": "^4.6.0",

@@ -1,16 +1,20 @@
 const test = require('ava');
-const fs = require('fs');
+const path = require('path');
+const { promises: fs } = require('fs');
 
-const { transpileContracts } = require('../..');
+const { transpile } = require('../..');
 
-test.before('artifacts', t => {
-  t.context.artifacts = fs.readdirSync(`${__dirname}/build/contracts`).map(file => {
-    return JSON.parse(fs.readFileSync(`${__dirname}/build/contracts/${file}`, 'utf8'));
-  });
+process.chdir(__dirname);
+const bre = require('@nomiclabs/buidler');
+
+test.before('compile', async t => {
+  await bre.run('compile');
 });
 
-test.before('transpile', t => {
-  t.context.files = transpileContracts(t.context.artifacts, './contracts/');
+test.before('transpile', async t => {
+  const solcOutputPath = path.join(bre.config.paths.cache, 'solc-output.json');
+  const solcOutput = JSON.parse(await fs.readFile(solcOutputPath, 'utf8'));
+  t.context.files = await transpile(solcOutput, bre.config.paths);
 });
 
 const fileNames = [

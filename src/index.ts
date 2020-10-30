@@ -16,11 +16,17 @@ import {
   purgeVarInits,
   renameIdentifiers,
 } from './transformations';
-import { Artifact } from './solc/artifact';
+import { Artifact, buildArtifacts } from './solc/artifact';
 import { Transformation } from './transformations/type';
 import { relativePath } from './utils/relative-path';
 import { renameContract, renamePath, isRenamed } from './rename';
 import { ArtifactsMap } from './artifacts-map';
+import { SolcOutput } from './solc/output';
+
+interface Paths {
+  root: string;
+  sources: string;
+}
 
 export interface OutputFile {
   fileName: string;
@@ -34,10 +40,13 @@ interface FileData {
   source: string;
 }
 
-export function transpileContracts(artifacts: Artifact[], contractsDir: string): OutputFile[] {
-  artifacts = artifacts
-    .map(a => normalizeSourcePath(a, contractsDir))
-    .filter(a => !isRenamed(a.contractName));
+export async function transpile(solcOutput: SolcOutput, paths: Paths): Promise<OutputFile[]> {
+  const artifacts = await buildArtifacts(solcOutput, paths.root);
+  return transpileContracts(artifacts, paths);
+}
+
+export function transpileContracts(artifacts: Artifact[], paths: Paths): OutputFile[] {
+  artifacts = artifacts.filter(a => !isRenamed(a.contractName));
 
   // check that we have valid ast tree
   for (const art of artifacts) {
@@ -54,7 +63,7 @@ export function transpileContracts(artifacts: Artifact[], contractsDir: string):
   }));
 
   const fileTransformations = mapValues(fileData, (data, file) =>
-    transpileFile(file, data, artifacts, contractsToArtifactsMap, contractsDir),
+    transpileFile(file, data, artifacts, contractsToArtifactsMap, paths.sources),
   );
 
   // build a final array of files to return
@@ -74,7 +83,7 @@ export function transpileContracts(artifacts: Artifact[], contractsDir: string):
 
   outputFiles.push({
     source: fs.readFileSync(require.resolve('../Initializable.sol'), 'utf8'),
-    path: path.join(contractsDir, 'Initializable.sol'),
+    path: path.join(paths.sources, 'Initializable.sol'),
     fileName: 'Initializable.sol',
   });
 
@@ -116,23 +125,4 @@ function transpileFile(
   }
 
   return transformations;
-}
-
-function normalizeSourcePath(art: Artifact, contractsDir: string): Artifact {
-  // Truffle stores an absolute file path in a sourcePath of an artifact field
-  // "sourcePath": "/Users/iYalovoy/repo/openzeppelin-sdk/tests/cli/workdir/contracts/Samples.sol"
-  // OpenZeppelin CLI stores relative paths
-  // "sourcePath": "contracts/Foo.sol"
-  // OpenZeppelin sourcePath would start with `contracts` for contracts present in the `contracts` folder of a project
-  // Both Truffle and OpenZeppelin support packages
-  // "sourcePath": "@openzeppelin/upgrades/contracts/Initializable.sol",
-  // Relative paths can only be specified using `.` and `..` for both compilers
-
-  // if path resolves to a path in the contrcts directory then it is a local contract
-  if (path.resolve(art.sourcePath).startsWith(path.resolve(contractsDir))) {
-    const sourcePath = relativePath(path.dirname(contractsDir), art.sourcePath);
-    return { ...art, sourcePath };
-  } else {
-    return art;
-  }
 }

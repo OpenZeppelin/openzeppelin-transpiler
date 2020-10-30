@@ -12,12 +12,12 @@ export interface Artifact {
   sourcePath: string;
 }
 
-export async function buildArtifacts(solcOutput: SolcOutput): Promise<Artifact[]> {
+export async function buildArtifacts(solcOutput: SolcOutput, cwd: string): Promise<Artifact[]> {
   const artifacts: Artifact[] = [];
   for (const sourcePath in solcOutput.contracts) {
     for (const contractName in solcOutput.contracts[sourcePath]) {
       const { ast } = solcOutput.sources[sourcePath];
-      const source = await fs.readFile(ast.absolutePath, 'utf8');
+      const source = await fs.readFile(path.resolve(cwd, ast.absolutePath), 'utf8');
       const fileName = path.basename(sourcePath);
       artifacts.push({ contractName, fileName, sourcePath, ast, source });
     }
