@@ -114,12 +114,12 @@ function transpileFile(
     const contractNode = getContract(art);
 
     transformations.push(
+      ...renameIdentifiers(contractNode, contractsToArtifactsMap),
       ...prependBaseClass(contractNode, source, 'Initializable'),
       ...removeInheritanceListArguments(contractNode),
       ...transformConstructor(contractNode, source, allArtifacts, contractsToArtifactsMap),
       ...purgeVarInits(contractNode, source),
       transformContractName(contractNode, source, renameContract(contractName)),
-      ...renameIdentifiers(contractNode, contractsToArtifactsMap),
     );
   }
 
