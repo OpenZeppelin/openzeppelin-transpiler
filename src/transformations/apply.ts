@@ -1,4 +1,5 @@
-import { Transformation, Bounds } from './type';
+import { Transformation, Bounds, WithSrc } from './type';
+import { getSourceIndices } from '../solc/ast-utils';
 
 import { compareTransformations, containment } from './compare';
 
@@ -22,15 +23,16 @@ export function applyTransformations(
     const sb = shiftBounds(shifts, t);
     const [pre, mid, post] = split(output, sb.start, sb.length);
 
-    const readShifted = (b: Bounds) => {
-      const sb = shiftBounds(shifts, b);
+    const read = (node: WithSrc) => {
+      const [start, length] = getSourceIndices(node);
+      const sb = shiftBounds(shifts, { start, length });
       if (transformations.slice(0, i).some(t => containment(sb, t) === 'partial overlap')) {
         throw new Error(`Can't read from segment that has been partially transformed`);
       }
       return output.slice(sb.start, sb.start + sb.length);
     };
 
-    const text = 'text' in t ? t.text : t.transform(mid, readShifted);
+    const text = 'text' in t ? t.text : t.transform(mid, { read });
 
     shifts.push({
       amount: text.length - sb.length,

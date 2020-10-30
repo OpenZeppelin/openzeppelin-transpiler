@@ -125,7 +125,7 @@ test('apply with function transformation and readShifted', t => {
     kind: 'b',
     start: 0,
     length: 6,
-    transform: (_, read) => read({ start: 1, length: 4 }),
+    transform: (_, h) => h.read({ src: '1:4' }),
   };
   t.is('bxyze', applyTransformations('', source, [a, b]));
 });
@@ -137,7 +137,7 @@ test('apply with invalid readShifted bounds', t => {
     kind: 'b',
     start: 0,
     length: 6,
-    transform: (_, read) => read({ start: 3, length: 2 }),
+    transform: (_, h) => h.read({ src: '3:2' }),
   };
   t.throws(() => applyTransformations('', source, [a, b]));
 });

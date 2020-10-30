@@ -15,6 +15,8 @@ import {
 } from './ast-node';
 import { Artifact } from './artifact';
 
+import { WithSrc } from '../transformations/type';
+
 const nodeSchemaValidator = new Ajv({ allErrors: true });
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 nodeSchemaValidator.addMetaSchema(require('ajv/lib/refs/json-schema-draft-06.json'));
@@ -67,7 +69,7 @@ export function isFunctionDefinition(node: Node): node is FunctionDefinition {
   return node.nodeType === 'FunctionDefinition';
 }
 
-export function getSourceIndices(node: Node): [number, number] {
+export function getSourceIndices(node: WithSrc): [number, number] {
   return node.src
     .split(':')
     .map(val => parseInt(val))
