@@ -1,7 +1,8 @@
 import test from 'ava';
 
-import { applyTransformation, shiftBounds, Shift } from './apply';
+import { applyTransformation } from './apply';
 import { Transformation, TransformHelper } from './type';
+import { Shift } from '../shifts';
 
 const defaultHelper: TransformHelper = {
   read() {
@@ -17,51 +18,6 @@ function applyAll(content: string, ts: Transformation[], helper = defaultHelper)
     return result;
   }, content);
 }
-
-test('shift start', t => {
-  const original = { start: 1, length: 2 };
-  const offsets = [{ location: 0, amount: 1, lengthZero: false }];
-  const shifted = { start: 2, length: 2 };
-  t.deepEqual(shifted, shiftBounds(offsets, original));
-});
-
-test('shift start overlapping', t => {
-  const original = { start: 1, length: 2 };
-  const offsets = [{ location: 1, amount: 1, lengthZero: false }];
-  const shifted = { start: 2, length: 2 };
-  t.deepEqual(shifted, shiftBounds(offsets, original));
-});
-
-test('shift length', t => {
-  const original = { start: 1, length: 2 };
-  const offsets = [{ location: 2, amount: 1, lengthZero: false }];
-  const shifted = { start: 1, length: 3 };
-  t.deepEqual(shifted, shiftBounds(offsets, original));
-});
-
-test('shift length overlapping length nonzero', t => {
-  const original = { start: 1, length: 2 };
-  const offsets = [{ location: 3, amount: 1, lengthZero: false }];
-  const shifted = { start: 1, length: 3 };
-  t.deepEqual(shifted, shiftBounds(offsets, original));
-});
-
-test('shift length overlapping length zero', t => {
-  const original = { start: 1, length: 2 };
-  const offsets = [{ location: 3, amount: 1, lengthZero: true }];
-  const shifted = { start: 1, length: 2 };
-  t.deepEqual(shifted, shiftBounds(offsets, original));
-});
-
-test('shift start and length', t => {
-  const original = { start: 1, length: 2 };
-  const offsets = [
-    { location: 0, amount: 1, lengthZero: false },
-    { location: 2, amount: 1, lengthZero: false },
-  ];
-  const shifted = { start: 2, length: 3 };
-  t.deepEqual(shifted, shiftBounds(offsets, original));
-});
 
 test('apply non overlapping length preserved', t => {
   const source = '01234567';

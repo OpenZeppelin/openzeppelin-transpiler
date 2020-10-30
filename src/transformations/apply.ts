@@ -1,13 +1,8 @@
-import { Transformation, Bounds, WithSrc, TransformHelper } from './type';
+import { Transformation, WithSrc, TransformHelper } from './type';
 import { getSourceIndices } from '../solc/ast-utils';
+import { Shift, shiftBounds } from '../shifts';
 
 import { compareTransformations, containment } from './compare';
-
-export interface Shift {
-  amount: number;
-  location: number;
-  lengthZero: boolean;
-}
 
 interface ApplyResult {
   result: string;
@@ -62,24 +57,7 @@ export function applyTransformations(
   }, source);
 }
 
-export function shiftBounds(shifts: Shift[], b: Bounds): Bounds {
-  const end = b.start + b.length;
-
-  let startOffset = 0;
-  let lengthOffset = 0;
-
-  for (const s of shifts) {
-    if (s.location <= b.start) {
-      startOffset += s.amount;
-    } else if (s.location < end || (s.location === end && !s.lengthZero)) {
-      lengthOffset += s.amount;
-    }
-  }
-
-  return { start: b.start + startOffset, length: b.length + lengthOffset };
-}
-
-function split(source: string, start: number, length: number): [string, string, string] {
+export function split(source: string, start: number, length: number): [string, string, string] {
   const pre = source.slice(0, start);
   const mid = source.slice(start, start + length);
   const post = source.slice(start + length);
