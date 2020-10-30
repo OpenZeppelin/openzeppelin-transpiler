@@ -1,4 +1,4 @@
-import { getNodeSources } from '../solc/ast-utils';
+import { getSourceIndices, getNodeSources } from '../solc/ast-utils';
 import { ContractDefinition } from '../solc/ast-node';
 import { Transformation } from './type';
 
@@ -11,21 +11,28 @@ export function* prependBaseClass(
     return;
   }
 
-  const hasInheritance = contractNode.baseContracts.length;
+  if (contractNode.baseContracts.length > 0) {
+    const [start] = getSourceIndices(contractNode.baseContracts[0]);
+    yield {
+      kind: 'prepend-base-class',
+      start,
+      length: 0,
+      text: `${cls}, `,
+    };
+  } else {
+    const re = new RegExp(`^(abstract\\s+)?contract\\s+${contractNode.name}\\b`);
+    const [contractStart, , contractSource] = getNodeSources(contractNode, source);
+    const match = re.exec(contractSource);
 
-  const [start, , nodeSource] = getNodeSources(contractNode, source);
+    if (!match) {
+      throw new Error(`Can't find ${contractNode.name} in ${contractSource}`);
+    }
 
-  const regExp = RegExp(`^(abstract\\s+)?contract\\s+${contractNode.name}(\\s+is)?`);
-
-  const match = regExp.exec(nodeSource);
-  if (!match) {
-    throw new Error(`Can't find ${contractNode.name} in ${nodeSource}`);
+    yield {
+      kind: 'prepend-base-class',
+      start: contractStart + match.index + match[0].length,
+      length: 0,
+      text: ` is ${cls}`,
+    };
   }
-
-  yield {
-    kind: 'prepend-base-class',
-    start: start + match.index + match[0].length,
-    length: 0,
-    text: hasInheritance ? ` ${cls},` : ` is ${cls}`,
-  };
 }
