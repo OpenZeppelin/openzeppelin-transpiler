@@ -19,10 +19,7 @@
     "watch": "tsc -w",
     "lint": "eslint . --ignore-path .gitignore --max-warnings 0"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/OpenZeppelin/openzeppelin-sdk.git"
-  },
+  "repository": "github:OpenZeppelin/openzeppelin-transpiler",
   "keywords": [
     "solidity",
     "openzeppelin",
