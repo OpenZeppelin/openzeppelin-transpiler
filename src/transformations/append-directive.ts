@@ -5,12 +5,7 @@ import { findAll } from 'solidity-ast/utils';
 import path from 'path';
 import { relativePath } from '../utils/relative-path';
 
-import {
-  getImportDirectives,
-  getPragmaDirectives,
-  getSourceIndices,
-  getNodeBounds,
-} from '../solc/ast-utils';
+import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
 
 export function* appendInitializableImport(
@@ -44,22 +39,4 @@ export function* appendInitializableImport(
     kind: 'append-initializable-import',
     text: `\nimport "${relativeImportPath}";`,
   };
-}
-
-export function appendDirective(fileNode: Node, directive: string): Transformation {
-  const retVal = {
-    kind: 'append-directive',
-    start: 0,
-    length: 0,
-    text: directive,
-  };
-  const importsAndPragmas = [...getPragmaDirectives(fileNode), ...getImportDirectives(fileNode)];
-  if (importsAndPragmas.length) {
-    const [last] = importsAndPragmas.slice(-1);
-    const [start, len] = getSourceIndices(last);
-    retVal.start = start + len;
-    retVal.length = 0;
-  }
-
-  return retVal;
 }

@@ -1,4 +1,4 @@
-import { mapValues, omitBy } from 'lodash';
+import { mapValues } from 'lodash';
 
 import { SourceUnit, ContractDefinition } from 'solidity-ast';
 import { findAll } from 'solidity-ast/utils';
@@ -7,7 +7,7 @@ import { srcDecoder, SrcDecoder } from './solc/src-decoder';
 
 import { Shift, shiftBounds } from './shifts';
 import { applyTransformation } from './transformations/apply';
-import { compareTransformations, compareContainment, containment } from './transformations/compare';
+import { compareTransformations, compareContainment } from './transformations/compare';
 import { Transformation, WithSrc } from './transformations/type';
 import { isRenamed } from './rename';
 

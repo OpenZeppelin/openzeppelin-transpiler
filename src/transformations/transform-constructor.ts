@@ -1,31 +1,12 @@
 import { flatten } from 'lodash';
-import { SourceUnit, Expression } from 'solidity-ast';
+import { SourceUnit } from 'solidity-ast';
 
-import {
-  getNodeSources,
-  getSourceIndices,
-  getConstructor,
-  stripBraces,
-  getNodeBounds,
-} from '../solc/ast-utils';
-import { getVarInits } from './utils/get-var-inits';
-import { Transformation, TransformHelper, Bounds } from './type';
-import {
-  buildSuperCallsForChain,
-  buildSuperCallsForChain2,
-} from './utils/build-super-calls-for-chain';
+import { getSourceIndices, getConstructor, getNodeBounds } from '../solc/ast-utils';
+import { Transformation, TransformHelper } from './type';
+import { buildSuperCallsForChain2 } from './utils/build-super-calls-for-chain';
 import { findAll } from 'solidity-ast/utils';
-import { ContractDefinition } from '../solc/ast-node';
-import { Artifact } from '../solc/artifact';
-import { ArtifactsMap } from '../artifacts-map';
 import { ContractResolver } from '../transform';
 import { matchFrom } from '../utils/match-from';
-
-function getVarInitsPart(contractNode: ContractDefinition, source: string): string {
-  return getVarInits(contractNode, source)
-    .map(([vr, , match]) => `\n        ${vr.name} ${match[2]};`)
-    .join('');
-}
 
 type Line = string | Line[];
 
@@ -139,69 +120,4 @@ export function* transformConstructor2(
       };
     }
   }
-}
-
-export function* transformConstructor(
-  contractNode: ContractDefinition,
-  source: string,
-  contracts: Artifact[],
-  contractsToArtifactsMap: ArtifactsMap,
-): Generator<Transformation> {
-  if (contractNode.contractKind !== 'contract') {
-    return;
-  }
-
-  const superCalls = buildSuperCallsForChain(contractNode, contracts, contractsToArtifactsMap);
-
-  const declarationInserts = getVarInitsPart(contractNode, source);
-
-  const constructorNode = getConstructor(contractNode);
-
-  let constructorBodySource = '';
-  let constructorParameterList = '';
-  let constructorArgsList = '';
-
-  if (constructorNode) {
-    if (constructorNode.body == null) {
-      throw new Error('Missing body for constructor definition');
-    }
-    constructorBodySource = stripBraces(getNodeSources(constructorNode.body, source)[2]);
-    constructorParameterList = stripBraces(getNodeSources(constructorNode.parameters, source)[2]);
-    constructorArgsList = constructorNode.parameters.parameters.map(par => par.name).join(', ');
-  }
-
-  let bounds: { start: number; length: number };
-
-  if (constructorNode) {
-    const [start, len] = getNodeSources(constructorNode, source);
-    bounds = {
-      start,
-      length: len,
-    };
-  } else {
-    const [contractStart, , contractSource] = getNodeSources(contractNode, source);
-    const match = /.*\bcontract[^{]*{/.exec(contractSource);
-    if (match == undefined) {
-      throw new Error(`Can't find contract pattern in ${contractSource}`);
-    }
-    const inside = contractStart + match[0].length;
-    bounds = {
-      start: inside,
-      length: 0,
-    };
-  }
-
-  yield {
-    ...bounds,
-    kind: 'transform-constructor',
-    text: `
-    function __${contractNode.name}_init(${constructorParameterList}) internal initializer {${superCalls}
-        __${contractNode.name}_init_unchained(${constructorArgsList});
-    }
-
-    function __${contractNode.name}_init_unchained(${constructorParameterList}) internal initializer {
-        ${declarationInserts}
-        ${constructorBodySource}
-    }\n`,
-  };
 }
