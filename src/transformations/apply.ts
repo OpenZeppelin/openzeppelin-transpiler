@@ -6,7 +6,11 @@ interface Shift {
   lengthZero: boolean;
 }
 
-export function applyTransformations(sourcePath: string, source: string, transformations: Transformation[]): string {
+export function applyTransformations(
+  sourcePath: string,
+  source: string,
+  transformations: Transformation[],
+): string {
   // check that there are no partially overlapping transformations
   sortTransformations(transformations, sourcePath);
 
@@ -60,7 +64,10 @@ function split(source: string, start: number, length: number): [string, string, 
   return [pre, mid, post];
 }
 
-export function sortTransformations(transformations: Transformation[], sourcePath: string): Transformation[] {
+export function sortTransformations(
+  transformations: Transformation[],
+  sourcePath: string,
+): Transformation[] {
   for (const t of transformations) {
     if (t.length < 0) {
       throw new Error(`${sourcePath}: transformation ${t.kind} has negative length`);
@@ -71,15 +78,13 @@ export function sortTransformations(transformations: Transformation[], sourcePat
     const c = containment(a, b);
 
     if (c === 'partial overlap') {
-      throw new Error(
-        `${sourcePath}: transformations ${a.kind} and ${b.kind} overlap`,
-      );
+      throw new Error(`${sourcePath}: transformations ${a.kind} and ${b.kind} overlap`);
     } else if (c === 'disjoint') {
-      return a.start - b.start
-    } else if (c === 'shared bound' && (a.length * b.length) === 0) {
+      return a.start - b.start;
+    } else if (c === 'shared bound' && a.length * b.length === 0) {
       // segments share an end but one of them is length zero
       // sort them by midpoint
-      return (a.start + a.length / 2) - (b.start + b.length / 2);
+      return a.start + a.length / 2 - (b.start + b.length / 2);
     } else {
       // segments are contained one inside the other
       // sort by length
@@ -88,11 +93,7 @@ export function sortTransformations(transformations: Transformation[], sourcePat
   });
 }
 
-type Containment =
-  | 'disjoint'
-  | 'partial overlap'
-  | 'fully contained'
-  | 'shared bound';
+type Containment = 'disjoint' | 'partial overlap' | 'fully contained' | 'shared bound';
 
 function containment(a: Bounds, b: Bounds): Containment {
   const a_end = a.start + a.length;
@@ -102,7 +103,8 @@ function containment(a: Bounds, b: Bounds): Containment {
 
   if (x < 0) {
     return 'fully contained';
-  } if (x === 0) {
+  }
+  if (x === 0) {
     return 'shared bound';
   } else if (a.start + a.length <= b.start || b.start + b.length <= a.start) {
     return 'disjoint';

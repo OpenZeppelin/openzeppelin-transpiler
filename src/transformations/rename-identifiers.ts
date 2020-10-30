@@ -1,12 +1,14 @@
 import { ContractDefinition, UserDefinedTypeName, Identifier } from 'solidity-ast';
-import { findAll, isNodeType } from 'solidity-ast/utils';
-import { Node } from 'solidity-ast/node';
+import { findAll } from 'solidity-ast/utils';
 import { getSourceIndices } from '../solc/ast-utils';
 import { ArtifactsMap } from '../artifacts-map';
 import { Transformation } from './type';
 import { renameContract } from '../rename';
 
-export function* renameIdentifiers(contractNode: ContractDefinition, artifactsMap: ArtifactsMap): Generator<Transformation> {
+export function* renameIdentifiers(
+  contractNode: ContractDefinition,
+  artifactsMap: ArtifactsMap,
+): Generator<Transformation> {
   for (const ident of findAllIdentifiers(contractNode)) {
     const ref = ident.referencedDeclaration;
     if (ref && ref in artifactsMap) {
@@ -21,7 +23,9 @@ export function* renameIdentifiers(contractNode: ContractDefinition, artifactsMa
   }
 }
 
-function* findAllIdentifiers(contractNode: ContractDefinition): Generator<UserDefinedTypeName | Identifier> {
+function* findAllIdentifiers(
+  contractNode: ContractDefinition,
+): Generator<UserDefinedTypeName | Identifier> {
   yield* findAll('UserDefinedTypeName', contractNode);
   yield* findAll('Identifier', contractNode);
 }

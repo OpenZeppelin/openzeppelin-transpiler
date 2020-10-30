@@ -16,6 +16,7 @@ import {
 import { Artifact } from './artifact';
 
 const nodeSchemaValidator = new Ajv({ allErrors: true });
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 nodeSchemaValidator.addMetaSchema(require('ajv/lib/refs/json-schema-draft-06.json'));
 
 const isASTNode = nodeSchemaValidator.compile(astNodeSchema);

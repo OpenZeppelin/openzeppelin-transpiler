@@ -1,10 +1,10 @@
 import path from 'path';
 import fs from 'fs';
 
-import { flatten, groupBy, keyBy, mapValues } from 'lodash';
+import { groupBy, keyBy, mapValues } from 'lodash';
 import { SourceUnit } from 'solidity-ast';
 
-import { getContract, isContract, throwIfInvalidNode } from './solc/ast-utils';
+import { getContract, throwIfInvalidNode } from './solc/ast-utils';
 import { applyTransformations } from './transformations/apply';
 import {
   transformConstructor,
@@ -14,10 +14,8 @@ import {
   removeInheritanceListArguments,
   fixImportDirectives,
   purgeVarInits,
-  transformOverrides,
   renameIdentifiers,
 } from './transformations';
-import { getInheritanceChain } from './solc/get-inheritance-chain';
 import { Artifact } from './solc/artifact';
 import { Transformation } from './transformations/type';
 import { relativePath } from './utils/relative-path';
@@ -49,18 +47,14 @@ export function transpileContracts(artifacts: Artifact[], contractsDir: string):
   // create contract name | id to artifact map for quick access to artifacts
   const contractsToArtifactsMap: ArtifactsMap = keyBy(artifacts, a => getContract(a).id);
 
-  const fileData = mapValues(
-    groupBy(artifacts, 'sourcePath'),
-    fileArtifacts => ({
-      artifacts: fileArtifacts,
-      ast: fileArtifacts[0].ast,
-      source: fileArtifacts[0].source,
-    })
-  );
+  const fileData = mapValues(groupBy(artifacts, 'sourcePath'), fileArtifacts => ({
+    artifacts: fileArtifacts,
+    ast: fileArtifacts[0].ast,
+    source: fileArtifacts[0].source,
+  }));
 
-  const fileTransformations = mapValues(
-    fileData,
-    (data, file) => transpileFile(file, data, artifacts, contractsToArtifactsMap, contractsDir),
+  const fileTransformations = mapValues(fileData, (data, file) =>
+    transpileFile(file, data, artifacts, contractsToArtifactsMap, contractsDir),
   );
 
   // build a final array of files to return
@@ -94,20 +88,18 @@ function transpileFile(
   contractsToArtifactsMap: ArtifactsMap,
   contractsDir: string,
 ): Transformation[] {
-
   const transformations = [];
 
   if (data.artifacts.some(art => getContract(art).contractKind === 'contract')) {
-    const initializablePath = relativePath(path.dirname(file), path.join(contractsDir, 'Initializable.sol'));
-
-    transformations.push(
-      appendDirective(data.ast, `\nimport "${initializablePath}";`),
+    const initializablePath = relativePath(
+      path.dirname(file),
+      path.join(contractsDir, 'Initializable.sol'),
     );
+
+    transformations.push(appendDirective(data.ast, `\nimport "${initializablePath}";`));
   }
 
-  transformations.push(
-    ...fixImportDirectives(data.ast, file, allArtifacts),
-  );
+  transformations.push(...fixImportDirectives(data.ast, file));
 
   for (const art of data.artifacts) {
     const { contractName, source } = art;
@@ -138,8 +130,8 @@ function normalizeSourcePath(art: Artifact, contractsDir: string): Artifact {
 
   // if path resolves to a path in the contrcts directory then it is a local contract
   if (path.resolve(art.sourcePath).startsWith(path.resolve(contractsDir))) {
-    let sourcePath = relativePath(path.dirname(contractsDir), art.sourcePath);
-    return { ...art, sourcePath }
+    const sourcePath = relativePath(path.dirname(contractsDir), art.sourcePath);
+    return { ...art, sourcePath };
   } else {
     return art;
   }

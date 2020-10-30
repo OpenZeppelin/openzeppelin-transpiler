@@ -18,8 +18,6 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
 
-    # Runs a single command using the runners shell
     - run: npm ci
-
-    # Runs a set of commands using the runners shell
+    - run: npm lint
     - run: npm test

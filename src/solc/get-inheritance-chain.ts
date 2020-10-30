@@ -1,9 +1,11 @@
 import { ContractDefinition } from 'solidity-ast';
 
-import { getContract } from './ast-utils';
 import { Artifact } from './artifact';
 
-export function getInheritanceChain(contractNode: ContractDefinition, contractsToArtifactsMap: Record<number, Artifact | undefined>): Artifact[] {
+export function getInheritanceChain(
+  contractNode: ContractDefinition,
+  contractsToArtifactsMap: Record<number, Artifact | undefined>,
+): Artifact[] {
   return contractNode.linearizedBaseContracts.map(base => {
     const baseArt = contractsToArtifactsMap[base];
     if (baseArt === undefined) {

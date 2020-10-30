@@ -11,7 +11,9 @@ export function getVarInits(
     .map(vr => {
       const [start, , varSource] = getNodeSources(vr, source);
       const match = /(.*)(=.*)/.exec(varSource);
-      if (!match) throw new Error(`Can't find = in ${varSource}`);
+      if (!match) {
+        throw new Error(`Can't find = in ${varSource}`);
+      }
       return [vr, start, match];
     });
 }

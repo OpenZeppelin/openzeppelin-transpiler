@@ -1,3 +1,5 @@
 module.exports = {
-  ...require("../../.prettierrc.base.js"),
+  singleQuote: true,
+  trailingComma: 'all',
+  printWidth: 100,
 };

@@ -42,7 +42,6 @@ export {
   NodeType,
 };
 
-
 export type ContractKind = ContractDefinition['contractKind'];
 
 export type AnyNode = Node;

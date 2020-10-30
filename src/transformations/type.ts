@@ -1,6 +1,6 @@
 export interface Bounds {
   start: number;
-  length: number
+  length: number;
 }
 
 interface TransformationText extends Bounds {

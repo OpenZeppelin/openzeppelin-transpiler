@@ -2,7 +2,6 @@ import path from 'path';
 
 import { SourceUnit } from 'solidity-ast';
 import { getImportDirectives, getSourceIndices } from '../solc/ast-utils';
-import { Artifact } from '../solc/artifact';
 import { Transformation } from './type';
 import { relativePath } from '../utils/relative-path';
 import { renamePath } from '../rename';
@@ -10,7 +9,6 @@ import { renamePath } from '../rename';
 export function* fixImportDirectives(
   ast: SourceUnit,
   sourcePath: string,
-  artifacts: Artifact[],
 ): Generator<Transformation> {
   const dirname = path.dirname(sourcePath);
 

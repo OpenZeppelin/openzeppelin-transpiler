@@ -10,7 +10,9 @@ export function transformContractName(
   const [start, , nodeSource] = getNodeSources(contractNode, source);
 
   const subStart = nodeSource.indexOf(contractNode.name);
-  if (subStart === -1) throw new Error(`Can't find ${contractNode.name} in ${nodeSource}`);
+  if (subStart === -1) {
+    throw new Error(`Can't find ${contractNode.name} in ${nodeSource}`);
+  }
 
   return {
     kind: 'transform-contract-name',

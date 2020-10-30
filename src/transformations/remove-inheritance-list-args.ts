@@ -1,8 +1,6 @@
-import { getNodeSources, getSourceIndices } from '../solc/ast-utils';
+import { getSourceIndices } from '../solc/ast-utils';
 import { ContractDefinition } from '../solc/ast-node';
 import { Transformation } from './type';
-import { Artifact } from '../solc/artifact';
-import { renameContract } from '../rename';
 
 export function* removeInheritanceListArguments(
   contractNode: ContractDefinition,

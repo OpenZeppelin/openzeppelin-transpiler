@@ -18,7 +18,9 @@ export function* transformConstructor(
   contracts: Artifact[],
   contractsToArtifactsMap: ArtifactsMap,
 ): Generator<Transformation> {
-  if (contractNode.contractKind !== 'contract') return;
+  if (contractNode.contractKind !== 'contract') {
+    return;
+  }
 
   const superCalls = buildSuperCallsForChain(contractNode, contracts, contractsToArtifactsMap);
 
@@ -31,13 +33,15 @@ export function* transformConstructor(
   let constructorArgsList = '';
 
   if (constructorNode) {
-    if (constructorNode.body == null) throw new Error('Missing body for constructor definition');
+    if (constructorNode.body == null) {
+      throw new Error('Missing body for constructor definition');
+    }
     constructorBodySource = stripBraces(getNodeSources(constructorNode.body, source)[2]);
     constructorParameterList = stripBraces(getNodeSources(constructorNode.parameters, source)[2]);
     constructorArgsList = constructorNode.parameters.parameters.map(par => par.name).join(', ');
   }
 
-  let bounds: { start: number, length: number };
+  let bounds: { start: number; length: number };
 
   if (constructorNode) {
     const [start, len] = getNodeSources(constructorNode, source);
@@ -47,7 +51,7 @@ export function* transformConstructor(
     };
   } else {
     const [contractStart, , contractSource] = getNodeSources(contractNode, source);
-    const match = /.*\bcontract[^\{]*{/.exec(contractSource);
+    const match = /.*\bcontract[^{]*{/.exec(contractSource);
     if (match == undefined) {
       throw new Error(`Can't find contract pattern in ${contractSource}`);
     }

@@ -17,8 +17,7 @@
     "compile:ts": "rm -rf lib && tsc",
     "prepare": "npm run compile:ts",
     "watch": "tsc -w",
-    "lint": "tsc --noEmit && eslint '*/**/*.{js,ts}' --quiet --fix",
-    "lint:check": "eslint '*/**/*.{js,ts}' --quiet"
+    "lint": "eslint . --ignore-path .gitignore --max-warnings 0"
   },
   "repository": {
     "type": "git",
@@ -49,12 +48,12 @@
     "@openzeppelin/contracts": "^2.4.0",
     "@types/lodash": "^4.14.149",
     "@types/node": "^13.1.4",
-    "@typescript-eslint/eslint-plugin": "^2.15.0",
-    "@typescript-eslint/parser": "^2.15.0",
+    "@typescript-eslint/eslint-plugin": "^4.6.0",
+    "@typescript-eslint/parser": "^4.6.0",
     "ava": "^3.13.0",
-    "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.9.0",
-    "eslint-plugin-prettier": "^3.1.2",
+    "eslint": "^7.12.1",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-plugin-prettier": "^3.1.4",
     "fgbg": "^0.1.5",
     "fs-extra": "^9.0.0",
     "prettier": "^1.19.1",

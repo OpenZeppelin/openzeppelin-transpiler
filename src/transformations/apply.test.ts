@@ -54,14 +54,19 @@ test('sort length zero as not overlapping', t => {
 });
 
 test('sort complex', t => {
-  const tf = (kind: string, start: number, length: number) => ({ kind, start, length, text: '' });
-  const a = tf('a', 0, 1);  // x
-  const b = tf('b', 4, 1);  //     x
-  const c = tf('c', 6, 1);  //       x
-  const d = tf('d', 3, 5);  //    xxxxx
-  const e = tf('e', 9, 1);  //          x
-  const f = tf('f', 2, 9);  //   xxxxxxxxx
-                            // 0123456789A
+  const tf = (kind: string, start: number, length: number) => ({
+    kind,
+    start,
+    length,
+    text: '',
+  });
+  const a = tf('a', 0, 1); // x
+  const b = tf('b', 4, 1); //     x
+  const c = tf('c', 6, 1); //       x
+  const d = tf('d', 3, 5); //    xxxxx
+  const e = tf('e', 9, 1); //          x
+  const f = tf('f', 2, 9); //   xxxxxxxxx
+  // 0123456789A
   t.deepEqual([a, b, c, d, e, f], sortTransformations([a, b, c, d, e, f], ''));
   t.deepEqual([a, b, c, d, e, f], sortTransformations([b, f, a, c, e, d], ''));
   t.deepEqual([a, b, c, d, e, f], sortTransformations([a, f, b, d, c, e], ''));
@@ -70,35 +75,35 @@ test('sort complex', t => {
 
 test('shift start', t => {
   const original = { start: 1, length: 2 };
-  const offsets = [ { location: 0, amount: 1, lengthZero: false } ];
+  const offsets = [{ location: 0, amount: 1, lengthZero: false }];
   const shifted = { start: 2, length: 2 };
   t.deepEqual(shifted, shiftBounds(offsets, original));
 });
 
 test('shift start overlapping', t => {
   const original = { start: 1, length: 2 };
-  const offsets = [ { location: 1, amount: 1, lengthZero: false } ];
+  const offsets = [{ location: 1, amount: 1, lengthZero: false }];
   const shifted = { start: 2, length: 2 };
   t.deepEqual(shifted, shiftBounds(offsets, original));
 });
 
 test('shift length', t => {
   const original = { start: 1, length: 2 };
-  const offsets = [ { location: 2, amount: 1, lengthZero: false } ];
+  const offsets = [{ location: 2, amount: 1, lengthZero: false }];
   const shifted = { start: 1, length: 3 };
   t.deepEqual(shifted, shiftBounds(offsets, original));
 });
 
 test('shift length overlapping length nonzero', t => {
   const original = { start: 1, length: 2 };
-  const offsets = [ { location: 3, amount: 1, lengthZero: false } ];
+  const offsets = [{ location: 3, amount: 1, lengthZero: false }];
   const shifted = { start: 1, length: 3 };
   t.deepEqual(shifted, shiftBounds(offsets, original));
 });
 
 test('shift length overlapping length zero', t => {
   const original = { start: 1, length: 2 };
-  const offsets = [ { location: 3, amount: 1, lengthZero: true } ];
+  const offsets = [{ location: 3, amount: 1, lengthZero: true }];
   const shifted = { start: 1, length: 2 };
   t.deepEqual(shifted, shiftBounds(offsets, original));
 });
@@ -162,14 +167,24 @@ test('apply overlapping transformations', t => {
 
 test('apply non overlapping with function transformation', t => {
   const source = '01234567';
-  const a = { kind: 'a', start: 0, length: 2, transform: (s: string) => s + '.' };
+  const a = {
+    kind: 'a',
+    start: 0,
+    length: 2,
+    transform: (s: string) => s + '.',
+  };
   t.is('01.234567', applyTransformations('', source, [a]));
 });
 
 test('apply contained with function transformation', t => {
   const source = 'abcdef';
   const a = { kind: 'a', start: 2, length: 2, text: 'xyz' };
-  const b = { kind: 'b', start: 1, length: 4, transform: (s: string) => s.toUpperCase() };
+  const b = {
+    kind: 'b',
+    start: 1,
+    length: 4,
+    transform: (s: string) => s.toUpperCase(),
+  };
   t.is('aBXYZEf', applyTransformations('', source, [a, b]));
 });
 

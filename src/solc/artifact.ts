@@ -12,7 +12,7 @@ export interface Artifact {
   sourcePath: string;
 }
 
-export async function buildArtifacts(solcOutput: SolcOutput) {
+export async function buildArtifacts(solcOutput: SolcOutput): Promise<Artifact[]> {
   const artifacts: Artifact[] = [];
   for (const sourcePath in solcOutput.contracts) {
     for (const contractName in solcOutput.contracts[sourcePath]) {
