@@ -4,7 +4,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 
 import { findAll } from 'solidity-ast/utils';
-import { getSourceIndices } from './solc/ast-utils';
+import { getNodeBounds } from './solc/ast-utils';
 import { SolcInput, SolcOutput } from './solc/output';
 import { Transform } from './transform';
 
@@ -68,8 +68,7 @@ test('remove functions', t => {
   t.context.transform.apply(function*(sourceUnit) {
     if (sourceUnit.absolutePath === file) {
       for (const node of findAll('FunctionDefinition', sourceUnit)) {
-        const [start, length] = getSourceIndices(node);
-        yield { start, length, kind: 'remove', text: '' };
+        yield { ...getNodeBounds(node), kind: 'remove', text: '' };
       }
     }
   });

@@ -1,5 +1,4 @@
-import { Transformation, WithSrc, TransformHelper } from './type';
-import { getSourceIndices } from '../solc/ast-utils';
+import { Transformation, TransformHelper } from './type';
 import { Shift, shiftBounds } from '../shifts';
 
 import { compareTransformations } from './compare';

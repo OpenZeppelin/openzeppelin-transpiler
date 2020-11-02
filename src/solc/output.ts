@@ -1,4 +1,4 @@
-import { SourceUnit } from './ast-node';
+import { SourceUnit } from 'solidity-ast';
 
 export interface SolcInput {
   sources: {

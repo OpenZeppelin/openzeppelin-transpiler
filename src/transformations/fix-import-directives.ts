@@ -1,19 +1,15 @@
 import { SourceUnit } from 'solidity-ast';
-import { getImportDirectives, getSourceIndices } from '../solc/ast-utils';
+import { findAll } from 'solidity-ast/utils';
+import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
 import { renamePath } from '../rename';
 
 export function* fixImportDirectives(ast: SourceUnit): Generator<Transformation> {
-  const imports = getImportDirectives(ast);
-
-  for (const imp of imports) {
-    const [start, len] = getSourceIndices(imp);
-
+  for (const imp of findAll('ImportDirective', ast)) {
     yield {
       kind: 'fix-import-directives',
-      start: start,
-      length: len,
       text: `import "${renamePath(imp.file)}";`,
+      ...getNodeBounds(imp),
     };
   }
 }

@@ -1,7 +1,7 @@
 import { flatten } from 'lodash';
 import { SourceUnit } from 'solidity-ast';
 
-import { getSourceIndices, getConstructor, getNodeBounds } from '../solc/ast-utils';
+import { getConstructor, getNodeBounds } from '../solc/ast-utils';
 import { Transformation, TransformHelper } from './type';
 import { buildSuperCallsForChain2 } from './utils/build-super-calls-for-chain';
 import { findAll } from 'solidity-ast/utils';
@@ -28,7 +28,7 @@ export function* removeLeftoverConstructorHead(
   for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
     const constructorNode = getConstructor(contractNode);
     if (constructorNode) {
-      const [ctorStart] = getSourceIndices(constructorNode);
+      const { start: ctorStart } = getNodeBounds(constructorNode);
       // TODO: support struct arguments in initializers
       const match = matchFrom(original, /{/, ctorStart);
       if (!match) {
@@ -75,7 +75,7 @@ export function* transformConstructor(
     ];
 
     if (constructorNode) {
-      const [ctorStart] = getSourceIndices(constructorNode);
+      const { start: ctorStart } = getNodeBounds(constructorNode);
       // TODO: support struct arguments in initializers
       const match = matchFrom(original, /{/, ctorStart);
       if (!match) {

@@ -1,6 +1,6 @@
 import { SourceUnit } from 'solidity-ast';
 import { findAll } from 'solidity-ast/utils';
-import { getSourceIndices, getNodeBounds } from '../solc/ast-utils';
+import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
 
 export function* prependInitializableBase(
@@ -14,7 +14,7 @@ export function* prependInitializableBase(
     }
 
     if (contract.baseContracts.length > 0) {
-      const [start] = getSourceIndices(contract.baseContracts[0]);
+      const { start } = getNodeBounds(contract.baseContracts[0]);
       yield {
         kind: 'prepend-initializable-base',
         start,

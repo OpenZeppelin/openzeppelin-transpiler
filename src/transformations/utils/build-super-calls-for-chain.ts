@@ -2,7 +2,8 @@ import { flatten, keyBy } from 'lodash';
 
 import { getConstructor } from '../../solc/ast-utils';
 
-import { ContractDefinition, Node } from '../../solc/ast-node';
+import { ContractDefinition } from 'solidity-ast';
+import { Node } from 'solidity-ast/node';
 import { TransformHelper } from '../type';
 import { ContractResolver } from '../../transform';
 
