@@ -30,33 +30,6 @@ export function applyTransformation(
   return { result, shift };
 }
 
-export function applyTransformations(
-  sourcePath: string,
-  source: string,
-  transformations: Transformation[],
-): string {
-  // check that there are no partially overlapping transformations
-  sortTransformations(transformations, sourcePath);
-
-  const shifts: Shift[] = [];
-
-  return transformations.reduce((output, t, i) => {
-    const read = (node: WithSrc) => {
-      const [start, length] = getSourceIndices(node);
-      const sb = shiftBounds(shifts, { start, length });
-      if (transformations.slice(0, i).some(t => containment(sb, t) === 'partial overlap')) {
-        throw new Error(`Can't read from segment that has been partially transformed`);
-      }
-      return output.slice(sb.start, sb.start + sb.length);
-    };
-
-    const { result, shift } = applyTransformation(t, output, shifts, { read });
-
-    shifts.push(shift);
-    return result;
-  }, source);
-}
-
 export function split(source: string, start: number, length: number): [string, string, string] {
   const pre = source.slice(0, start);
   const mid = source.slice(start, start + length);
