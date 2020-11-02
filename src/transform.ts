@@ -2,6 +2,7 @@ import { mapValues } from 'lodash';
 
 import { SourceUnit, ContractDefinition } from 'solidity-ast';
 import { findAll } from 'solidity-ast/utils';
+import { NodeType, NodeTypeMap } from 'solidity-ast/node';
 import { SolcInput, SolcOutput } from './solc/input-output';
 import { srcDecoder, SrcDecoder } from './solc/src-decoder';
 
@@ -31,7 +32,6 @@ export class Transform {
     [file in string]: TransformState;
   } = {};
 
-  contracts: Map<number, ContractDefinition>;
   decodeSrc: SrcDecoder;
 
   constructor(input: SolcInput, readonly output: SolcOutput) {
@@ -53,13 +53,6 @@ export class Transform {
         transformations: [],
         shifts: [],
       };
-    }
-
-    this.contracts = new Map();
-    for (const source in output.sources) {
-      for (const c of findAll('ContractDefinition', output.sources[source].ast)) {
-        this.contracts.set(c.id, c);
-      }
     }
   }
 
@@ -101,7 +94,17 @@ export class Transform {
   }
 
   resolveContract(id: number): ContractDefinition | undefined {
-    return this.contracts.get(id);
+    return this.resolveNode('ContractDefinition', id);
+  }
+
+  resolveNode<T extends NodeType>(nodeType: T, id: number): NodeTypeMap[T] | undefined {
+    for (const source in this.output.sources) {
+      for (const c of findAll(nodeType, this.output.sources[source].ast)) {
+        if (c.id === id) {
+          return c;
+        }
+      }
+    }
   }
 
   results(): { [file in string]: string } {
