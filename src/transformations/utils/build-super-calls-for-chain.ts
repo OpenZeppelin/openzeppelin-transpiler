@@ -5,7 +5,7 @@ import { getConstructor } from '../../solc/ast-utils';
 import { ContractDefinition } from 'solidity-ast';
 import { Node } from 'solidity-ast/node';
 import { TransformHelper } from '../type';
-import { ContractResolver } from '../../transform';
+import { ASTResolver } from '../../ast-resolver';
 
 // builds an __init call with given arguments, for example
 // ERC20DetailedUpgradeable.__init(false, "Gold", "GLD", 18)
@@ -22,14 +22,14 @@ function buildSuperCall2(args: Node[], name: string, helper: TransformHelper): s
 // ERC20DetailedUpgradeable.__init(false, 'Gold', 'GLD', 18);
 export function buildSuperCallsForChain2(
   contractNode: ContractDefinition,
-  resolveContract: ContractResolver,
+  resolver: ASTResolver,
   helper: TransformHelper,
 ): string[] {
   // first we get the linearized inheritance chain of contracts, excluding the
   // contract we're currently looking at
   const chain = contractNode.linearizedBaseContracts
     .map(baseId => {
-      const base = resolveContract(baseId);
+      const base = resolver.resolveContract(baseId);
       if (base === undefined) {
         throw new Error(`Could not resolve ast id ${baseId}`);
       }

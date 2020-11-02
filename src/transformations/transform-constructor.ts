@@ -5,7 +5,7 @@ import { getConstructor, getNodeBounds } from '../solc/ast-utils';
 import { Transformation, TransformHelper } from './type';
 import { buildSuperCallsForChain2 } from './utils/build-super-calls-for-chain';
 import { findAll } from 'solidity-ast/utils';
-import { ContractResolver } from '../transform';
+import { ASTResolver } from '../ast-resolver';
 import { matchFrom } from '../utils/match-from';
 
 type Line = string | Line[];
@@ -46,7 +46,7 @@ export function* removeLeftoverConstructorHead(
 
 export function* transformConstructor(
   sourceUnit: SourceUnit,
-  resolveContract: ContractResolver,
+  resolver: ASTResolver,
   original: string,
 ): Generator<Transformation> {
   for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
@@ -64,7 +64,7 @@ export function* transformConstructor(
 
     const initializer = (helper: TransformHelper, argsList = '', argNames: string[] = []) => [
       `function __${name}_init(${argsList}) internal initializer {`,
-      buildSuperCallsForChain2(contractNode, resolveContract, helper),
+      buildSuperCallsForChain2(contractNode, resolver, helper),
       [`__${name}_init_unchained(${argNames.join(', ')});`],
       `}`,
       ``,

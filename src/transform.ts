@@ -1,8 +1,6 @@
 import { mapValues } from 'lodash';
 
-import { SourceUnit, ContractDefinition } from 'solidity-ast';
-import { findAll } from 'solidity-ast/utils';
-import { NodeType, NodeTypeMap } from 'solidity-ast/node';
+import { SourceUnit } from 'solidity-ast';
 import { SolcInput, SolcOutput } from './solc/input-output';
 import { srcDecoder, SrcDecoder } from './solc/src-decoder';
 
@@ -11,12 +9,11 @@ import { applyTransformation } from './transformations/apply';
 import { compareTransformations, compareContainment } from './transformations/compare';
 import { Transformation, WithSrc } from './transformations/type';
 import { isRenamed } from './rename';
-
-export type ContractResolver = (id: number) => ContractDefinition | undefined;
+import { ASTResolver } from './ast-resolver';
 
 type Transformer = (
   sourceUnit: SourceUnit,
-  resolveContract: ContractResolver,
+  resolver: ASTResolver,
   originalSource: string,
 ) => Generator<Transformation>;
 
@@ -33,9 +30,11 @@ export class Transform {
   } = {};
 
   decodeSrc: SrcDecoder;
+  resolver: ASTResolver;
 
   constructor(input: SolcInput, readonly output: SolcOutput) {
     this.decodeSrc = srcDecoder(output);
+    this.resolver = new ASTResolver(output);
 
     for (const source in input.sources) {
       if (isRenamed(source)) {
@@ -60,11 +59,7 @@ export class Transform {
     for (const source in this.state) {
       const { original } = this.state[source];
 
-      for (const t of transform(
-        this.output.sources[source].ast,
-        id => this.resolveContract(id),
-        original,
-      )) {
+      for (const t of transform(this.output.sources[source].ast, this.resolver, original)) {
         const { content, shifts, transformations } = this.state[source];
         insertSortedAndValidate(transformations, t);
 
@@ -91,20 +86,6 @@ export class Transform {
 
     const sb = shiftBounds(shifts, bounds);
     return content.slice(sb.start, sb.start + sb.length);
-  }
-
-  resolveContract(id: number): ContractDefinition | undefined {
-    return this.resolveNode('ContractDefinition', id);
-  }
-
-  resolveNode<T extends NodeType>(nodeType: T, id: number): NodeTypeMap[T] | undefined {
-    for (const source in this.output.sources) {
-      for (const c of findAll(nodeType, this.output.sources[source].ast)) {
-        if (c.id === id) {
-          return c;
-        }
-      }
-    }
   }
 
   results(): { [file in string]: string } {

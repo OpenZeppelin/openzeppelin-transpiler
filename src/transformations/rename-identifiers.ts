@@ -4,15 +4,15 @@ import { findAll } from 'solidity-ast/utils';
 import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
 import { renameContract } from '../rename';
-import { ContractResolver } from '../transform';
+import { ASTResolver } from '../ast-resolver';
 
 export function* renameIdentifiers(
   sourceUnit: SourceUnit,
-  resolveContract: ContractResolver,
+  resolver: ASTResolver,
 ): Generator<Transformation> {
   for (const ident of findAllIdentifiers(sourceUnit)) {
     const ref = ident.referencedDeclaration;
-    if (ref && resolveContract(ref)) {
+    if (ref && resolver.resolveContract(ref)) {
       yield {
         kind: 'rename-identifiers',
         text: renameContract(ident.name),
