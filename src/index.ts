@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 
 import { renamePath } from './rename';
-import { SolcOutput, SolcInput } from './solc/output';
+import { SolcOutput, SolcInput } from './solc/input-output';
 import { Transform } from './transform';
 
 import { fixImportDirectives } from './transformations/fix-import-directives';

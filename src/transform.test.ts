@@ -5,7 +5,7 @@ import path from 'path';
 
 import { findAll } from 'solidity-ast/utils';
 import { getNodeBounds } from './solc/ast-utils';
-import { SolcInput, SolcOutput } from './solc/output';
+import { SolcInput, SolcOutput } from './solc/input-output';
 import { Transform } from './transform';
 
 import { renameIdentifiers } from './transformations/rename-identifiers';

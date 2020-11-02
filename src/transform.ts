@@ -2,7 +2,7 @@ import { mapValues } from 'lodash';
 
 import { SourceUnit, ContractDefinition } from 'solidity-ast';
 import { findAll } from 'solidity-ast/utils';
-import { SolcInput, SolcOutput } from './solc/output';
+import { SolcInput, SolcOutput } from './solc/input-output';
 import { srcDecoder, SrcDecoder } from './solc/src-decoder';
 
 import { Shift, shiftBounds } from './shifts';

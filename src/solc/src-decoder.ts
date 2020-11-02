@@ -1,4 +1,4 @@
-import { SolcOutput } from './output';
+import { SolcOutput } from './input-output';
 
 export interface SourceLocation {
   start: number;

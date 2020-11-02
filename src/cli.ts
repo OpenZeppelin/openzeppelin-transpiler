@@ -7,7 +7,7 @@ import 'source-map-support/register';
 import bre from '@nomiclabs/buidler';
 
 import { transpile } from '.';
-import { SolcOutput, SolcInput } from './solc/output';
+import { SolcOutput, SolcInput } from './solc/input-output';
 
 async function main() {
   const solcInputPath = path.join(bre.config.paths.cache, 'solc-input.json');
