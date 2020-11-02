@@ -112,6 +112,13 @@ test('fix import directives', t => {
   t.snapshot(t.context.transform.results()[file]);
 });
 
+test('fix import directives complex', t => {
+  const file = 'contracts/TransformImport2.sol';
+  t.context.transform.apply(renameIdentifiers);
+  t.context.transform.apply(fixImportDirectives);
+  t.snapshot(t.context.transform.results()[file]);
+});
+
 test('append initializable import', t => {
   const file = 'test/solc-0.6/contracts/Local.sol';
   t.context.transform.apply(su => appendInitializableImport('test/solc-0.6/contracts', su));
