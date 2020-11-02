@@ -5,7 +5,7 @@ import { renameContract } from '../rename';
 import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
 
-export function* transformContractName2(
+export function* renameContractDefinition(
   sourceUnit: SourceUnit,
   _: unknown,
   original: string,
@@ -23,7 +23,7 @@ export function* transformContractName2(
     yield {
       start: match.index,
       length: match[0].length,
-      kind: 'transform-contract-name',
+      kind: 'rename-contract-definition',
       transform: source => source.replace(/[a-zA-Z0-9$_]+$/, renameContract),
     };
   }

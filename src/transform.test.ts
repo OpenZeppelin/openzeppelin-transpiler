@@ -8,15 +8,15 @@ import { getSourceIndices } from './solc/ast-utils';
 import { SolcInput, SolcOutput } from './solc/output';
 import { Transform } from './transform';
 
-import { renameIdentifiers2 } from './transformations/rename-identifiers';
-import { prependInitializableBase } from './transformations/prepend-base-class';
-import { purgeVarInits2 } from './transformations/purge-var-inits';
-import { removeInheritanceListArguments2 } from './transformations/remove-inheritance-list-args';
-import { transformContractName2 } from './transformations/transform-contract-name';
+import { renameIdentifiers } from './transformations/rename-identifiers';
+import { prependInitializableBase } from './transformations/prepend-initializable-base';
+import { removeStateVarInits } from './transformations/purge-var-inits';
+import { removeInheritanceListArguments } from './transformations/remove-inheritance-list-args';
+import { renameContractDefinition } from './transformations/rename-contract-definition';
 import { fixImportDirectives } from './transformations/fix-import-directives';
-import { appendInitializableImport } from './transformations/append-directive';
+import { appendInitializableImport } from './transformations/append-initializable-import';
 import {
-  transformConstructor2,
+  transformConstructor,
   removeLeftoverConstructorHead,
 } from './transformations/transform-constructor';
 
@@ -79,7 +79,7 @@ test('remove functions', t => {
 
 test('rename identifiers', t => {
   const file = 'test/solc-0.6/contracts/Rename.sol';
-  t.context.transform.apply(renameIdentifiers2);
+  t.context.transform.apply(renameIdentifiers);
   t.snapshot(t.context.transform.results()[file]);
 });
 
@@ -91,19 +91,19 @@ test('prepend Initializable base', t => {
 
 test('purge var inits', t => {
   const file = 'test/solc-0.6/contracts/ElementaryTypes.sol';
-  t.context.transform.apply(purgeVarInits2);
+  t.context.transform.apply(removeStateVarInits);
   t.snapshot(t.context.transform.results()[file]);
 });
 
 test('remove inheritance args', t => {
   const file = 'contracts/TransformInheritanceArgs.sol';
-  t.context.transform.apply(removeInheritanceListArguments2);
+  t.context.transform.apply(removeInheritanceListArguments);
   t.snapshot(t.context.transform.results()[file]);
 });
 
 test('transform contract name', t => {
   const file = 'test/solc-0.6/contracts/Rename.sol';
-  t.context.transform.apply(transformContractName2);
+  t.context.transform.apply(renameContractDefinition);
   t.snapshot(t.context.transform.results()[file]);
 });
 
@@ -121,7 +121,7 @@ test('append initializable import', t => {
 
 test('transform constructor', t => {
   const file = 'contracts/TransformConstructor.sol';
-  t.context.transform.apply(transformConstructor2);
+  t.context.transform.apply(transformConstructor);
   t.context.transform.apply(removeLeftoverConstructorHead);
   t.snapshot(t.context.transform.results()[file]);
 });

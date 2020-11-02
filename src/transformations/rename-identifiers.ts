@@ -6,7 +6,7 @@ import { Transformation } from './type';
 import { renameContract } from '../rename';
 import { ContractResolver } from '../transform';
 
-export function* renameIdentifiers2(
+export function* renameIdentifiers(
   sourceUnit: SourceUnit,
   resolveContract: ContractResolver,
 ): Generator<Transformation> {

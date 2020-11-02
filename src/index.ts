@@ -6,14 +6,14 @@ import { SolcOutput, SolcInput } from './solc/output';
 import { Transform } from './transform';
 
 import { fixImportDirectives } from './transformations/fix-import-directives';
-import { renameIdentifiers2 } from './transformations/rename-identifiers';
-import { prependInitializableBase } from './transformations/prepend-base-class';
-import { purgeVarInits2 } from './transformations/purge-var-inits';
-import { removeInheritanceListArguments2 } from './transformations/remove-inheritance-list-args';
-import { transformContractName2 } from './transformations/transform-contract-name';
-import { appendInitializableImport } from './transformations/append-directive';
+import { renameIdentifiers } from './transformations/rename-identifiers';
+import { prependInitializableBase } from './transformations/prepend-initializable-base';
+import { removeStateVarInits } from './transformations/purge-var-inits';
+import { removeInheritanceListArguments } from './transformations/remove-inheritance-list-args';
+import { renameContractDefinition } from './transformations/rename-contract-definition';
+import { appendInitializableImport } from './transformations/append-initializable-import';
 import {
-  transformConstructor2,
+  transformConstructor,
   removeLeftoverConstructorHead,
 } from './transformations/transform-constructor';
 
@@ -35,15 +35,15 @@ export async function transpile(
 ): Promise<OutputFile[]> {
   const transform = new Transform(solcInput, solcOutput);
 
-  transform.apply(renameIdentifiers2);
-  transform.apply(transformContractName2);
+  transform.apply(renameIdentifiers);
+  transform.apply(renameContractDefinition);
   transform.apply(prependInitializableBase);
   transform.apply(fixImportDirectives);
   transform.apply(su => appendInitializableImport(paths.sources, su));
-  transform.apply(transformConstructor2);
+  transform.apply(transformConstructor);
   transform.apply(removeLeftoverConstructorHead);
-  transform.apply(removeInheritanceListArguments2);
-  transform.apply(purgeVarInits2);
+  transform.apply(removeInheritanceListArguments);
+  transform.apply(removeStateVarInits);
 
   // build a final array of files to return
   const outputFiles: OutputFile[] = [];

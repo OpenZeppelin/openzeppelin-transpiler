@@ -4,7 +4,7 @@ import { getNodeBounds } from '../solc/ast-utils';
 
 import { Transformation } from './type';
 
-export function* purgeVarInits2(sourceUnit: SourceUnit): Generator<Transformation> {
+export function* removeStateVarInits(sourceUnit: SourceUnit): Generator<Transformation> {
   for (const varDecl of findAll('VariableDeclaration', sourceUnit)) {
     if (varDecl.stateVariable && varDecl.value && !varDecl.constant) {
       yield {

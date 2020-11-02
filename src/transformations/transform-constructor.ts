@@ -44,7 +44,7 @@ export function* removeLeftoverConstructorHead(
   }
 }
 
-export function* transformConstructor2(
+export function* transformConstructor(
   sourceUnit: SourceUnit,
   resolveContract: ContractResolver,
   original: string,
@@ -91,7 +91,11 @@ export function* transformConstructor2(
         transform: (_, helper) => {
           const source = helper.read(constructorNode);
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const [, argsList] = source.match(/\((.*?)\)/)!;
+          const argsMatch = source.match(/\((.*?)\)/s);
+          if (argsMatch === null) {
+            throw new Error(`Could not find constructor arguments for ${contractNode.name}`);
+          }
+          const [, argsList] = argsMatch;
           return format(1, initializer(helper, argsList, argNames).slice(0, -1)).replace(
             /^\s+/,
             '',
