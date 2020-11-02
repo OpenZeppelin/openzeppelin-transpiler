@@ -13,25 +13,6 @@ export function compareTransformations(a: Transformation, b: Transformation): nu
   }
 }
 
-type Containment = 'disjoint' | 'partial overlap' | 'fully contained' | 'shared bound';
-
-export function containment(a: Bounds, b: Bounds): Containment {
-  const a_end = a.start + a.length;
-  const b_end = b.start + b.length;
-
-  const x = (a.start - b.start) * (a_end - b_end);
-
-  if (x < 0) {
-    return 'fully contained';
-  } else if (x === 0) {
-    return 'shared bound';
-  } else if (a.start + a.length <= b.start || b.start + b.length <= a.start) {
-    return 'disjoint';
-  } else {
-    return 'partial overlap';
-  }
-}
-
 export function compareContainment(a: Bounds, b: Bounds): number | 'disjoint' | 'partial overlap' {
   const a_end = a.start + a.length;
   const b_end = b.start + b.length;

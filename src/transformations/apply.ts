@@ -2,7 +2,7 @@ import { Transformation, WithSrc, TransformHelper } from './type';
 import { getSourceIndices } from '../solc/ast-utils';
 import { Shift, shiftBounds } from '../shifts';
 
-import { compareTransformations, containment } from './compare';
+import { compareTransformations } from './compare';
 
 interface ApplyResult {
   result: string;
