@@ -1,4 +1,3 @@
-import { flatten } from 'lodash';
 import { SourceUnit } from 'solidity-ast';
 
 import { getConstructor, getNodeBounds } from '../solc/ast-utils';
@@ -8,18 +7,7 @@ import { findAll } from 'solidity-ast/utils';
 import { TransformerTools } from '../transform';
 import { matchFrom } from '../utils/match-from';
 import { newFunctionPosition } from './utils/new-function-position';
-
-type Line = string | Line[];
-
-function format(indent: number, lines: Line[]): string {
-  function indentEach(indent: number, lines: Line[]): Line[] {
-    return lines.map(line =>
-      Array.isArray(line) ? indentEach(indent + 1, line) : line && '    '.repeat(indent) + line,
-    );
-  }
-
-  return flatten(indentEach(indent, lines)).join('\n');
-}
+import { formatLines } from './utils/format-lines';
 
 export function* removeLeftoverConstructorHead(
   sourceUnit: SourceUnit,
@@ -97,10 +85,7 @@ export function* transformConstructor(
             throw new Error(`Could not find constructor arguments for ${contractNode.name}`);
           }
           const [, argsList] = argsMatch;
-          return format(1, initializer(helper, argsList, argNames).slice(0, -1)).replace(
-            /^\s+/,
-            '',
-          );
+          return formatLines(1, initializer(helper, argsList, argNames).slice(0, -1)).trim();
         },
       };
     } else {
@@ -110,7 +95,7 @@ export function* transformConstructor(
         start,
         length: 0,
         kind: 'transform-constructor',
-        transform: (source, helper) => format(1, initializer(helper)) + '\n',
+        transform: (source, helper) => formatLines(1, initializer(helper)),
       };
     }
   }
