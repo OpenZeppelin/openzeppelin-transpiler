@@ -7,6 +7,7 @@ import { buildSuperCallsForChain2 } from './utils/build-super-calls-for-chain';
 import { findAll } from 'solidity-ast/utils';
 import { TransformerTools } from '../transform';
 import { matchFrom } from '../utils/match-from';
+import { newFunctionPosition } from './utils/new-function-position';
 
 type Line = string | Line[];
 
@@ -103,26 +104,13 @@ export function* transformConstructor(
         },
       };
     } else {
-      let after;
-      if (contractNode.baseContracts.length > 0) {
-        const [lastParent] = contractNode.baseContracts.slice(-1);
-        const pb = getNodeBounds(lastParent);
-        after = pb.start + pb.length;
-      } else {
-        after = getNodeBounds(contractNode).start;
-      }
-
-      const brace = originalSource.indexOf('{', after);
-
-      if (brace < 0) {
-        throw new Error(`Can't find start of contract ${contractNode.name}`);
-      }
+      const start = newFunctionPosition(contractNode, tools);
 
       yield {
-        start: brace + 1,
+        start,
         length: 0,
         kind: 'transform-constructor',
-        transform: (source, helper) => '\n' + format(1, initializer(helper)),
+        transform: (source, helper) => format(1, initializer(helper)) + '\n',
       };
     }
   }

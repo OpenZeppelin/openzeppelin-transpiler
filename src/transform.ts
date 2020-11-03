@@ -16,6 +16,7 @@ type Transformer = (sourceUnit: SourceUnit, tools: TransformerTools) => Generato
 
 export interface TransformerTools {
   originalSource: string;
+  readOriginal: (node: Node) => string;
   resolver: ASTResolver;
   isExcluded: (node: Node) => boolean;
 }
@@ -65,7 +66,8 @@ export class Transform {
     for (const source in this.state) {
       const { original: originalSource } = this.state[source];
       const { resolver, isExcluded } = this;
-      const tools = { originalSource, resolver, isExcluded };
+      const readOriginal = this.readOriginal.bind(this);
+      const tools = { originalSource, resolver, isExcluded, readOriginal };
 
       for (const t of transform(this.output.sources[source].ast, tools)) {
         const { content, shifts, transformations } = this.state[source];
@@ -78,6 +80,12 @@ export class Transform {
         this.state[source].content = result;
       }
     }
+  }
+
+  readOriginal(node: WithSrc): string {
+    const { source, start, length } = this.decodeSrc(node.src);
+    const { original } = this.state[source];
+    return original.slice(start, start + length);
   }
 
   read(node: WithSrc): string {
