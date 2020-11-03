@@ -14,6 +14,7 @@ import { removeStateVarInits } from './transformations/purge-var-inits';
 import { removeInheritanceListArguments } from './transformations/remove-inheritance-list-args';
 import { renameContractDefinition } from './transformations/rename-contract-definition';
 import { fixImportDirectives } from './transformations/fix-import-directives';
+import { fixNewStatement } from './transformations/fix-new-statement';
 import { appendInitializableImport } from './transformations/append-initializable-import';
 import {
   transformConstructor,
@@ -131,6 +132,12 @@ test('transform constructor', t => {
   const file = 'contracts/TransformConstructor.sol';
   t.context.transform.apply(transformConstructor);
   t.context.transform.apply(removeLeftoverConstructorHead);
+  t.snapshot(t.context.transform.results()[file]);
+});
+
+test('fix new statement', t => {
+  const file = 'contracts/TransformNew.sol';
+  t.context.transform.apply(fixNewStatement);
   t.snapshot(t.context.transform.results()[file]);
 });
 
