@@ -4,17 +4,17 @@ import { findAll } from 'solidity-ast/utils';
 import { renameContract } from '../rename';
 import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
+import { TransformerTools } from '../transform';
 
 export function* renameContractDefinition(
   sourceUnit: SourceUnit,
-  _: unknown,
-  original: string,
+  { originalSource } : TransformerTools,
 ): Generator<Transformation> {
   for (const contract of findAll('ContractDefinition', sourceUnit)) {
     const bounds = getNodeBounds(contract);
     const re = /(?:abstract\s+)?(?:contract|library|interface)\s+([a-zA-Z0-9$_]+)/y;
     re.lastIndex = bounds.start;
-    const match = re.exec(original);
+    const match = re.exec(originalSource);
 
     if (match === null) {
       throw new Error(`Can't find ${contract.name} in ${sourceUnit.absolutePath}`);

@@ -5,6 +5,7 @@ import { getConstructor, getNodeBounds } from '../solc/ast-utils';
 import { Transformation, TransformHelper } from './type';
 import { buildSuperCallsForChain2 } from './utils/build-super-calls-for-chain';
 import { findAll } from 'solidity-ast/utils';
+import { TransformerTools } from '../transform';
 import { ASTResolver } from '../ast-resolver';
 import { matchFrom } from '../utils/match-from';
 
@@ -22,15 +23,14 @@ function format(indent: number, lines: Line[]): string {
 
 export function* removeLeftoverConstructorHead(
   sourceUnit: SourceUnit,
-  _: unknown,
-  original: string,
+  { originalSource }: TransformerTools,
 ): Generator<Transformation> {
   for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
     const constructorNode = getConstructor(contractNode);
     if (constructorNode) {
       const { start: ctorStart } = getNodeBounds(constructorNode);
       // TODO: support struct arguments in initializers
-      const match = matchFrom(original, /{/, ctorStart);
+      const match = matchFrom(originalSource, /{/, ctorStart);
       if (!match) {
         throw new Error(`Could not find start of constructor for ${contractNode.name}`);
       }
@@ -46,8 +46,7 @@ export function* removeLeftoverConstructorHead(
 
 export function* transformConstructor(
   sourceUnit: SourceUnit,
-  resolver: ASTResolver,
-  original: string,
+  { originalSource, resolver }: TransformerTools,
 ): Generator<Transformation> {
   for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
     if (contractNode.contractKind !== 'contract') {
@@ -77,7 +76,7 @@ export function* transformConstructor(
     if (constructorNode) {
       const { start: ctorStart } = getNodeBounds(constructorNode);
       // TODO: support struct arguments in initializers
-      const match = matchFrom(original, /{/, ctorStart);
+      const match = matchFrom(originalSource, /{/, ctorStart);
       if (!match) {
         throw new Error(`Could not find start of constructor for ${contractNode.name}`);
       }
@@ -112,7 +111,7 @@ export function* transformConstructor(
         after = getNodeBounds(contractNode).start;
       }
 
-      const brace = original.indexOf('{', after);
+      const brace = originalSource.indexOf('{', after);
 
       if (brace < 0) {
         throw new Error(`Can't find start of contract ${contractNode.name}`);

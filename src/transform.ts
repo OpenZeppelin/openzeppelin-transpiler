@@ -11,11 +11,12 @@ import { Transformation, WithSrc } from './transformations/type';
 import { isRenamed } from './rename';
 import { ASTResolver } from './ast-resolver';
 
-type Transformer = (
-  sourceUnit: SourceUnit,
-  resolver: ASTResolver,
-  originalSource: string,
-) => Generator<Transformation>;
+type Transformer = (sourceUnit: SourceUnit, tools: TransformerTools) => Generator<Transformation>;
+
+export interface TransformerTools {
+  originalSource: string;
+  resolver: ASTResolver;
+}
 
 interface TransformState {
   transformations: Transformation[];
@@ -57,9 +58,11 @@ export class Transform {
 
   apply(transform: Transformer): void {
     for (const source in this.state) {
-      const { original } = this.state[source];
+      const { original: originalSource } = this.state[source];
+      const { resolver } = this;
+      const tools = { originalSource, resolver };
 
-      for (const t of transform(this.output.sources[source].ast, this.resolver, original)) {
+      for (const t of transform(this.output.sources[source].ast, tools)) {
         const { content, shifts, transformations } = this.state[source];
         insertSortedAndValidate(transformations, t);
 

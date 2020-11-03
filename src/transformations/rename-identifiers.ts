@@ -5,10 +5,11 @@ import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
 import { renameContract } from '../rename';
 import { ASTResolver } from '../ast-resolver';
+import { TransformerTools } from '../transform';
 
 export function* renameIdentifiers(
   sourceUnit: SourceUnit,
-  resolver: ASTResolver,
+  { resolver }: TransformerTools,
 ): Generator<Transformation> {
   const candidates = getTransitiveRenameCandidates(sourceUnit, resolver);
   const rename = new Set(

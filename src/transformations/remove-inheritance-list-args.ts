@@ -4,9 +4,7 @@ import { findAll } from 'solidity-ast/utils';
 import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
 
-export function* removeInheritanceListArguments(
-  sourceUnit: SourceUnit,
-): Generator<Transformation> {
+export function* removeInheritanceListArguments(sourceUnit: SourceUnit): Generator<Transformation> {
   for (const base of findAll('InheritanceSpecifier', sourceUnit)) {
     yield {
       ...getNodeBounds(base),
