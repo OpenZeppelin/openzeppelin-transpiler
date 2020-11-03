@@ -12,7 +12,7 @@ import { removeStateVarInits } from './transformations/purge-var-inits';
 import { removeInheritanceListArguments } from './transformations/remove-inheritance-list-args';
 import { renameContractDefinition } from './transformations/rename-contract-definition';
 import { appendInitializableImport } from './transformations/append-initializable-import';
-import { fixNewStatement } from './transformations/fix-new-statement';
+import { fixNewStatement, addNeededExternalInitializer } from './transformations/fix-new-statement';
 import {
   transformConstructor,
   removeLeftoverConstructorHead,
@@ -43,6 +43,7 @@ export async function transpile(
   transform.apply(fixImportDirectives);
   transform.apply((...args) => appendInitializableImport(paths.sources, ...args));
   transform.apply(fixNewStatement);
+  transform.apply(addNeededExternalInitializer);
   transform.apply(transformConstructor);
   transform.apply(removeLeftoverConstructorHead);
   transform.apply(removeInheritanceListArguments);

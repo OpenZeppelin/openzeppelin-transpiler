@@ -5,15 +5,19 @@ import { getNodeBounds, getConstructor } from '../solc/ast-utils';
 import { newFunctionPosition } from './utils/new-function-position';
 import { formatLines } from './utils/format-lines';
 import { Transformation } from './type';
-import { TransformerTools } from '../transform';
+import { TransformerTools, TransformData } from '../transform';
+
+declare module '../transform' {
+  interface TransformData {
+    isUsedInNewStatement: boolean;
+  }
+}
 
 export function* fixNewStatement(
   sourceUnit: SourceUnit,
   tools: TransformerTools,
 ): Generator<Transformation> {
-  const { resolver, isExcluded } = tools;
-
-  const constructed = new Set<ContractDefinition>();
+  const { resolver, isExcluded, getData } = tools;
 
   for (const statement of findAll('ExpressionStatement', sourceUnit)) {
     const { expression } = statement;
@@ -31,7 +35,7 @@ export function* fixNewStatement(
           const contract = resolver.resolveContract(typeName.referencedDeclaration);
 
           if (contract && !isExcluded(contract)) {
-            constructed.add(contract);
+            getData(contract).isUsedInNewStatement = true;
 
             const stBounds = getNodeBounds(statement);
             const afterStatement = stBounds.start + stBounds.length;
@@ -70,33 +74,42 @@ export function* fixNewStatement(
       }
     }
   }
+}
 
-  for (const contract of constructed) {
-    const start = newFunctionPosition(contract, tools);
-    const ctor = getConstructor(contract);
+export function* addNeededExternalInitializer(
+  sourceUnit: SourceUnit,
+  tools: TransformerTools,
+): Generator<Transformation> {
+  const { getData } = tools;
 
-    let args = '';
-    let argNames = '';
-    if (ctor) {
-      const ctorSource = tools.readOriginal(ctor);
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const argsMatch = ctorSource.match(/\((.*?)\)/s);
-      if (argsMatch === null) {
-        throw new Error(`Could not find constructor arguments for ${contract.name}`);
+  for (const contract of findAll('ContractDefinition', sourceUnit)) {
+    if (getData(contract).isUsedInNewStatement) {
+      const start = newFunctionPosition(contract, tools);
+      const ctor = getConstructor(contract);
+
+      let args = '';
+      let argNames = '';
+      if (ctor) {
+        const ctorSource = tools.readOriginal(ctor);
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const argsMatch = ctorSource.match(/\((.*?)\)/s);
+        if (argsMatch === null) {
+          throw new Error(`Could not find constructor arguments for ${contract.name}`);
+        }
+        args = argsMatch[1];
+        argNames = ctor.parameters.parameters.map(p => p.name).join(', ');
       }
-      args = argsMatch[1];
-      argNames = ctor.parameters.parameters.map(p => p.name).join(', ');
-    }
 
-    yield {
-      start,
-      length: 0,
-      kind: 'add-external-initializer',
-      text: formatLines(1, [
-        `function initialize(${args}) external initializer {`,
-        [`__${contract.name}_init(${argNames});`],
-        '}',
-      ]),
-    };
+      yield {
+        start,
+        length: 0,
+        kind: 'add-external-initializer',
+        text: formatLines(1, [
+          `function initialize(${args}) external initializer {`,
+          [`__${contract.name}_init(${argNames});`],
+          '}',
+        ]),
+      };
+    }
   }
 }
