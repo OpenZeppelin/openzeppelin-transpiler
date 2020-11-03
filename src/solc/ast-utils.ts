@@ -24,11 +24,10 @@ export function getNodeBounds(node: WithSrc): Bounds {
   return { start, length };
 }
 
-export function getConstructor(node: ContractDefinition): FunctionDefinition | null {
+export function getConstructor(node: ContractDefinition): FunctionDefinition | undefined {
   for (const fndef of findAll('FunctionDefinition', node)) {
     if (fndef.kind === 'constructor') {
       return fndef;
     }
   }
-  return null;
 }
