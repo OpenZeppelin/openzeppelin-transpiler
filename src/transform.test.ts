@@ -121,7 +121,9 @@ test('fix import directives complex', t => {
 
 test('append initializable import', t => {
   const file = 'test/solc-0.6/contracts/Local.sol';
-  t.context.transform.apply(su => appendInitializableImport('test/solc-0.6/contracts', su));
+  t.context.transform.apply((...args) =>
+    appendInitializableImport('test/solc-0.6/contracts', ...args),
+  );
   t.snapshot(t.context.transform.results()[file]);
 });
 
@@ -130,4 +132,21 @@ test('transform constructor', t => {
   t.context.transform.apply(transformConstructor);
   t.context.transform.apply(removeLeftoverConstructorHead);
   t.snapshot(t.context.transform.results()[file]);
+});
+
+test('exclude', t => {
+  const transform = new Transform(t.context.solcInput, t.context.solcOutput, ['Foo', 'Bar']);
+  const file = 'contracts/TransformInitializable.sol';
+  transform.apply(prependInitializableBase);
+  t.snapshot(transform.results()[file]);
+});
+
+test('exclude error', t => {
+  const transform = new Transform(t.context.solcInput, t.context.solcOutput, ['Foo']);
+  const file = 'contracts/TransformInitializable.sol';
+  t.throws(
+    () => transform.apply(transformConstructor),
+    undefined,
+    'Foo inherits a contract that was excluded from transpilation',
+  );
 });

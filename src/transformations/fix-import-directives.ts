@@ -7,7 +7,7 @@ import { TransformerTools } from '../transform';
 
 export function* fixImportDirectives(
   ast: SourceUnit,
-  { resolver }: TransformerTools,
+  { resolver, isExcluded }: TransformerTools,
 ): Generator<Transformation> {
   for (const imp of findAll('ImportDirective', ast)) {
     const referencedSourceUnit = resolver.resolveNode('SourceUnit', imp.sourceUnit);
@@ -21,7 +21,8 @@ export function* fixImportDirectives(
         throw new Error(`Can't find symbol imported in ${ast.absolutePath}`);
       }
       let alias = '';
-      if (resolver.resolveContract(id) === undefined) {
+      const contract = resolver.resolveContract(id);
+      if (contract === undefined || isExcluded(contract)) {
         alias += a.foreign.name;
       } else {
         alias += renameContract(a.foreign.name);

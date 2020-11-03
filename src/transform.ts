@@ -1,6 +1,8 @@
 import { mapValues } from 'lodash';
+import path from 'path';
 
 import { SourceUnit } from 'solidity-ast';
+import { Node } from 'solidity-ast/node';
 import { SolcInput, SolcOutput } from './solc/input-output';
 import { srcDecoder, SrcDecoder } from './solc/src-decoder';
 
@@ -16,6 +18,7 @@ type Transformer = (sourceUnit: SourceUnit, tools: TransformerTools) => Generato
 export interface TransformerTools {
   originalSource: string;
   resolver: ASTResolver;
+  isExcluded: (node: Node) => boolean;
 }
 
 interface TransformState {
@@ -32,10 +35,13 @@ export class Transform {
 
   decodeSrc: SrcDecoder;
   resolver: ASTResolver;
+  isExcluded: (node: Node) => boolean;
 
-  constructor(input: SolcInput, readonly output: SolcOutput) {
+  constructor(input: SolcInput, readonly output: SolcOutput, exclude: string[] = []) {
     this.decodeSrc = srcDecoder(output);
     this.resolver = new ASTResolver(output);
+
+    this.isExcluded = node => node.nodeType === 'ContractDefinition' && exclude.includes(node.name);
 
     for (const source in input.sources) {
       if (isRenamed(source)) {
@@ -59,8 +65,8 @@ export class Transform {
   apply(transform: Transformer): void {
     for (const source in this.state) {
       const { original: originalSource } = this.state[source];
-      const { resolver } = this;
-      const tools = { originalSource, resolver };
+      const { resolver, isExcluded } = this;
+      const tools = { originalSource, resolver, isExcluded };
 
       for (const t of transform(this.output.sources[source].ast, tools)) {
         const { content, shifts, transformations } = this.state[source];

@@ -6,9 +6,9 @@ import { TransformerTools } from '../transform';
 
 export function* prependInitializableBase(
   sourceUnit: SourceUnit,
-  { originalSource }: TransformerTools,
+  { originalSource, isExcluded }: TransformerTools,
 ): Generator<Transformation> {
-  for (const contract of findAll('ContractDefinition', sourceUnit)) {
+  for (const contract of findAll('ContractDefinition', sourceUnit, isExcluded)) {
     if (contract.contractKind !== 'contract') {
       continue;
     }

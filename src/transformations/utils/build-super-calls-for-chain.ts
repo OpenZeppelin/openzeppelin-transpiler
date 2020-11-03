@@ -5,7 +5,7 @@ import { getConstructor } from '../../solc/ast-utils';
 import { ContractDefinition } from 'solidity-ast';
 import { Node } from 'solidity-ast/node';
 import { TransformHelper } from '../type';
-import { ASTResolver } from '../../ast-resolver';
+import { TransformerTools } from '../../transform';
 
 // builds an __init call with given arguments, for example
 // ERC20DetailedUpgradeable.__init(false, "Gold", "GLD", 18)
@@ -22,7 +22,7 @@ function buildSuperCall2(args: Node[], name: string, helper: TransformHelper): s
 // ERC20DetailedUpgradeable.__init(false, 'Gold', 'GLD', 18);
 export function buildSuperCallsForChain2(
   contractNode: ContractDefinition,
-  resolver: ASTResolver,
+  { resolver, isExcluded }: TransformerTools,
   helper: TransformHelper,
 ): string[] {
   // first we get the linearized inheritance chain of contracts, excluding the
@@ -32,6 +32,10 @@ export function buildSuperCallsForChain2(
       const base = resolver.resolveContract(baseId);
       if (base === undefined) {
         throw new Error(`Could not resolve ast id ${baseId}`);
+      } else if (isExcluded(base)) {
+        throw new Error(
+          `${contractNode.name} inherits a contract that was excluded from transpilation`,
+        );
       }
       return base;
     })

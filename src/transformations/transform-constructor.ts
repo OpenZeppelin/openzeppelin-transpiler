@@ -23,9 +23,9 @@ function format(indent: number, lines: Line[]): string {
 
 export function* removeLeftoverConstructorHead(
   sourceUnit: SourceUnit,
-  { originalSource }: TransformerTools,
+  { originalSource, isExcluded }: TransformerTools,
 ): Generator<Transformation> {
-  for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
+  for (const contractNode of findAll('ContractDefinition', sourceUnit, isExcluded)) {
     const constructorNode = getConstructor(contractNode);
     if (constructorNode) {
       const { start: ctorStart } = getNodeBounds(constructorNode);
@@ -46,9 +46,11 @@ export function* removeLeftoverConstructorHead(
 
 export function* transformConstructor(
   sourceUnit: SourceUnit,
-  { originalSource, resolver }: TransformerTools,
+  tools: TransformerTools,
 ): Generator<Transformation> {
-  for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
+  const { originalSource, resolver, isExcluded } = tools;
+
+  for (const contractNode of findAll('ContractDefinition', sourceUnit, isExcluded)) {
     if (contractNode.contractKind !== 'contract') {
       continue;
     }
@@ -63,7 +65,7 @@ export function* transformConstructor(
 
     const initializer = (helper: TransformHelper, argsList = '', argNames: string[] = []) => [
       `function __${name}_init(${argsList}) internal initializer {`,
-      buildSuperCallsForChain2(contractNode, resolver, helper),
+      buildSuperCallsForChain2(contractNode, tools, helper),
       [`__${name}_init_unchained(${argNames.join(', ')});`],
       `}`,
       ``,
