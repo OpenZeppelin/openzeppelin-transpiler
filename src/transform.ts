@@ -19,6 +19,11 @@ export interface TransformerTools {
   readOriginal: (node: Node) => string;
   resolver: ASTResolver;
   isExcluded: (node: Node) => boolean;
+  getData: (node: Node) => Partial<TransformData>;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface TransformData {
 }
 
 interface TransformState {
@@ -32,6 +37,8 @@ export class Transform {
   state: {
     [file in string]: TransformState;
   } = {};
+
+  data = new WeakMap<Node, Partial<TransformData>>();
 
   decodeSrc: SrcDecoder;
   resolver: ASTResolver;
@@ -67,7 +74,8 @@ export class Transform {
       const { original: originalSource } = this.state[source];
       const { resolver, isExcluded } = this;
       const readOriginal = this.readOriginal.bind(this);
-      const tools = { originalSource, resolver, isExcluded, readOriginal };
+      const getData = this.getData.bind(this);
+      const tools = { originalSource, resolver, isExcluded, readOriginal, getData };
 
       for (const t of transform(this.output.sources[source].ast, tools)) {
         const { content, shifts, transformations } = this.state[source];
@@ -80,6 +88,15 @@ export class Transform {
         this.state[source].content = result;
       }
     }
+  }
+
+  getData(node: Node): Partial<TransformData> {
+    let data = this.data.get(node);
+    if (data === undefined) {
+      data = {};
+      this.data.set(node, data);
+    }
+    return data;
   }
 
   readOriginal(node: WithSrc): string {
