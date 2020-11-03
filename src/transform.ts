@@ -23,8 +23,7 @@ export interface TransformerTools {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface TransformData {
-}
+export interface TransformData {}
 
 interface TransformState {
   transformations: Transformation[];

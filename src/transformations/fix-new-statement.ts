@@ -1,11 +1,11 @@
-import { SourceUnit, ContractDefinition } from 'solidity-ast';
+import { SourceUnit } from 'solidity-ast';
 import { findAll } from 'solidity-ast/utils';
 
 import { getNodeBounds, getConstructor } from '../solc/ast-utils';
 import { newFunctionPosition } from './utils/new-function-position';
 import { formatLines } from './utils/format-lines';
 import { Transformation } from './type';
-import { TransformerTools, TransformData } from '../transform';
+import { TransformerTools } from '../transform';
 
 declare module '../transform' {
   interface TransformData {
