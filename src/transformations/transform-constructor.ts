@@ -6,7 +6,6 @@ import { Transformation, TransformHelper } from './type';
 import { buildSuperCallsForChain2 } from './utils/build-super-calls-for-chain';
 import { findAll } from 'solidity-ast/utils';
 import { TransformerTools } from '../transform';
-import { ASTResolver } from '../ast-resolver';
 import { matchFrom } from '../utils/match-from';
 
 type Line = string | Line[];
@@ -48,7 +47,7 @@ export function* transformConstructor(
   sourceUnit: SourceUnit,
   tools: TransformerTools,
 ): Generator<Transformation> {
-  const { originalSource, resolver, isExcluded } = tools;
+  const { originalSource, isExcluded } = tools;
 
   for (const contractNode of findAll('ContractDefinition', sourceUnit, isExcluded)) {
     if (contractNode.contractKind !== 'contract') {

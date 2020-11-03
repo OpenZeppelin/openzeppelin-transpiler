@@ -1,5 +1,4 @@
 import { mapValues } from 'lodash';
-import path from 'path';
 
 import { SourceUnit } from 'solidity-ast';
 import { Node } from 'solidity-ast/node';

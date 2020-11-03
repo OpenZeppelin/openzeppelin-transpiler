@@ -8,7 +8,7 @@ import { TransformerTools } from '../transform';
 
 export function* renameContractDefinition(
   sourceUnit: SourceUnit,
-  { originalSource, isExcluded } : TransformerTools,
+  { originalSource, isExcluded }: TransformerTools,
 ): Generator<Transformation> {
   for (const contract of findAll('ContractDefinition', sourceUnit, isExcluded)) {
     const bounds = getNodeBounds(contract);

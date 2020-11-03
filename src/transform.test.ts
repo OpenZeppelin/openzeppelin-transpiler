@@ -143,7 +143,6 @@ test('exclude', t => {
 
 test('exclude error', t => {
   const transform = new Transform(t.context.solcInput, t.context.solcOutput, ['Foo']);
-  const file = 'contracts/TransformInitializable.sol';
   t.throws(
     () => transform.apply(transformConstructor),
     undefined,
