@@ -88,3 +88,10 @@ test('apply contained with function transformation', t => {
   };
   t.is('aBXYZEf', applyAll(source, [a, b]));
 });
+
+test('apply two stacked transformations of length zero', t => {
+  const source = 'xxyy';
+  const a = { kind: 'a', start: 2, length: 0, text: 'aa' };
+  const b = { kind: 'b', start: 2, length: 0, text: 'bb' };
+  t.is('xxaabbyy', applyAll(source, [a, b]));
+});
