@@ -32,8 +32,9 @@ export async function transpile(
   solcInput: SolcInput,
   solcOutput: SolcOutput,
   paths: Paths,
+  exclude: string[] = [],
 ): Promise<OutputFile[]> {
-  const transform = new Transform(solcInput, solcOutput);
+  const transform = new Transform(solcInput, solcOutput, exclude);
 
   transform.apply(renameIdentifiers);
   transform.apply(renameContractDefinition);
