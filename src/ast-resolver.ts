@@ -8,10 +8,18 @@ export class ASTResolver {
   constructor(readonly output: SolcOutput) {}
 
   resolveContract(id: number): ContractDefinition | undefined {
-    return this.resolveNode('ContractDefinition', id);
+    try {
+      return this.resolveNode('ContractDefinition', id);
+    } catch (e) {
+      if (e instanceof ASTResolverError) {
+        return undefined;
+      } else {
+        throw e;
+      }
+    }
   }
 
-  resolveNode<T extends NodeType>(nodeType: T, id: number): NodeTypeMap[T] | undefined {
+  resolveNode<T extends NodeType>(nodeType: T, id: number): NodeTypeMap[T] {
     for (const source in this.output.sources) {
       for (const c of findAll(nodeType, this.output.sources[source].ast)) {
         if (c.id === id) {
@@ -19,5 +27,13 @@ export class ASTResolver {
         }
       }
     }
+
+    throw new ASTResolverError(nodeType);
+  }
+}
+
+export class ASTResolverError extends Error {
+  constructor(nodeType: NodeType) {
+    super(`Can't find required ${nodeType}`);
   }
 }

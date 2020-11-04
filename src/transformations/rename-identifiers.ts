@@ -62,9 +62,6 @@ function getTransitiveRenameCandidates(
 
   for (const imp of findAll('ImportDirective', sourceUnit)) {
     const referencedSourceUnit = resolver.resolveNode('SourceUnit', imp.sourceUnit);
-    if (referencedSourceUnit === undefined) {
-      throw new Error(`Can't find source unit for ${imp.file}`);
-    }
     const subexports = getTransitiveRenameCandidates(referencedSourceUnit, resolver);
     if (imp.symbolAliases.length === 0) {
       Object.assign(ex, subexports);

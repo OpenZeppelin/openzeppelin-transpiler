@@ -11,9 +11,6 @@ export function* fixImportDirectives(
 ): Generator<Transformation> {
   for (const imp of findAll('ImportDirective', ast)) {
     const referencedSourceUnit = resolver.resolveNode('SourceUnit', imp.sourceUnit);
-    if (referencedSourceUnit === undefined) {
-      throw new Error(`Can't find SourceUnit node for ${imp.file}`);
-    }
 
     const aliases = imp.symbolAliases.map(a => {
       const id = referencedSourceUnit.exportedSymbols[a.foreign.name]?.[0];
