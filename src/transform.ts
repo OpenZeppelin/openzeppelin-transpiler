@@ -33,15 +33,15 @@ interface TransformState {
 }
 
 export class Transform {
-  state: {
+  private state: {
     [file in string]: TransformState;
   } = {};
 
-  data = new WeakMap<Node, Partial<TransformData>>();
+  private data = new WeakMap<Node, Partial<TransformData>>();
 
-  decodeSrc: SrcDecoder;
-  resolver: ASTResolver;
-  isExcluded: (node: Node) => boolean;
+  private decodeSrc: SrcDecoder;
+  private resolver: ASTResolver;
+  private isExcluded: (node: Node) => boolean;
 
   constructor(input: SolcInput, readonly output: SolcOutput, exclude: string[] = []) {
     this.decodeSrc = srcDecoder(output);
