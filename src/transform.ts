@@ -26,6 +26,7 @@ export interface TransformerTools {
 export interface TransformData {}
 
 interface TransformState {
+  ast: SourceUnit;
   transformations: Transformation[];
   shifts: Shift[];
   content: string;
@@ -43,7 +44,7 @@ export class Transform {
   private resolver: ASTResolver;
   private isExcluded: (node: Node) => boolean;
 
-  constructor(input: SolcInput, readonly output: SolcOutput, exclude: string[] = []) {
+  constructor(input: SolcInput, output: SolcOutput, exclude: string[] = []) {
     this.decodeSrc = srcDecoder(output);
     this.resolver = new ASTResolver(output);
 
@@ -60,6 +61,7 @@ export class Transform {
       }
 
       this.state[source] = {
+        ast: output.sources[source].ast,
         original: s.content,
         content: s.content,
         transformations: [],
@@ -70,13 +72,13 @@ export class Transform {
 
   apply(transform: Transformer): void {
     for (const source in this.state) {
-      const { original: originalSource } = this.state[source];
+      const { original: originalSource, ast } = this.state[source];
       const { resolver, isExcluded } = this;
       const readOriginal = this.readOriginal.bind(this);
       const getData = this.getData.bind(this);
       const tools = { originalSource, resolver, isExcluded, readOriginal, getData };
 
-      for (const t of transform(this.output.sources[source].ast, tools)) {
+      for (const t of transform(ast, tools)) {
         const { content, shifts, transformations } = this.state[source];
         insertSortedAndValidate(transformations, t);
 
