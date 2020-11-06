@@ -3,7 +3,7 @@ import { Transform } from './transform';
 import { formatLines, Line } from './transformations/utils/format-lines';
 import { findAll } from 'solidity-ast/utils';
 import { getConstructor } from './solc/ast-utils';
-import { renameContract } from './rename';
+import { renameContract, renamePath } from './rename';
 import { relativePath } from './utils/relative-path';
 
 export function generateWithInit(transform: Transform, destPath: string): string {
@@ -37,7 +37,7 @@ export function generateWithInit(transform: Transform, destPath: string): string
       const renamedContract = renameContract(contract.name);
 
       res.push(
-        `import "${relativePath(path.dirname(destPath), sourceUnit.absolutePath)}";`,
+        `import "${relativePath(path.dirname(destPath), renamePath(sourceUnit.absolutePath))}";`,
         ``,
         `contract ${renamedContract}WithInit is ${renamedContract} {`,
         [
