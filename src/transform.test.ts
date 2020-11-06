@@ -30,7 +30,6 @@ interface Context {
 }
 
 test.serial.before('compile', async t => {
-  await bre.run('compile');
   t.context.solcInput = JSON.parse(
     await fs.readFile(path.join(bre.config.paths.cache, 'solc-input.json'), 'utf8'),
   );

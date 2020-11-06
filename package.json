@@ -12,8 +12,8 @@
     "oz-transpile": "dist/cli.js"
   },
   "scripts": {
-    "test": "tsc && ava",
-    "test:watch": "fgbg 'ava -w' 'tsc -w'",
+    "test": "tsc && buidler compile && ava",
+    "test:watch": "fgbg 'buidler compile && ava -w' 'tsc -w' --",
     "compile:ts": "rm -rf lib && tsc",
     "prepare": "npm run compile:ts",
     "watch": "tsc -w",
