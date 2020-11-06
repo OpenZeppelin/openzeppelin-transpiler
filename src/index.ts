@@ -1,7 +1,8 @@
 import path from 'path';
 import fs from 'fs';
+import { mapValues } from 'lodash';
 
-import { renamePath } from './rename';
+import { renamePath, isRenamed } from './rename';
 import { SolcOutput, SolcInput } from './solc/input-output';
 import { Transform } from './transform';
 import { generateWithInit } from './generate-with-init';
@@ -34,15 +35,24 @@ export async function transpile(
   solcInput: SolcInput,
   solcOutput: SolcOutput,
   paths: Paths,
-  exclude: string[] = [],
 ): Promise<OutputFile[]> {
-  const transform = new Transform(solcInput, solcOutput, exclude);
+  const outputPaths = mapValues(
+    {
+      initializable: 'Initializable.sol',
+      withInit: 'WithInit.sol',
+    },
+    s => path.relative(paths.root, path.join(paths.sources, s)),
+  );
+
+  const transform = new Transform(solcInput, solcOutput, {
+    exclude: source => isRenamed(source) || Object.values(outputPaths).includes(source),
+  });
 
   transform.apply(renameIdentifiers);
   transform.apply(renameContractDefinition);
   transform.apply(prependInitializableBase);
   transform.apply(fixImportDirectives);
-  transform.apply((...args) => appendInitializableImport(paths.sources, ...args));
+  transform.apply(su => appendInitializableImport(paths.sources, su));
   transform.apply(fixNewStatement);
   transform.apply(addNeededExternalInitializer);
   transform.apply(transformConstructor);
@@ -67,15 +77,14 @@ export async function transpile(
 
   outputFiles.push({
     source: fs.readFileSync(require.resolve('../Initializable.sol'), 'utf8'),
-    path: path.join(paths.sources, 'Initializable.sol'),
-    fileName: 'Initializable.sol',
+    path: outputPaths.initializable,
+    fileName: path.basename(outputPaths.initializable),
   });
 
-  const withInitPath = path.join(paths.sources, 'WithInit.sol');
   outputFiles.push({
-    source: generateWithInit(transform, withInitPath),
-    path: withInitPath,
-    fileName: path.basename(withInitPath),
+    source: generateWithInit(transform, outputPaths.withInit),
+    path: outputPaths.withInit,
+    fileName: path.basename(outputPaths.withInit),
   });
 
   return outputFiles;

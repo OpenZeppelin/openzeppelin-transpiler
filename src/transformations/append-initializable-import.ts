@@ -7,14 +7,12 @@ import { relativePath } from '../utils/relative-path';
 
 import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
-import { TransformerTools } from '../transform';
 
 export function* appendInitializableImport(
   contractsDir: string,
   sourceUnit: SourceUnit,
-  { isExcluded }: TransformerTools,
 ): Generator<Transformation> {
-  const contracts = [...findAll('ContractDefinition', sourceUnit, isExcluded)];
+  const contracts = [...findAll('ContractDefinition', sourceUnit)];
   if (!contracts.some(c => c.contractKind === 'contract')) {
     return;
   }

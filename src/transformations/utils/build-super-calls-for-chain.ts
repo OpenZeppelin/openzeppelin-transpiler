@@ -22,7 +22,7 @@ function buildSuperCall2(args: Node[], name: string, helper: TransformHelper): s
 // ERC20DetailedUpgradeable.__init(false, 'Gold', 'GLD', 18);
 export function buildSuperCallsForChain2(
   contractNode: ContractDefinition,
-  { resolver, isExcluded }: TransformerTools,
+  { resolver }: TransformerTools,
   helper: TransformHelper,
 ): string[] {
   // first we get the linearized inheritance chain of contracts, excluding the
@@ -32,10 +32,6 @@ export function buildSuperCallsForChain2(
       const base = resolver.resolveContract(baseId);
       if (base === undefined) {
         throw new Error(`Could not resolve ast id ${baseId}`);
-      } else if (isExcluded(base)) {
-        throw new Error(
-          `${contractNode.name} inherits a contract that was excluded from transpilation`,
-        );
       }
       return base;
     })

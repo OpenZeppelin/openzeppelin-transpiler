@@ -3,13 +3,9 @@ import { findAll } from 'solidity-ast/utils';
 
 import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
-import { TransformerTools } from '../transform';
 
-export function* removeInheritanceListArguments(
-  sourceUnit: SourceUnit,
-  { isExcluded }: TransformerTools,
-): Generator<Transformation> {
-  for (const base of findAll('InheritanceSpecifier', sourceUnit, isExcluded)) {
+export function* removeInheritanceListArguments(sourceUnit: SourceUnit): Generator<Transformation> {
+  for (const base of findAll('InheritanceSpecifier', sourceUnit)) {
     yield {
       ...getNodeBounds(base),
       kind: 'remove-inheritance-arguments',

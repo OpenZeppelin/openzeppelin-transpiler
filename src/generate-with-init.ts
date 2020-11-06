@@ -10,7 +10,7 @@ export function generateWithInit(transform: Transform, destPath: string): string
   const res: Line[] = [`pragma solidity ^0.6;`, `pragma experimental ABIEncoderV2;`, ``];
 
   for (const sourceUnit of transform.asts()) {
-    for (const contract of findAll('ContractDefinition', sourceUnit, transform.isExcluded)) {
+    for (const contract of findAll('ContractDefinition', sourceUnit)) {
       if (contract.contractKind !== 'contract' || contract.abstract) {
         continue;
       }

@@ -3,13 +3,9 @@ import { findAll } from 'solidity-ast/utils';
 import { getNodeBounds } from '../solc/ast-utils';
 
 import { Transformation } from './type';
-import { TransformerTools } from '../transform';
 
-export function* removeStateVarInits(
-  sourceUnit: SourceUnit,
-  { isExcluded }: TransformerTools,
-): Generator<Transformation> {
-  for (const varDecl of findAll('VariableDeclaration', sourceUnit, isExcluded)) {
+export function* removeStateVarInits(sourceUnit: SourceUnit): Generator<Transformation> {
+  for (const varDecl of findAll('VariableDeclaration', sourceUnit)) {
     if (varDecl.stateVariable && varDecl.value && !varDecl.constant) {
       yield {
         ...getNodeBounds(varDecl),

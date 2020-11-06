@@ -8,9 +8,9 @@ import { TransformerTools } from '../transform';
 
 export function* renameContractDefinition(
   sourceUnit: SourceUnit,
-  { originalSource, isExcluded }: TransformerTools,
+  { originalSource }: TransformerTools,
 ): Generator<Transformation> {
-  for (const contract of findAll('ContractDefinition', sourceUnit, isExcluded)) {
+  for (const contract of findAll('ContractDefinition', sourceUnit)) {
     const bounds = getNodeBounds(contract);
     const re = /(?:abstract\s+)?(?:contract|library|interface)\s+([a-zA-Z0-9$_]+)/y;
     re.lastIndex = bounds.start;

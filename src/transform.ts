@@ -9,7 +9,6 @@ import { Shift, shiftBounds } from './shifts';
 import { applyTransformation } from './transformations/apply';
 import { compareTransformations, compareContainment } from './transformations/compare';
 import { Transformation, WithSrc } from './transformations/type';
-import { isRenamed } from './rename';
 import { ASTResolver } from './ast-resolver';
 
 type Transformer = (sourceUnit: SourceUnit, tools: TransformerTools) => Generator<Transformation>;
@@ -18,7 +17,6 @@ export interface TransformerTools {
   originalSource: string;
   readOriginal: (node: Node) => string;
   resolver: ASTResolver;
-  isExcluded: (node: Node) => boolean;
   getData: (node: Node) => Partial<TransformData>;
 }
 
@@ -33,6 +31,10 @@ interface TransformState {
   original: string;
 }
 
+interface TransformOptions {
+  exclude?: (source: string) => boolean;
+}
+
 export class Transform {
   private state: {
     [file in string]: TransformState;
@@ -42,16 +44,13 @@ export class Transform {
 
   readonly decodeSrc: SrcDecoder;
   readonly resolver: ASTResolver;
-  readonly isExcluded: (node: Node) => boolean;
 
-  constructor(input: SolcInput, output: SolcOutput, exclude: string[] = []) {
+  constructor(input: SolcInput, output: SolcOutput, options?: TransformOptions) {
     this.decodeSrc = srcDecoder(output);
-    this.resolver = new ASTResolver(output);
-
-    this.isExcluded = node => node.nodeType === 'ContractDefinition' && exclude.includes(node.name);
+    this.resolver = new ASTResolver(output, options?.exclude);
 
     for (const source in input.sources) {
-      if (isRenamed(source)) {
+      if (options?.exclude?.(source)) {
         continue;
       }
 
@@ -73,10 +72,10 @@ export class Transform {
   apply(transform: Transformer): void {
     for (const source in this.state) {
       const { original: originalSource, ast } = this.state[source];
-      const { resolver, isExcluded } = this;
+      const { resolver } = this;
       const readOriginal = this.readOriginal.bind(this);
       const getData = this.getData.bind(this);
-      const tools = { originalSource, resolver, isExcluded, readOriginal, getData };
+      const tools = { originalSource, resolver, readOriginal, getData };
 
       for (const t of transform(ast, tools)) {
         const { content, shifts, transformations } = this.state[source];

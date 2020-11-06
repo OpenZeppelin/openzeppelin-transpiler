@@ -9,14 +9,11 @@ import { TransformerTools } from '../transform';
 
 export function* renameIdentifiers(
   sourceUnit: SourceUnit,
-  { resolver, isExcluded }: TransformerTools,
+  { resolver }: TransformerTools,
 ): Generator<Transformation> {
   const candidates = getTransitiveRenameCandidates(sourceUnit, resolver);
   const rename = new Set(
-    Object.keys(candidates).filter(name => {
-      const contract = resolver.resolveContract(candidates[name]);
-      return contract && !isExcluded(contract);
-    }),
+    Object.keys(candidates).filter(name => resolver.resolveContract(candidates[name])),
   );
 
   for (const ident of findAllIdentifiers(sourceUnit)) {

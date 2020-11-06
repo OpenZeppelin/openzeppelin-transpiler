@@ -5,7 +5,7 @@ import { NodeType, NodeTypeMap } from 'solidity-ast/node';
 import { SolcOutput } from './solc/input-output';
 
 export class ASTResolver {
-  constructor(readonly output: SolcOutput) {}
+  constructor(readonly output: SolcOutput, readonly exclude?: (source: string) => boolean) {}
 
   resolveContract(id: number): ContractDefinition | undefined {
     try {
@@ -23,7 +23,11 @@ export class ASTResolver {
     for (const source in this.output.sources) {
       for (const c of findAll(nodeType, this.output.sources[source].ast)) {
         if (c.id === id) {
-          return c;
+          if (this.exclude?.(source)) {
+            throw new Error(`Symbol was imported from an excluded file`);
+          } else {
+            return c;
+          }
         }
       }
     }

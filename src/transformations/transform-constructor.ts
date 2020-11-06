@@ -11,9 +11,9 @@ import { formatLines } from './utils/format-lines';
 
 export function* removeLeftoverConstructorHead(
   sourceUnit: SourceUnit,
-  { originalSource, isExcluded }: TransformerTools,
+  { originalSource }: TransformerTools,
 ): Generator<Transformation> {
-  for (const contractNode of findAll('ContractDefinition', sourceUnit, isExcluded)) {
+  for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
     const constructorNode = getConstructor(contractNode);
     if (constructorNode) {
       const { start: ctorStart } = getNodeBounds(constructorNode);
@@ -36,9 +36,9 @@ export function* transformConstructor(
   sourceUnit: SourceUnit,
   tools: TransformerTools,
 ): Generator<Transformation> {
-  const { originalSource, isExcluded } = tools;
+  const { originalSource } = tools;
 
-  for (const contractNode of findAll('ContractDefinition', sourceUnit, isExcluded)) {
+  for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
     if (contractNode.contractKind !== 'contract') {
       continue;
     }

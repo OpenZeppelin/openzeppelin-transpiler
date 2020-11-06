@@ -7,7 +7,7 @@ import { TransformerTools } from '../transform';
 
 export function* fixImportDirectives(
   ast: SourceUnit,
-  { resolver, isExcluded }: TransformerTools,
+  { resolver }: TransformerTools,
 ): Generator<Transformation> {
   for (const imp of findAll('ImportDirective', ast)) {
     const referencedSourceUnit = resolver.resolveNode('SourceUnit', imp.sourceUnit);
@@ -19,7 +19,7 @@ export function* fixImportDirectives(
       }
       let alias = '';
       const contract = resolver.resolveContract(id);
-      if (contract === undefined || isExcluded(contract)) {
+      if (contract === undefined) {
         alias += a.foreign.name;
       } else {
         alias += renameContract(a.foreign.name);

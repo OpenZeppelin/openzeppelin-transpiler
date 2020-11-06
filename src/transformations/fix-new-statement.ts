@@ -17,7 +17,7 @@ export function* fixNewStatement(
   sourceUnit: SourceUnit,
   tools: TransformerTools,
 ): Generator<Transformation> {
-  const { resolver, isExcluded, getData } = tools;
+  const { resolver, getData } = tools;
 
   for (const statement of findAll('ExpressionStatement', sourceUnit)) {
     const { expression } = statement;
@@ -34,7 +34,7 @@ export function* fixNewStatement(
         if (typeName.nodeType === 'UserDefinedTypeName') {
           const contract = resolver.resolveContract(typeName.referencedDeclaration);
 
-          if (contract && !isExcluded(contract)) {
+          if (contract) {
             getData(contract).isUsedInNewStatement = true;
 
             const stBounds = getNodeBounds(statement);
