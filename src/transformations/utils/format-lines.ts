@@ -1,6 +1,6 @@
 import { flatten } from 'lodash';
 
-type Line = string | Line[];
+export type Line = string | Line[];
 
 export function formatLines(indent: number, lines: Line[]): string {
   function indentEach(indent: number, lines: Line[]): Line[] {

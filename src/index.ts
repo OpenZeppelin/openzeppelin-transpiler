@@ -4,6 +4,7 @@ import fs from 'fs';
 import { renamePath } from './rename';
 import { SolcOutput, SolcInput } from './solc/input-output';
 import { Transform } from './transform';
+import { generateWithInit } from './generate-with-init';
 
 import { fixImportDirectives } from './transformations/fix-import-directives';
 import { renameIdentifiers } from './transformations/rename-identifiers';
@@ -68,6 +69,13 @@ export async function transpile(
     source: fs.readFileSync(require.resolve('../Initializable.sol'), 'utf8'),
     path: path.join(paths.sources, 'Initializable.sol'),
     fileName: 'Initializable.sol',
+  });
+
+  const withInitPath = path.join(paths.sources, 'WithInit.sol');
+  outputFiles.push({
+    source: generateWithInit(transform, withInitPath),
+    path: withInitPath,
+    fileName: path.basename(withInitPath),
   });
 
   return outputFiles;

@@ -40,9 +40,9 @@ export class Transform {
 
   private data = new WeakMap<Node, Partial<TransformData>>();
 
-  private decodeSrc: SrcDecoder;
-  private resolver: ASTResolver;
-  private isExcluded: (node: Node) => boolean;
+  readonly decodeSrc: SrcDecoder;
+  readonly resolver: ASTResolver;
+  readonly isExcluded: (node: Node) => boolean;
 
   constructor(input: SolcInput, output: SolcOutput, exclude: string[] = []) {
     this.decodeSrc = srcDecoder(output);
@@ -124,6 +124,10 @@ export class Transform {
 
   results(): { [file in string]: string } {
     return mapValues(this.state, s => s.content);
+  }
+
+  asts(): SourceUnit[] {
+    return Object.values(this.state).map(s => s.ast);
   }
 }
 
