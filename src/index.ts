@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { mapValues } from 'lodash';
+import minimatch from 'minimatch';
 
 import { renamePath, isRenamed } from './rename';
 import { SolcOutput, SolcInput } from './solc/input-output';
@@ -35,6 +36,7 @@ export async function transpile(
   solcInput: SolcInput,
   solcOutput: SolcOutput,
   paths: Paths,
+  exclude: string[] = [],
 ): Promise<OutputFile[]> {
   const outputPaths = mapValues(
     {
@@ -45,7 +47,10 @@ export async function transpile(
   );
 
   const transform = new Transform(solcInput, solcOutput, {
-    exclude: source => isRenamed(source) || Object.values(outputPaths).includes(source),
+    exclude: source =>
+      isRenamed(source) ||
+      Object.values(outputPaths).includes(source) ||
+      exclude.some(x => minimatch(source, x)),
   });
 
   transform.apply(renameIdentifiers);

@@ -37,6 +37,7 @@
   "dependencies": {
     "ajv": "^6.10.2",
     "lodash": "^4.17.15",
+    "minimatch": "^3.0.4",
     "minimist": "^1.2.5",
     "source-map-support": "^0.5.19"
   },
@@ -45,6 +46,7 @@
     "@nomiclabs/buidler": "^1.4.8",
     "@openzeppelin/contracts": "^2.4.0",
     "@types/lodash": "^4.14.149",
+    "@types/minimatch": "^3.0.3",
     "@types/minimist": "^1.2.0",
     "@types/mocha": "^7.0.2",
     "@types/node": "^13.1.4",
