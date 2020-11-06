@@ -41,6 +41,7 @@
     "lodash": "^4.17.15",
     "minimatch": "^3.0.4",
     "minimist": "^1.2.5",
+    "solidity-ast": "^0.4.13",
     "source-map-support": "^0.5.19"
   },
   "devDependencies": {
@@ -62,7 +63,6 @@
     "fs-extra": "^9.0.0",
     "prettier": "^1.19.1",
     "rimraf": "^3.0.2",
-    "solidity-ast": "^0.4.13",
     "typescript": "^4.0.0"
   }
 }
