@@ -6,7 +6,8 @@
   "types": "dist/index.d.ts",
   "files": [
     "dist",
-    "!*.tsbuildinfo"
+    "!*.tsbuildinfo",
+    "Initializable.sol"
   ],
   "bin": {
     "upgrade-safe-transpiler": "dist/cli.js"
