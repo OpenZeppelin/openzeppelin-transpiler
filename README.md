@@ -1,17 +1,7 @@
-# OpenZeppelin Transpiler
+# OpenZeppelin Upgrade Safe Transpiler
 
-A preprocessor that turns any Solidity smart contract into one suitable for use
-with proxies.
+:warning: **Warning** :warning:
 
-_Proxies are a kind of contract deployment that enables features like
-upgradeability and reduced cost._
+This tool was built and tested specifically for [OpenZeppelin Contracts](https://github.com/OpenZeppelin/openzeppelin-contracts), and might produce incorrect results if used in any other context.
 
-## Usage
-
-To run the transpiler on your contracts simply install it and run
-`oz-transpile` in your project directory.
-
-This will take all existing Solidity files and create their proxy-enabled
-variants in an `__upgradeable__` directory.
-
-
+We do not recommend using it. If you're interested in doing so, get in touch with us at contact@openzeppelin.com.
