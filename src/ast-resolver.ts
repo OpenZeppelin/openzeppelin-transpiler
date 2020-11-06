@@ -24,7 +24,7 @@ export class ASTResolver {
       for (const c of findAll(nodeType, this.output.sources[source].ast)) {
         if (c.id === id) {
           if (this.exclude?.(source)) {
-            throw new Error(`Symbol was imported from an excluded file`);
+            throw new Error(`Symbol was imported from an excluded file (${source})`);
           } else {
             return c;
           }
