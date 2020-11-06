@@ -105,7 +105,7 @@ export function* addNeededExternalInitializer(
         length: 0,
         kind: 'add-external-initializer',
         text: formatLines(1, [
-          `function initialize(${args}) external initializer {`,
+          `function initialize(${args}) external __initializer {`,
           [`__${contract.name}_init(${argNames});`],
           '}',
         ]),

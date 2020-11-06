@@ -19,7 +19,7 @@ export function* prependInitializableBase(
         kind: 'prepend-initializable-base',
         start,
         length: 0,
-        text: `Initializable, `,
+        text: `__Initializable, `,
       };
     } else {
       const bounds = getNodeBounds(contract);
@@ -37,7 +37,7 @@ export function* prependInitializableBase(
         start,
         length: 0,
         kind: 'prepend-initializable-base',
-        text: ' is Initializable',
+        text: ' is __Initializable',
       };
     }
   }

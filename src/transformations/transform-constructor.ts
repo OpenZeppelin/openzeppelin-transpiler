@@ -52,12 +52,12 @@ export function* transformConstructor(
     );
 
     const initializer = (helper: TransformHelper, argsList = '', argNames: string[] = []) => [
-      `function __${name}_init(${argsList}) internal initializer {`,
+      `function __${name}_init(${argsList}) internal __initializer {`,
       buildSuperCallsForChain2(contractNode, tools, helper),
       [`__${name}_init_unchained(${argNames.join(', ')});`],
       `}`,
       ``,
-      `function __${name}_init_unchained(${argsList}) internal initializer {`,
+      `function __${name}_init_unchained(${argsList}) internal __initializer {`,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       varInitNodes.map(v => `${v.name} = ${helper.read(v.value!)};`),
       `}`,
