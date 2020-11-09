@@ -48,7 +48,7 @@ test('read', t => {
 });
 
 test('apply + read', t => {
-  t.context.transform.apply(function*() {
+  t.context.transform.apply(function* () {
     yield { kind: 'a', start: 1, length: 0, text: '~' };
   });
   const text = t.context.transform.read({ src: '0:6:0' });
@@ -56,7 +56,7 @@ test('apply + read', t => {
 });
 
 test('apply + read invalid', t => {
-  t.context.transform.apply(function*() {
+  t.context.transform.apply(function* () {
     yield { kind: 'a', start: 1, length: 2, text: '~~' };
   });
 
@@ -65,7 +65,7 @@ test('apply + read invalid', t => {
 
 test('remove functions', t => {
   const file = 'contracts/TransformRemove.sol';
-  t.context.transform.apply(function*(sourceUnit) {
+  t.context.transform.apply(function* (sourceUnit) {
     if (sourceUnit.absolutePath === file) {
       for (const node of findAll('FunctionDefinition', sourceUnit)) {
         yield { ...getNodeBounds(node), kind: 'remove', text: '' };
@@ -145,7 +145,7 @@ test('exclude', t => {
     exclude: s => s === file,
   });
   // eslint-disable-next-line require-yield
-  transform.apply(function*(s) {
+  transform.apply(function* (s) {
     t.not(s.absolutePath, file);
   });
   t.false(file in transform.results());
