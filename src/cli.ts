@@ -23,7 +23,15 @@ function getFlags() {
   };
 }
 
+async function getVersion() {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const pkg = require('../package.json');
+  return pkg.name + '@' + pkg.version;
+}
+
 async function main() {
+  console.error(await getVersion());
+
   const { deleteOriginals, exclude } = getFlags();
   const paths = await getPaths();
 
