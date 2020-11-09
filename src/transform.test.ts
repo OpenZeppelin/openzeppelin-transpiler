@@ -16,6 +16,7 @@ import { renameContractDefinition } from './transformations/rename-contract-defi
 import { fixImportDirectives } from './transformations/fix-import-directives';
 import { fixNewStatement, addNeededExternalInitializer } from './transformations/fix-new-statement';
 import { appendInitializableImport } from './transformations/append-initializable-import';
+import { addStorageGaps } from './transformations/add-storage-gaps';
 import {
   transformConstructor,
   removeLeftoverConstructorHead,
@@ -149,4 +150,10 @@ test('exclude', t => {
     t.not(s.absolutePath, file);
   });
   t.false(file in transform.results());
+});
+
+test('add storage gaps', t => {
+  const file = 'contracts/TransformAddGap.sol';
+  t.context.transform.apply(addStorageGaps);
+  t.snapshot(t.context.transform.results()[file]);
 });

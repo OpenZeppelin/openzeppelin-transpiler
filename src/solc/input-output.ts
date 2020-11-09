@@ -9,7 +9,9 @@ export interface SolcInput {
 export interface SolcOutput {
   contracts: {
     [file in string]: {
-      [contract in string]: unknown;
+      [contract in string]: {
+        storageLayout?: StorageLayout;
+      };
     };
   };
   sources: {
@@ -18,4 +20,18 @@ export interface SolcOutput {
       id: number;
     };
   };
+}
+
+export interface StorageLayout {
+  storage: {
+    astId: number;
+    type: string;
+  }[];
+  types:
+    | null
+    | {
+        [t in string]?: {
+          numberOfBytes: string; // ascii number
+        };
+      };
 }

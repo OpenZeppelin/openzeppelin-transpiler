@@ -4,6 +4,7 @@ import { SourceUnit } from 'solidity-ast';
 import { Node } from 'solidity-ast/node';
 import { SolcInput, SolcOutput } from './solc/input-output';
 import { srcDecoder, SrcDecoder } from './solc/src-decoder';
+import { layoutGetter, LayoutGetter } from './solc/layout-getter';
 
 import { Shift, shiftBounds } from './shifts';
 import { applyTransformation } from './transformations/apply';
@@ -18,6 +19,7 @@ export interface TransformerTools {
   readOriginal: (node: Node) => string;
   resolver: ASTResolver;
   getData: (node: Node) => Partial<TransformData>;
+  getLayout: LayoutGetter;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -43,10 +45,12 @@ export class Transform {
   private data = new WeakMap<Node, Partial<TransformData>>();
 
   readonly decodeSrc: SrcDecoder;
+  readonly getLayout: LayoutGetter;
   readonly resolver: ASTResolver;
 
   constructor(input: SolcInput, output: SolcOutput, options?: TransformOptions) {
     this.decodeSrc = srcDecoder(output);
+    this.getLayout = layoutGetter(output);
     this.resolver = new ASTResolver(output, options?.exclude);
 
     for (const source in input.sources) {
@@ -72,10 +76,10 @@ export class Transform {
   apply(transform: Transformer): void {
     for (const source in this.state) {
       const { original: originalSource, ast } = this.state[source];
-      const { resolver } = this;
+      const { resolver, getLayout } = this;
       const readOriginal = this.readOriginal.bind(this);
       const getData = this.getData.bind(this);
-      const tools = { originalSource, resolver, readOriginal, getData };
+      const tools = { originalSource, resolver, readOriginal, getData, getLayout };
 
       for (const t of transform(ast, tools)) {
         const { content, shifts, transformations } = this.state[source];
