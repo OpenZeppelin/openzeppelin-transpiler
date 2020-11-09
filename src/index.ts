@@ -16,6 +16,7 @@ import { removeInheritanceListArguments } from './transformations/remove-inherit
 import { renameContractDefinition } from './transformations/rename-contract-definition';
 import { appendInitializableImport } from './transformations/append-initializable-import';
 import { fixNewStatement, addNeededExternalInitializer } from './transformations/fix-new-statement';
+import { addStorageGaps } from './transformations/add-storage-gaps';
 import {
   transformConstructor,
   removeLeftoverConstructorHead,
@@ -64,6 +65,7 @@ export async function transpile(
   transform.apply(removeLeftoverConstructorHead);
   transform.apply(removeInheritanceListArguments);
   transform.apply(removeStateVarInits);
+  transform.apply(addStorageGaps);
 
   // build a final array of files to return
   const outputFiles: OutputFile[] = [];
