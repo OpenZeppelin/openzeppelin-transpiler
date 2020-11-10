@@ -34,6 +34,7 @@ export interface OutputFile {
 }
 
 interface TranspileOptions {
+  initializablePath?: string;
   exclude?: string[];
 }
 
@@ -58,11 +59,14 @@ export async function transpile(
       (options?.exclude ?? []).some(x => minimatch(source, x)),
   });
 
+  const initializablePath =
+    options?.initializablePath ?? path.join(paths.sources, 'Initializable.sol');
+
   transform.apply(renameIdentifiers);
   transform.apply(renameContractDefinition);
   transform.apply(prependInitializableBase);
   transform.apply(fixImportDirectives);
-  transform.apply(su => appendInitializableImport(paths.sources, su));
+  transform.apply(su => appendInitializableImport(initializablePath, su));
   transform.apply(fixNewStatement);
   transform.apply(addNeededExternalInitializer);
   transform.apply(transformConstructor);
@@ -86,11 +90,13 @@ export async function transpile(
     });
   }
 
-  outputFiles.push({
-    source: fs.readFileSync(require.resolve('../Initializable.sol'), 'utf8'),
-    path: outputPaths.initializable,
-    fileName: path.basename(outputPaths.initializable),
-  });
+  if (options?.initializablePath === undefined) {
+    outputFiles.push({
+      source: fs.readFileSync(require.resolve('../Initializable.sol'), 'utf8'),
+      path: outputPaths.initializable,
+      fileName: path.basename(outputPaths.initializable),
+    });
+  }
 
   outputFiles.push({
     source: generateWithInit(transform, outputPaths.withInit),

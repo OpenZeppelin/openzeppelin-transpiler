@@ -15,9 +15,18 @@ async function getPaths() {
   return bre.config.paths;
 }
 
-function getFlags() {
-  const { D: deleteOriginals = false, x: exclude = [] } = minimist(process.argv.slice(2));
+interface Flags {
+  initializablePath?: string;
+  deleteOriginals: boolean;
+  exclude: string[];
+}
+
+function getFlags(): Flags {
+  const { i: initializablePath, D: deleteOriginals = false, x: exclude = [] } = minimist(
+    process.argv.slice(2),
+  );
   return {
+    initializablePath,
     deleteOriginals,
     exclude: Array.isArray(exclude) ? exclude : [exclude],
   };
@@ -32,14 +41,14 @@ async function getVersion() {
 async function main() {
   console.error(await getVersion());
 
-  const { deleteOriginals, exclude } = getFlags();
+  const { initializablePath, deleteOriginals, exclude } = getFlags();
   const paths = await getPaths();
 
   const solcInputPath = path.join(paths.cache, 'solc-input.json');
   const solcInput: SolcInput = JSON.parse(await fs.readFile(solcInputPath, 'utf8'));
   const solcOutputPath = path.join(paths.cache, 'solc-output.json');
   const solcOutput: SolcOutput = JSON.parse(await fs.readFile(solcOutputPath, 'utf8'));
-  const transpiled = await transpile(solcInput, solcOutput, paths, { exclude });
+  const transpiled = await transpile(solcInput, solcOutput, paths, { exclude, initializablePath });
 
   await Promise.all(
     transpiled.map(async t => {
@@ -50,10 +59,13 @@ async function main() {
   );
 
   if (deleteOriginals) {
-    const generated = new Set(transpiled.map(t => path.join(paths.root, t.path)));
+    const keep = new Set(transpiled.map(t => path.join(paths.root, t.path)));
+    if (initializablePath) {
+      keep.add(initializablePath);
+    }
     const originals = Object.keys(solcOutput.sources)
       .map(s => path.join(paths.root, s))
-      .filter(p => !generated.has(p));
+      .filter(p => !keep.has(p));
 
     await Promise.all(originals.map(p => fs.unlink(p)));
   }

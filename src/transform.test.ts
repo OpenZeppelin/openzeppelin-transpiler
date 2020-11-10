@@ -122,7 +122,17 @@ test('fix import directives complex', t => {
 
 test('append initializable import', t => {
   const file = 'test/solc-0.6/contracts/Local.sol';
-  t.context.transform.apply(su => appendInitializableImport('test/solc-0.6/contracts', su));
+  t.context.transform.apply(su =>
+    appendInitializableImport('test/solc-0.6/contracts/Initializable.sol', su),
+  );
+  t.snapshot(t.context.transform.results()[file]);
+});
+
+test('append initializable import custom', t => {
+  const file = 'test/solc-0.6/contracts/Local.sol';
+  t.context.transform.apply(su =>
+    appendInitializableImport('test/solc-0.6/contracts/Initializable2.sol', su),
+  );
   t.snapshot(t.context.transform.results()[file]);
 });
 

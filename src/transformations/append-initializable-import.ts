@@ -9,7 +9,7 @@ import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
 
 export function* appendInitializableImport(
-  contractsDir: string,
+  initializablePath: string,
   sourceUnit: SourceUnit,
 ): Generator<Transformation> {
   const contracts = [...findAll('ContractDefinition', sourceUnit)];
@@ -25,10 +25,7 @@ export function* appendInitializableImport(
     last = node;
   }
 
-  const relativeImportPath = relativePath(
-    path.dirname(sourceUnit.absolutePath),
-    path.join(contractsDir, 'Initializable.sol'),
-  );
+  const relativeImportPath = relativePath(path.dirname(sourceUnit.absolutePath), initializablePath);
 
   const after = last ? getNodeBounds(last) : { start: 0, length: 0 };
   const start = after.start + after.length;
