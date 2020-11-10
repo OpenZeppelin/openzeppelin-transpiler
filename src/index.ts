@@ -33,11 +33,15 @@ export interface OutputFile {
   path: string;
 }
 
+interface TranspileOptions {
+  exclude?: string[];
+}
+
 export async function transpile(
   solcInput: SolcInput,
   solcOutput: SolcOutput,
   paths: Paths,
-  exclude: string[] = [],
+  options?: TranspileOptions,
 ): Promise<OutputFile[]> {
   const outputPaths = mapValues(
     {
@@ -51,7 +55,7 @@ export async function transpile(
     exclude: source =>
       isRenamed(source) ||
       Object.values(outputPaths).includes(source) ||
-      exclude.some(x => minimatch(source, x)),
+      (options?.exclude ?? []).some(x => minimatch(source, x)),
   });
 
   transform.apply(renameIdentifiers);

@@ -39,7 +39,7 @@ async function main() {
   const solcInput: SolcInput = JSON.parse(await fs.readFile(solcInputPath, 'utf8'));
   const solcOutputPath = path.join(paths.cache, 'solc-output.json');
   const solcOutput: SolcOutput = JSON.parse(await fs.readFile(solcOutputPath, 'utf8'));
-  const transpiled = await transpile(solcInput, solcOutput, paths, exclude);
+  const transpiled = await transpile(solcInput, solcOutput, paths, { exclude });
 
   await Promise.all(
     transpiled.map(async t => {
