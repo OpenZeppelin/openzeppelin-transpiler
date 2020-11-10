@@ -13,7 +13,7 @@ pragma solidity >=0.4.24 <0.7.0;
  * a parent initializer twice, or ensure that all initializers are idempotent,
  * because this is not dealt with automatically as with constructors.
  */
-contract __Initializable {
+contract Initializable {
 
   /**
    * @dev Indicates that the contract has been initialized.
@@ -28,7 +28,7 @@ contract __Initializable {
   /**
    * @dev Modifier to use in the initializer function of a contract.
    */
-  modifier __initializer() {
+  modifier initializer() {
     require(initializing || isConstructor() || !initialized, "Contract instance has already been initialized");
 
     bool isTopLevelCall = !initializing;
