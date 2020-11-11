@@ -2,8 +2,6 @@ import { SourceUnit } from 'solidity-ast';
 import { findAll } from 'solidity-ast/utils';
 
 import { getNodeBounds } from '../solc/ast-utils';
-import { newFunctionPosition } from './utils/new-function-position';
-import { buildPublicInitialize } from './utils/build-pulic-initialize';
 import { Transformation } from './type';
 import { TransformerTools } from '../transform';
 
