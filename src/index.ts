@@ -82,9 +82,9 @@ export async function transpile(
   transform.apply(renameContractDefinition);
   transform.apply(prependInitializableBase);
   transform.apply(fixImportDirectives);
-  transform.apply(su => appendInitializableImport(outputPaths.initializable, su));
+  transform.apply(appendInitializableImport(outputPaths.initializable));
   transform.apply(fixNewStatement);
-  transform.apply((...args) => addRequiredPublicInitializer(options?.publicInitializers, ...args));
+  transform.apply(addRequiredPublicInitializer(options?.publicInitializers));
   transform.apply(transformConstructor);
   transform.apply(removeLeftoverConstructorHead);
   transform.apply(removeInheritanceListArguments);

@@ -123,16 +123,14 @@ test('fix import directives complex', t => {
 
 test('append initializable import', t => {
   const file = 'test/solc-0.6/contracts/Local.sol';
-  t.context.transform.apply(su =>
-    appendInitializableImport('test/solc-0.6/contracts/Initializable.sol', su),
-  );
+  t.context.transform.apply(appendInitializableImport('test/solc-0.6/contracts/Initializable.sol'));
   t.snapshot(t.context.transform.results()[file]);
 });
 
 test('append initializable import custom', t => {
   const file = 'test/solc-0.6/contracts/Local.sol';
-  t.context.transform.apply(su =>
-    appendInitializableImport('test/solc-0.6/contracts/Initializable2.sol', su),
+  t.context.transform.apply(
+    appendInitializableImport('test/solc-0.6/contracts/Initializable2.sol'),
   );
   t.snapshot(t.context.transform.results()[file]);
 });
@@ -147,7 +145,7 @@ test('transform constructor', t => {
 test('fix new statement', t => {
   const file = 'contracts/TransformNew.sol';
   t.context.transform.apply(fixNewStatement);
-  t.context.transform.apply((...args) => addRequiredPublicInitializer([], ...args));
+  t.context.transform.apply(addRequiredPublicInitializer([]));
   t.snapshot(t.context.transform.results()[file]);
 });
 
@@ -171,6 +169,6 @@ test('add storage gaps', t => {
 
 test('add requested public initializer', t => {
   const file = 'contracts/TransformConstructorWithArgs.sol';
-  t.context.transform.apply((...args) => addRequiredPublicInitializer([file], ...args));
+  t.context.transform.apply(addRequiredPublicInitializer([file]));
   t.snapshot(t.context.transform.results()[file]);
 });
