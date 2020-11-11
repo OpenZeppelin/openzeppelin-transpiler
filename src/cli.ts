@@ -20,17 +20,30 @@ interface Flags {
   initializablePath?: string;
   deleteOriginals: boolean;
   exclude: string[];
+  publicInitializers: string[];
 }
 
 function getFlags(resolveRootRelative: (p: string) => string): Flags {
-  const { i: initializablePath, D: deleteOriginals = false, x: exclude = [] } = minimist(
-    process.argv.slice(2),
-  );
+  const {
+    i: initializablePath,
+    p: publicInitializers = [],
+    D: deleteOriginals = false,
+    x: exclude = [],
+  } = minimist(process.argv.slice(2));
   return {
     deleteOriginals,
     initializablePath: resolveRootRelative(initializablePath),
-    exclude: (Array.isArray(exclude) ? exclude : [exclude]).map(resolveRootRelative),
+    publicInitializers: ensureArray(publicInitializers).map(resolveRootRelative),
+    exclude: ensureArray(exclude).map(resolveRootRelative),
   };
+}
+
+function ensureArray<T>(arr: T | T[]): T[] {
+  if (Array.isArray(arr)) {
+    return arr;
+  } else {
+    return [arr];
+  }
 }
 
 async function getVersion() {
@@ -44,13 +57,19 @@ async function main() {
 
   const paths = await getPaths();
   const resolveRootRelative = (p: string) => path.relative(paths.root, path.resolve(p));
-  const { initializablePath, deleteOriginals, exclude } = getFlags(resolveRootRelative);
+  const { initializablePath, publicInitializers, deleteOriginals, exclude } = getFlags(
+    resolveRootRelative,
+  );
 
   const solcInputPath = path.join(paths.cache, 'solc-input.json');
   const solcInput: SolcInput = JSON.parse(await fs.readFile(solcInputPath, 'utf8'));
   const solcOutputPath = path.join(paths.cache, 'solc-output.json');
   const solcOutput: SolcOutput = JSON.parse(await fs.readFile(solcOutputPath, 'utf8'));
-  const transpiled = await transpile(solcInput, solcOutput, paths, { exclude, initializablePath });
+  const transpiled = await transpile(solcInput, solcOutput, paths, {
+    exclude,
+    initializablePath,
+    publicInitializers,
+  });
 
   await Promise.all(
     transpiled.map(async t => {

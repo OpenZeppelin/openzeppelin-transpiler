@@ -16,7 +16,8 @@ import { removeStateVarInits } from './transformations/purge-var-inits';
 import { removeInheritanceListArguments } from './transformations/remove-inheritance-list-args';
 import { renameContractDefinition } from './transformations/rename-contract-definition';
 import { appendInitializableImport } from './transformations/append-initializable-import';
-import { fixNewStatement, addNeededPublicInitializer } from './transformations/fix-new-statement';
+import { fixNewStatement } from './transformations/fix-new-statement';
+import { addRequiredPublicInitializer } from './transformations/add-required-public-initializers';
 import { addStorageGaps } from './transformations/add-storage-gaps';
 import {
   transformConstructor,
@@ -37,6 +38,7 @@ export interface OutputFile {
 interface TranspileOptions {
   initializablePath?: string;
   exclude?: string[];
+  publicInitializers?: string[];
 }
 
 function getExtraOutputPaths(
@@ -82,7 +84,7 @@ export async function transpile(
   transform.apply(fixImportDirectives);
   transform.apply(su => appendInitializableImport(outputPaths.initializable, su));
   transform.apply(fixNewStatement);
-  transform.apply(addNeededPublicInitializer);
+  transform.apply((...args) => addRequiredPublicInitializer(options?.publicInitializers, ...args));
   transform.apply(transformConstructor);
   transform.apply(removeLeftoverConstructorHead);
   transform.apply(removeInheritanceListArguments);

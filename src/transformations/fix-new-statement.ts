@@ -75,23 +75,3 @@ export function* fixNewStatement(
     }
   }
 }
-
-export function* addNeededPublicInitializer(
-  sourceUnit: SourceUnit,
-  tools: TransformerTools,
-): Generator<Transformation> {
-  const { getData } = tools;
-
-  for (const contract of findAll('ContractDefinition', sourceUnit)) {
-    if (getData(contract).isUsedInNewStatement) {
-      const start = newFunctionPosition(contract, tools);
-
-      yield {
-        start,
-        length: 0,
-        kind: 'add-external-initializer',
-        text: buildPublicInitialize(contract, tools),
-      };
-    }
-  }
-}

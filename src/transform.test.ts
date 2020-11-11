@@ -14,7 +14,8 @@ import { removeStateVarInits } from './transformations/purge-var-inits';
 import { removeInheritanceListArguments } from './transformations/remove-inheritance-list-args';
 import { renameContractDefinition } from './transformations/rename-contract-definition';
 import { fixImportDirectives } from './transformations/fix-import-directives';
-import { fixNewStatement, addNeededPublicInitializer } from './transformations/fix-new-statement';
+import { fixNewStatement } from './transformations/fix-new-statement';
+import { addRequiredPublicInitializer } from './transformations/add-required-public-initializers';
 import { appendInitializableImport } from './transformations/append-initializable-import';
 import { addStorageGaps } from './transformations/add-storage-gaps';
 import {
@@ -146,7 +147,7 @@ test('transform constructor', t => {
 test('fix new statement', t => {
   const file = 'contracts/TransformNew.sol';
   t.context.transform.apply(fixNewStatement);
-  t.context.transform.apply(addNeededPublicInitializer);
+  t.context.transform.apply((...args) => addRequiredPublicInitializer([], ...args));
   t.snapshot(t.context.transform.results()[file]);
 });
 
@@ -165,5 +166,11 @@ test('exclude', t => {
 test('add storage gaps', t => {
   const file = 'contracts/TransformAddGap.sol';
   t.context.transform.apply(addStorageGaps);
+  t.snapshot(t.context.transform.results()[file]);
+});
+
+test('add requested public initializer', t => {
+  const file = 'contracts/TransformConstructorWithArgs.sol';
+  t.context.transform.apply((...args) => addRequiredPublicInitializer([file], ...args));
   t.snapshot(t.context.transform.results()[file]);
 });
