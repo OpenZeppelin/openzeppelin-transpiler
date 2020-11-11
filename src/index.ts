@@ -46,7 +46,7 @@ function getExtraOutputPaths(
   const outputPaths = mapValues(
     {
       initializable: 'Initializable.sol',
-      withInit: 'WithInit.sol',
+      withInit: 'mocks/WithInit.sol',
     },
     s => path.relative(paths.root, path.join(paths.sources, s)),
   );
