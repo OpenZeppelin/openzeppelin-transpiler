@@ -1,9 +1,9 @@
 import { SourceUnit } from 'solidity-ast';
 import { findAll } from 'solidity-ast/utils';
 
-import { getNodeBounds, getConstructor } from '../solc/ast-utils';
+import { getNodeBounds } from '../solc/ast-utils';
 import { newFunctionPosition } from './utils/new-function-position';
-import { formatLines } from './utils/format-lines';
+import { buildPublicInitialize } from './utils/build-pulic-initialize';
 import { Transformation } from './type';
 import { TransformerTools } from '../transform';
 
@@ -85,30 +85,12 @@ export function* addNeededExternalInitializer(
   for (const contract of findAll('ContractDefinition', sourceUnit)) {
     if (getData(contract).isUsedInNewStatement) {
       const start = newFunctionPosition(contract, tools);
-      const ctor = getConstructor(contract);
-
-      let args = '';
-      let argNames = '';
-      if (ctor) {
-        const ctorSource = tools.readOriginal(ctor);
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const argsMatch = ctorSource.match(/\((.*?)\)/s);
-        if (argsMatch === null) {
-          throw new Error(`Could not find constructor arguments for ${contract.name}`);
-        }
-        args = argsMatch[1];
-        argNames = ctor.parameters.parameters.map(p => p.name).join(', ');
-      }
 
       yield {
         start,
         length: 0,
         kind: 'add-external-initializer',
-        text: formatLines(1, [
-          `function initialize(${args}) external initializer {`,
-          [`__${contract.name}_init(${argNames});`],
-          '}',
-        ]),
+        text: buildPublicInitialize(contract, tools),
       };
     }
   }
