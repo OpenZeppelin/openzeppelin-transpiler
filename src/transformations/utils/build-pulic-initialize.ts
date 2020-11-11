@@ -23,7 +23,7 @@ export function buildPublicInitialize(
   }
 
   return formatLines(1, [
-    `function initialize(${args}) external initializer {`,
+    `function initialize(${args}) public virtual initializer {`,
     [`__${contract.name}_init(${argNames});`],
     '}',
   ]);

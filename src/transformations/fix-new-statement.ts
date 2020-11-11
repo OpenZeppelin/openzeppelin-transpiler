@@ -76,7 +76,7 @@ export function* fixNewStatement(
   }
 }
 
-export function* addNeededExternalInitializer(
+export function* addNeededPublicInitializer(
   sourceUnit: SourceUnit,
   tools: TransformerTools,
 ): Generator<Transformation> {

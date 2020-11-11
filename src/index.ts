@@ -16,7 +16,7 @@ import { removeStateVarInits } from './transformations/purge-var-inits';
 import { removeInheritanceListArguments } from './transformations/remove-inheritance-list-args';
 import { renameContractDefinition } from './transformations/rename-contract-definition';
 import { appendInitializableImport } from './transformations/append-initializable-import';
-import { fixNewStatement, addNeededExternalInitializer } from './transformations/fix-new-statement';
+import { fixNewStatement, addNeededPublicInitializer } from './transformations/fix-new-statement';
 import { addStorageGaps } from './transformations/add-storage-gaps';
 import {
   transformConstructor,
@@ -82,7 +82,7 @@ export async function transpile(
   transform.apply(fixImportDirectives);
   transform.apply(su => appendInitializableImport(outputPaths.initializable, su));
   transform.apply(fixNewStatement);
-  transform.apply(addNeededExternalInitializer);
+  transform.apply(addNeededPublicInitializer);
   transform.apply(transformConstructor);
   transform.apply(removeLeftoverConstructorHead);
   transform.apply(removeInheritanceListArguments);
