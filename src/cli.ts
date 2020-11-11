@@ -16,14 +16,14 @@ async function getPaths() {
   return bre.config.paths;
 }
 
-interface Flags {
+interface Options {
   initializablePath?: string;
   deleteOriginals: boolean;
   exclude: string[];
   publicInitializers: string[];
 }
 
-function getFlags(resolveRootRelative: (p: string) => string): Flags {
+function readCommandFlags(resolveRootRelative: (p: string) => string): Options {
   const {
     i: initializablePath,
     p: publicInitializers = [],
@@ -57,19 +57,13 @@ async function main() {
 
   const paths = await getPaths();
   const resolveRootRelative = (p: string) => path.relative(paths.root, path.resolve(p));
-  const { initializablePath, publicInitializers, deleteOriginals, exclude } = getFlags(
-    resolveRootRelative,
-  );
+  const options = readCommandFlags(resolveRootRelative);
 
   const solcInputPath = path.join(paths.cache, 'solc-input.json');
   const solcInput: SolcInput = JSON.parse(await fs.readFile(solcInputPath, 'utf8'));
   const solcOutputPath = path.join(paths.cache, 'solc-output.json');
   const solcOutput: SolcOutput = JSON.parse(await fs.readFile(solcOutputPath, 'utf8'));
-  const transpiled = await transpile(solcInput, solcOutput, paths, {
-    exclude,
-    initializablePath,
-    publicInitializers,
-  });
+  const transpiled = await transpile(solcInput, solcOutput, paths, options);
 
   await Promise.all(
     transpiled.map(async t => {
@@ -79,15 +73,15 @@ async function main() {
     }),
   );
 
-  if (deleteOriginals) {
+  if (options.deleteOriginals) {
     const keep = new Set(
       [
         ...transpiled.map(t => t.path),
-        ...findAlreadyInitializable(solcOutput, initializablePath),
+        ...findAlreadyInitializable(solcOutput, options.initializablePath),
       ].map(p => path.join(paths.root, p)),
     );
-    if (initializablePath) {
-      keep.add(path.join(paths.root, initializablePath));
+    if (options.initializablePath) {
+      keep.add(path.join(paths.root, options.initializablePath));
     }
     const originals = Object.keys(solcOutput.sources)
       .map(s => path.join(paths.root, s))
