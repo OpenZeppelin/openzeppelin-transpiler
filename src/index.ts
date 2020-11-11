@@ -7,6 +7,7 @@ import { renamePath, isRenamed } from './rename';
 import { SolcOutput, SolcInput } from './solc/input-output';
 import { Transform } from './transform';
 import { generateWithInit } from './generate-with-init';
+import { findAlreadyInitializable } from './find-already-initializable';
 
 import { fixImportDirectives } from './transformations/fix-import-directives';
 import { renameIdentifiers } from './transformations/rename-identifiers';
@@ -38,12 +39,10 @@ interface TranspileOptions {
   exclude?: string[];
 }
 
-export async function transpile(
-  solcInput: SolcInput,
-  solcOutput: SolcOutput,
+function getExtraOutputPaths(
   paths: Paths,
   options?: TranspileOptions,
-): Promise<OutputFile[]> {
+): Record<'initializable' | 'withInit', string> {
   const outputPaths = mapValues(
     {
       initializable: 'Initializable.sol',
@@ -52,21 +51,36 @@ export async function transpile(
     s => path.relative(paths.root, path.join(paths.sources, s)),
   );
 
+  if (options?.initializablePath) {
+    outputPaths.initializable = options?.initializablePath;
+  }
+
+  return outputPaths;
+}
+
+export async function transpile(
+  solcInput: SolcInput,
+  solcOutput: SolcOutput,
+  paths: Paths,
+  options?: TranspileOptions,
+): Promise<OutputFile[]> {
+  const outputPaths = getExtraOutputPaths(paths, options);
+  const alreadyInitializable = findAlreadyInitializable(solcOutput, options?.initializablePath);
+
+  const excludeSet = new Set([...alreadyInitializable, ...Object.values(outputPaths)]);
+
   const transform = new Transform(solcInput, solcOutput, {
     exclude: source =>
       isRenamed(source) ||
-      Object.values(outputPaths).includes(source) ||
+      excludeSet.has(source) ||
       (options?.exclude ?? []).some(x => minimatch(source, x)),
   });
-
-  const initializablePath =
-    options?.initializablePath ?? path.join(paths.sources, 'Initializable.sol');
 
   transform.apply(renameIdentifiers);
   transform.apply(renameContractDefinition);
   transform.apply(prependInitializableBase);
   transform.apply(fixImportDirectives);
-  transform.apply(su => appendInitializableImport(initializablePath, su));
+  transform.apply(su => appendInitializableImport(outputPaths.initializable, su));
   transform.apply(fixNewStatement);
   transform.apply(addNeededExternalInitializer);
   transform.apply(transformConstructor);

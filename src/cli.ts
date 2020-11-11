@@ -8,6 +8,7 @@ import type { BuidlerRuntimeEnvironment } from '@nomiclabs/buidler/types';
 
 import { transpile } from '.';
 import { SolcOutput, SolcInput } from './solc/input-output';
+import { findAlreadyInitializable } from './find-already-initializable';
 
 async function getPaths() {
   const buidler = require.resolve('@nomiclabs/buidler', { paths: [process.cwd()] });
@@ -21,14 +22,14 @@ interface Flags {
   exclude: string[];
 }
 
-function getFlags(): Flags {
+function getFlags(resolveRootRelative: (p: string) => string): Flags {
   const { i: initializablePath, D: deleteOriginals = false, x: exclude = [] } = minimist(
     process.argv.slice(2),
   );
   return {
-    initializablePath,
     deleteOriginals,
-    exclude: Array.isArray(exclude) ? exclude : [exclude],
+    initializablePath: resolveRootRelative(initializablePath),
+    exclude: (Array.isArray(exclude) ? exclude : [exclude]).map(resolveRootRelative),
   };
 }
 
@@ -41,8 +42,9 @@ async function getVersion() {
 async function main() {
   console.error(await getVersion());
 
-  const { initializablePath, deleteOriginals, exclude } = getFlags();
   const paths = await getPaths();
+  const resolveRootRelative = (p: string) => path.relative(paths.root, path.resolve(p));
+  const { initializablePath, deleteOriginals, exclude } = getFlags(resolveRootRelative);
 
   const solcInputPath = path.join(paths.cache, 'solc-input.json');
   const solcInput: SolcInput = JSON.parse(await fs.readFile(solcInputPath, 'utf8'));
@@ -59,15 +61,20 @@ async function main() {
   );
 
   if (deleteOriginals) {
-    const keep = new Set(transpiled.map(t => path.join(paths.root, t.path)));
+    const keep = new Set(
+      [
+        ...transpiled.map(t => t.path),
+        ...findAlreadyInitializable(solcOutput, initializablePath),
+      ].map(p => path.join(paths.root, p)),
+    );
     if (initializablePath) {
-      keep.add(initializablePath);
+      keep.add(path.join(paths.root, initializablePath));
     }
     const originals = Object.keys(solcOutput.sources)
       .map(s => path.join(paths.root, s))
       .filter(p => !keep.has(p));
 
-    await Promise.all(originals.map(p => fs.unlink(p)));
+    await Promise.all(originals.map(p => fs.unlink(p).catch(() => undefined)));
   }
 }
 
