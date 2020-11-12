@@ -1,4 +1,4 @@
-# OpenZeppelin Upgrade Safe Transpiler
+# OpenZeppelin Upgradeability Transpiler
 
 :warning: **Warning** :warning:
 
