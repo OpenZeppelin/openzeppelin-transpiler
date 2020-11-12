@@ -44,7 +44,7 @@ for (const fileName of fileNames) {
   });
 }
 
-test('AlreadyUpgradeSafe.sol', t => {
-  const file = t.context.files.find(f => f.fileName === 'AlreadyUpgradeSafe.sol');
+test('AlreadyUpgradeable.sol', t => {
+  const file = t.context.files.find(f => f.fileName === 'AlreadyUpgradeable.sol');
   t.is(file, undefined);
 });
