@@ -7,7 +7,7 @@ import { renameContract, renamePath } from './rename';
 import { relativePath } from './utils/relative-path';
 
 export function generateWithInit(transform: Transform, destPath: string): string {
-  const res: Line[] = [`pragma solidity ^0.6;`, `pragma experimental ABIEncoderV2;`, ``];
+  const res: Line[] = [`pragma solidity >=0.6 <0.8;`, `pragma experimental ABIEncoderV2;`, ``];
 
   for (const sourceUnit of transform.asts()) {
     for (const contract of findAll('ContractDefinition', sourceUnit)) {
