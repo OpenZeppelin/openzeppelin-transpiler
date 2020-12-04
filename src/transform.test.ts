@@ -11,6 +11,7 @@ import { Transform } from './transform';
 import { renameIdentifiers } from './transformations/rename-identifiers';
 import { prependInitializableBase } from './transformations/prepend-initializable-base';
 import { removeStateVarInits } from './transformations/purge-var-inits';
+import { removeImmutable } from './transformations/remove-immutable';
 import { removeInheritanceListArguments } from './transformations/remove-inheritance-list-args';
 import { renameContractDefinition } from './transformations/rename-contract-definition';
 import { fixImportDirectives } from './transformations/fix-import-directives';
@@ -170,5 +171,11 @@ test('add storage gaps', t => {
 test('add requested public initializer', t => {
   const file = 'contracts/TransformConstructorWithArgs.sol';
   t.context.transform.apply(addRequiredPublicInitializer([file]));
+  t.snapshot(t.context.transform.results()[file]);
+});
+
+test('remove immutable', t => {
+  const file = 'contracts/TransformImmutable.sol';
+  t.context.transform.apply(removeImmutable);
   t.snapshot(t.context.transform.results()[file]);
 });

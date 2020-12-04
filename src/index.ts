@@ -13,6 +13,7 @@ import { fixImportDirectives } from './transformations/fix-import-directives';
 import { renameIdentifiers } from './transformations/rename-identifiers';
 import { prependInitializableBase } from './transformations/prepend-initializable-base';
 import { removeStateVarInits } from './transformations/purge-var-inits';
+import { removeImmutable } from './transformations/remove-immutable';
 import { removeInheritanceListArguments } from './transformations/remove-inheritance-list-args';
 import { renameContractDefinition } from './transformations/rename-contract-definition';
 import { appendInitializableImport } from './transformations/append-initializable-import';
@@ -89,6 +90,7 @@ export async function transpile(
   transform.apply(removeLeftoverConstructorHead);
   transform.apply(removeInheritanceListArguments);
   transform.apply(removeStateVarInits);
+  transform.apply(removeImmutable);
   transform.apply(addStorageGaps);
 
   // build a final array of files to return
