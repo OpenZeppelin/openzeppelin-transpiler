@@ -1,5 +1,4 @@
-import { SourceUnit, UserDefinedTypeName, Identifier } from 'solidity-ast';
-import { Node } from 'solidity-ast/node';
+import { SourceUnit } from 'solidity-ast';
 import { findAll } from 'solidity-ast/utils';
 import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
