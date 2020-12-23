@@ -7,6 +7,8 @@ import { renameContract } from '../rename';
 import { ASTResolver } from '../ast-resolver';
 import { TransformerTools } from '../transform';
 
+const findAllIdentifiers = findAll(['UserDefinedTypeName', 'Identifier']);
+
 export function* renameIdentifiers(
   sourceUnit: SourceUnit,
   { resolver }: TransformerTools,
@@ -20,14 +22,20 @@ export function* renameIdentifiers(
     const ref = ident.referencedDeclaration;
     const contract = ref != null ? resolver.resolveContract(ref) : undefined;
 
+    const identName = 'pathNode' in ident ? ident.pathNode?.name : ident.name;
+
+    if (identName === undefined) {
+      throw new Error('Unrecognized AST');
+    }
+
     if (contract && rename.has(contract.name)) {
       yield {
         kind: 'rename-identifiers',
-        text: renameContract(ident.name),
+        text: renameContract(identName),
         ...getNodeBounds(ident),
       };
-    } else if (ident.name.includes('.')) {
-      const [ns] = ident.name.split('.', 1);
+    } else if (identName.includes('.')) {
+      const [ns] = identName.split('.', 1);
       if (rename.has(ns)) {
         yield {
           kind: 'rename-identifiers',
@@ -37,11 +45,6 @@ export function* renameIdentifiers(
       }
     }
   }
-}
-
-function* findAllIdentifiers(contractNode: Node): Generator<UserDefinedTypeName | Identifier> {
-  yield* findAll('UserDefinedTypeName', contractNode);
-  yield* findAll('Identifier', contractNode);
 }
 
 function getTransitiveRenameCandidates(
