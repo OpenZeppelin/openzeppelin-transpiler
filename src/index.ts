@@ -1,8 +1,8 @@
 import path from 'path';
 import fs from 'fs';
 import { mapValues } from 'lodash';
-import minimatch from 'minimatch';
 
+import { matcher } from './utils/matcher';
 import { renamePath, isRenamed } from './rename';
 import { SolcOutput, SolcInput } from './solc/input-output';
 import { Transform } from './transform';
@@ -71,12 +71,10 @@ export async function transpile(
   const alreadyInitializable = findAlreadyInitializable(solcOutput, options?.initializablePath);
 
   const excludeSet = new Set([...alreadyInitializable, ...Object.values(outputPaths)]);
+  const excludeMatch = matcher(options?.exclude ?? []);
 
   const transform = new Transform(solcInput, solcOutput, {
-    exclude: source =>
-      isRenamed(source) ||
-      excludeSet.has(source) ||
-      (options?.exclude ?? []).some(x => minimatch(source, x)),
+    exclude: source => isRenamed(source) || excludeSet.has(source) || excludeMatch(source),
   });
 
   transform.apply(renameIdentifiers);
