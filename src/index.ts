@@ -136,6 +136,7 @@ function transpileInitializable(
 
   transform.apply(function* (ast, tools) {
     if (ast.absolutePath === initializablePath) {
+      yield* renameIdentifiers(ast, tools);
       yield* fixImportDirectives(ast, tools);
     }
   });
