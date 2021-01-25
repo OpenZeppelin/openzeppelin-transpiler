@@ -106,13 +106,16 @@ export async function transpile(
     });
   }
 
-  if (options?.initializablePath === undefined) {
-    outputFiles.push({
-      source: fs.readFileSync(require.resolve('../Initializable.sol'), 'utf8'),
-      path: outputPaths.initializable,
-      fileName: path.basename(outputPaths.initializable),
-    });
-  }
+  const initializableSource =
+    options?.initializablePath !== undefined
+      ? transpileInitializable(solcInput, solcOutput, paths, options?.initializablePath)
+      : fs.readFileSync(require.resolve('../Initializable.sol'), 'utf8');
+
+  outputFiles.push({
+    source: initializableSource,
+    path: outputPaths.initializable,
+    fileName: path.basename(outputPaths.initializable),
+  });
 
   outputFiles.push({
     source: generateWithInit(transform, outputPaths.withInit),
@@ -121,4 +124,21 @@ export async function transpile(
   });
 
   return outputFiles;
+}
+
+function transpileInitializable(
+  solcInput: SolcInput,
+  solcOutput: SolcOutput,
+  paths: Paths,
+  initializablePath: string,
+): string {
+  const transform = new Transform(solcInput, solcOutput);
+
+  transform.apply(function* (ast, tools) {
+    if (ast.absolutePath === initializablePath) {
+      yield* fixImportDirectives(ast, tools);
+    }
+  });
+
+  return transform.results()[initializablePath];
 }
