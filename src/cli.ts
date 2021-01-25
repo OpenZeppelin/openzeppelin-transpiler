@@ -34,7 +34,12 @@ function readCommandFlags(resolveRootRelative: (p: string) => string): Options {
     deleteOriginals,
     initializablePath: resolveRootRelative(initializablePath),
     publicInitializers: ensureArray(publicInitializers).map(resolveRootRelative),
-    exclude: ensureArray(exclude).map(resolveRootRelative),
+    exclude: ensureArray(exclude).map(p =>
+      p.replace(
+        /^(!*)(.*)/,
+        (_: string, neg: string, pat: string) => neg + resolveRootRelative(pat),
+      ),
+    ),
   };
 }
 
