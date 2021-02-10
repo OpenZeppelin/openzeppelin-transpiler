@@ -33,12 +33,14 @@ interface Context {
 }
 
 test.serial.before('compile', async t => {
-  t.context.solcInput = JSON.parse(
-    await fs.readFile(path.join(hre.config.paths.cache, 'solc-input.json'), 'utf8'),
-  );
-  t.context.solcOutput = JSON.parse(
-    await fs.readFile(path.join(hre.config.paths.cache, 'solc-output.json'), 'utf8'),
-  );
+  const buildinfo = path.join(hre.config.paths.artifacts, 'build-info');
+  const filenames = await fs.readdir(buildinfo);
+  t.deepEqual(filenames.length, 1);
+  const filepath = path.join(buildinfo, filenames[0]);
+  const { input: solcInput, output: solcOutput } = JSON.parse(await fs.readFile(filepath, 'utf8'));
+
+  t.context.solcInput = solcInput;
+  t.context.solcOutput = solcOutput;
 });
 
 test.beforeEach('transform', async t => {
