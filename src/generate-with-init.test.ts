@@ -17,7 +17,7 @@ interface Context {
 
 test.before('gather solc input output', async t => {
   const buildinfo = path.join(hre.config.paths.artifacts, 'build-info');
-  const filenames = await fs.readdir(buildinfo)
+  const filenames = await fs.readdir(buildinfo);
   t.deepEqual(filenames.length, 1);
   const filepath = path.join(buildinfo, filenames[0]);
   const { input: solcInput, output: solcOutput } = JSON.parse(await fs.readFile(filepath, 'utf8'));

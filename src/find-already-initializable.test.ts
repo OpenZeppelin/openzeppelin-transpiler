@@ -14,7 +14,7 @@ interface Context {
 
 test.serial.before('compile', async t => {
   const buildinfo = path.join(hre.config.paths.artifacts, 'build-info');
-  const filenames = await fs.readdir(buildinfo)
+  const filenames = await fs.readdir(buildinfo);
   t.deepEqual(filenames.length, 1);
   const filepath = path.join(buildinfo, filenames[0]);
 
