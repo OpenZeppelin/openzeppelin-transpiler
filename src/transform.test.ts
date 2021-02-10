@@ -132,9 +132,7 @@ test('append initializable import', t => {
 
 test('append initializable import custom', t => {
   const file = 'contracts/solc-0.6/Local.sol';
-  t.context.transform.apply(
-    appendInitializableImport('contracts/solc-0.6/Initializable2.sol'),
-  );
+  t.context.transform.apply(appendInitializableImport('contracts/solc-0.6/Initializable2.sol'));
   t.snapshot(t.context.transform.results()[file]);
 });
 
