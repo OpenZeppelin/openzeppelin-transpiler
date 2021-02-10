@@ -64,10 +64,13 @@ async function main() {
   const resolveRootRelative = (p: string) => path.relative(paths.root, path.resolve(p));
   const options = readCommandFlags(resolveRootRelative);
 
-  const solcInputPath = path.join(paths.cache, 'solc-input.json');
-  const solcInput: SolcInput = JSON.parse(await fs.readFile(solcInputPath, 'utf8'));
-  const solcOutputPath = path.join(paths.cache, 'solc-output.json');
-  const solcOutput: SolcOutput = JSON.parse(await fs.readFile(solcOutputPath, 'utf8'));
+  const buildinfo = path.join(paths.artifacts, 'build-info');
+  const filenames = await fs.readdir(buildinfo);
+  if (filenames.length != 1) {
+    throw new Error(`Expect ${buildinfo} to contain only one file`);
+  }
+  const filepath = path.join(buildinfo, filenames[0]);
+  const { input: solcInput, output: solcOutput } = JSON.parse(await fs.readFile(filepath, 'utf8'));
   const transpiled = await transpile(solcInput, solcOutput, paths, options);
 
   await Promise.all(
