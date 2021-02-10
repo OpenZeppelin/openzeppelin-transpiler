@@ -1,5 +1,5 @@
 import _test, { TestInterface } from 'ava';
-import bre from '@nomiclabs/buidler';
+import hre from 'hardhat';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { mapValues, pick } from 'lodash';
@@ -17,10 +17,10 @@ interface Context {
 
 test.before('gather solc input output', async t => {
   const solcInput = JSON.parse(
-    await fs.readFile(path.join(bre.config.paths.cache, 'solc-input.json'), 'utf8'),
+    await fs.readFile(path.join(hre.config.paths.cache, 'solc-input.json'), 'utf8'),
   );
   const solcOutput = JSON.parse(
-    await fs.readFile(path.join(bre.config.paths.cache, 'solc-output.json'), 'utf8'),
+    await fs.readFile(path.join(hre.config.paths.cache, 'solc-output.json'), 'utf8'),
   );
   t.context.solcInputOutput = (...paths) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

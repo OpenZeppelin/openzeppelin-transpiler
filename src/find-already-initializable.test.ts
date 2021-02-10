@@ -1,7 +1,7 @@
 import _test, { TestInterface } from 'ava';
 import { promises as fs } from 'fs';
 import path from 'path';
-import bre from '@nomiclabs/buidler';
+import hre from 'hardhat';
 
 import { SolcOutput } from './solc/input-output';
 import { findAlreadyInitializable } from './find-already-initializable';
@@ -14,7 +14,7 @@ interface Context {
 
 test.serial.before('compile', async t => {
   t.context.solcOutput = JSON.parse(
-    await fs.readFile(path.join(bre.config.paths.cache, 'solc-output.json'), 'utf8'),
+    await fs.readFile(path.join(hre.config.paths.cache, 'solc-output.json'), 'utf8'),
   );
 });
 

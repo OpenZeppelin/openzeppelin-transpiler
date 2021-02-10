@@ -1,5 +1,5 @@
 import _test, { TestInterface } from 'ava';
-import bre from '@nomiclabs/buidler';
+import hre from 'hardhat';
 import { promises as fs } from 'fs';
 import path from 'path';
 
@@ -34,10 +34,10 @@ interface Context {
 
 test.serial.before('compile', async t => {
   t.context.solcInput = JSON.parse(
-    await fs.readFile(path.join(bre.config.paths.cache, 'solc-input.json'), 'utf8'),
+    await fs.readFile(path.join(hre.config.paths.cache, 'solc-input.json'), 'utf8'),
   );
   t.context.solcOutput = JSON.parse(
-    await fs.readFile(path.join(bre.config.paths.cache, 'solc-output.json'), 'utf8'),
+    await fs.readFile(path.join(hre.config.paths.cache, 'solc-output.json'), 'utf8'),
   );
 });
 

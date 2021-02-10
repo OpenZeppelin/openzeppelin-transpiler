@@ -5,7 +5,7 @@ const { promises: fs } = require('fs');
 const { transpile } = require('../..');
 
 process.chdir(__dirname);
-const bre = require('@nomiclabs/buidler');
+const bre = require('hardhat');
 
 test.serial.before('compile', async () => {
   await bre.run('compile');

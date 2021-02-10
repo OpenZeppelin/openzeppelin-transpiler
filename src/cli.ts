@@ -4,16 +4,16 @@ import 'source-map-support/register';
 import { promises as fs } from 'fs';
 import path from 'path';
 import minimist from 'minimist';
-import type { BuidlerRuntimeEnvironment } from '@nomiclabs/buidler/types';
+import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 
 import { transpile } from '.';
 import { SolcOutput, SolcInput } from './solc/input-output';
 import { findAlreadyInitializable } from './find-already-initializable';
 
 async function getPaths() {
-  const buidler = require.resolve('@nomiclabs/buidler', { paths: [process.cwd()] });
-  const bre: BuidlerRuntimeEnvironment = await import(buidler);
-  return bre.config.paths;
+  const hardhat = require.resolve('hardhat', { paths: [process.cwd()] });
+  const hre: HardhatRuntimeEnvironment = await import(hardhat);
+  return hre.config.paths;
 }
 
 interface Options {
