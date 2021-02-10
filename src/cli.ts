@@ -70,7 +70,13 @@ async function main() {
     throw new Error(`Expect ${buildinfo} to contain only one file`);
   }
   const filepath = path.join(buildinfo, filenames[0]);
-  const { input: solcInput, output: solcOutput } = JSON.parse(await fs.readFile(filepath, 'utf8'));
+  const {
+    input: solcInput,
+    output: solcOutput,
+  }: {
+    input: SolcInput;
+    output: SolcOutput;
+  } = JSON.parse(await fs.readFile(filepath, 'utf8'));
   const transpiled = await transpile(solcInput, solcOutput, paths, options);
 
   await Promise.all(
