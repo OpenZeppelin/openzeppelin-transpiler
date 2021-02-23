@@ -1,4 +1,5 @@
 import { SourceUnit } from 'solidity-ast';
+import { Node } from 'solidity-ast/node';
 import { findAll } from 'solidity-ast/utils';
 import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
@@ -6,7 +7,17 @@ import { renameContract } from '../rename';
 import { ASTResolver } from '../ast-resolver';
 import { TransformerTools } from '../transform';
 
-const findAllIdentifiers = findAll(['UserDefinedTypeName', 'IdentifierPath', 'Identifier']);
+function* findAllIdentifiers(node: Node) {
+  const seen = new Set();
+  for (const id of findAll(['UserDefinedTypeName', 'IdentifierPath', 'Identifier'], node)) {
+    if ('pathNode' in id && id.pathNode !== undefined) {
+      seen.add(id.pathNode);
+    }
+    if (!seen.has(id)) {
+      yield id;
+    }
+  }
+}
 
 export function* renameIdentifiers(
   sourceUnit: SourceUnit,
