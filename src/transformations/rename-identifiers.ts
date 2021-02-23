@@ -6,7 +6,7 @@ import { renameContract } from '../rename';
 import { ASTResolver } from '../ast-resolver';
 import { TransformerTools } from '../transform';
 
-const findAllIdentifiers = findAll(['UserDefinedTypeName', 'Identifier']);
+const findAllIdentifiers = findAll(['UserDefinedTypeName', 'IdentifierPath', 'Identifier']);
 
 export function* renameIdentifiers(
   sourceUnit: SourceUnit,
