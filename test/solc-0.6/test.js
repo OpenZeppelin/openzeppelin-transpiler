@@ -5,18 +5,19 @@ const { promises: fs } = require('fs');
 const { transpile } = require('../..');
 
 process.chdir(__dirname);
-const bre = require('@nomiclabs/buidler');
+const hre = require('hardhat');
 
 test.serial.before('compile', async () => {
-  await bre.run('compile');
+  await hre.run('compile');
 });
 
 test.before('transpile', async t => {
-  const solcInputPath = path.join(bre.config.paths.cache, 'solc-input.json');
-  const solcInput = JSON.parse(await fs.readFile(solcInputPath, 'utf8'));
-  const solcOutputPath = path.join(bre.config.paths.cache, 'solc-output.json');
-  const solcOutput = JSON.parse(await fs.readFile(solcOutputPath, 'utf8'));
-  t.context.files = await transpile(solcInput, solcOutput, bre.config.paths);
+  const buildinfo = path.join(hre.config.paths.artifacts, 'build-info');
+  const filenames = await fs.readdir(buildinfo);
+  t.deepEqual(filenames.length, 1);
+  const filepath = path.join(buildinfo, filenames[0]);
+  const { input: solcInput, output: solcOutput } = JSON.parse(await fs.readFile(filepath, 'utf8'));
+  t.context.files = await transpile(solcInput, solcOutput, hre.config.paths);
 });
 
 const fileNames = [

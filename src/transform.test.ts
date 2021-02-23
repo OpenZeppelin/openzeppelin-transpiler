@@ -1,5 +1,5 @@
 import _test, { TestInterface } from 'ava';
-import bre from '@nomiclabs/buidler';
+import hre from 'hardhat';
 import { promises as fs } from 'fs';
 import path from 'path';
 
@@ -33,12 +33,14 @@ interface Context {
 }
 
 test.serial.before('compile', async t => {
-  t.context.solcInput = JSON.parse(
-    await fs.readFile(path.join(bre.config.paths.cache, 'solc-input.json'), 'utf8'),
-  );
-  t.context.solcOutput = JSON.parse(
-    await fs.readFile(path.join(bre.config.paths.cache, 'solc-output.json'), 'utf8'),
-  );
+  const buildinfo = path.join(hre.config.paths.artifacts, 'build-info');
+  const filenames = await fs.readdir(buildinfo);
+  t.deepEqual(filenames.length, 1);
+  const filepath = path.join(buildinfo, filenames[0]);
+  const { input: solcInput, output: solcOutput } = JSON.parse(await fs.readFile(filepath, 'utf8'));
+
+  t.context.solcInput = solcInput;
+  t.context.solcOutput = solcOutput;
 });
 
 test.beforeEach('transform', async t => {
@@ -80,19 +82,19 @@ test('remove functions', t => {
 });
 
 test('rename identifiers', t => {
-  const file = 'test/solc-0.6/contracts/Rename.sol';
+  const file = 'contracts/solc-0.6/Rename.sol';
   t.context.transform.apply(renameIdentifiers);
   t.snapshot(t.context.transform.results()[file]);
 });
 
 test('prepend Initializable base', t => {
-  const file = 'test/solc-0.6/contracts/Rename.sol';
+  const file = 'contracts/solc-0.6/Rename.sol';
   t.context.transform.apply(prependInitializableBase);
   t.snapshot(t.context.transform.results()[file]);
 });
 
 test('purge var inits', t => {
-  const file = 'test/solc-0.6/contracts/ElementaryTypes.sol';
+  const file = 'contracts/solc-0.6/ElementaryTypes.sol';
   t.context.transform.apply(removeStateVarInits);
   t.snapshot(t.context.transform.results()[file]);
 });
@@ -104,13 +106,13 @@ test('remove inheritance args', t => {
 });
 
 test('transform contract name', t => {
-  const file = 'test/solc-0.6/contracts/Rename.sol';
+  const file = 'contracts/solc-0.6/Rename.sol';
   t.context.transform.apply(renameContractDefinition);
   t.snapshot(t.context.transform.results()[file]);
 });
 
 test('fix import directives', t => {
-  const file = 'test/solc-0.6/contracts/Local.sol';
+  const file = 'contracts/solc-0.6/Local.sol';
   t.context.transform.apply(fixImportDirectives);
   t.snapshot(t.context.transform.results()[file]);
 });
@@ -123,16 +125,14 @@ test('fix import directives complex', t => {
 });
 
 test('append initializable import', t => {
-  const file = 'test/solc-0.6/contracts/Local.sol';
-  t.context.transform.apply(appendInitializableImport('test/solc-0.6/contracts/Initializable.sol'));
+  const file = 'contracts/solc-0.6/Local.sol';
+  t.context.transform.apply(appendInitializableImport('contracts/solc-0.6/Initializable.sol'));
   t.snapshot(t.context.transform.results()[file]);
 });
 
 test('append initializable import custom', t => {
-  const file = 'test/solc-0.6/contracts/Local.sol';
-  t.context.transform.apply(
-    appendInitializableImport('test/solc-0.6/contracts/Initializable2.sol'),
-  );
+  const file = 'contracts/solc-0.6/Local.sol';
+  t.context.transform.apply(appendInitializableImport('contracts/solc-0.6/Initializable2.sol'));
   t.snapshot(t.context.transform.results()[file]);
 });
 

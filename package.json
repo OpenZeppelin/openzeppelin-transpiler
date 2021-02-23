@@ -13,8 +13,8 @@
     "upgrade-safe-transpiler": "dist/cli.js"
   },
   "scripts": {
-    "test": "tsc && buidler compile && ava",
-    "test:watch": "fgbg 'buidler compile && ava -w' 'tsc -w' --",
+    "test": "tsc && hardhat compile && ava",
+    "test:watch": "fgbg 'hardhat compile && ava -w' 'tsc -w' --",
     "compile": "tsc",
     "prepublish": "rimraf dist",
     "prepare": "npm run compile",
@@ -46,7 +46,6 @@
   },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
-    "@nomiclabs/buidler": "^1.4.8",
     "@openzeppelin/contracts": "^2.5.1",
     "@types/lodash": "^4.14.165",
     "@types/minimatch": "^3.0.3",
@@ -61,6 +60,7 @@
     "eslint-plugin-prettier": "^3.1.4",
     "fgbg": "^0.1.5",
     "fs-extra": "^9.0.1",
+    "hardhat": "^2.0.9",
     "prettier": "^2.1.2",
     "rimraf": "^3.0.2",
     "typescript": "^4.0.5"

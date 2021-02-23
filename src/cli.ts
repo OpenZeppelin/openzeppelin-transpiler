@@ -4,16 +4,16 @@ import 'source-map-support/register';
 import { promises as fs } from 'fs';
 import path from 'path';
 import minimist from 'minimist';
-import type { BuidlerRuntimeEnvironment } from '@nomiclabs/buidler/types';
+import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 
 import { transpile } from '.';
 import { SolcOutput, SolcInput } from './solc/input-output';
 import { findAlreadyInitializable } from './find-already-initializable';
 
 async function getPaths() {
-  const buidler = require.resolve('@nomiclabs/buidler', { paths: [process.cwd()] });
-  const bre: BuidlerRuntimeEnvironment = await import(buidler);
-  return bre.config.paths;
+  const hardhat = require.resolve('hardhat', { paths: [process.cwd()] });
+  const hre: HardhatRuntimeEnvironment = await import(hardhat);
+  return hre.config.paths;
 }
 
 interface Options {
@@ -32,7 +32,7 @@ function readCommandFlags(resolveRootRelative: (p: string) => string): Options {
   } = minimist(process.argv.slice(2));
   return {
     deleteOriginals,
-    initializablePath: resolveRootRelative(initializablePath),
+    initializablePath: initializablePath && resolveRootRelative(initializablePath),
     publicInitializers: ensureArray(publicInitializers).map(resolveRootRelative),
     exclude: ensureArray(exclude).map(p =>
       p.replace(
@@ -64,10 +64,19 @@ async function main() {
   const resolveRootRelative = (p: string) => path.relative(paths.root, path.resolve(p));
   const options = readCommandFlags(resolveRootRelative);
 
-  const solcInputPath = path.join(paths.cache, 'solc-input.json');
-  const solcInput: SolcInput = JSON.parse(await fs.readFile(solcInputPath, 'utf8'));
-  const solcOutputPath = path.join(paths.cache, 'solc-output.json');
-  const solcOutput: SolcOutput = JSON.parse(await fs.readFile(solcOutputPath, 'utf8'));
+  const buildinfo = path.join(paths.artifacts, 'build-info');
+  const filenames = await fs.readdir(buildinfo);
+  if (filenames.length != 1) {
+    throw new Error(`Expect ${buildinfo} to contain only one file`);
+  }
+  const filepath = path.join(buildinfo, filenames[0]);
+  const {
+    input: solcInput,
+    output: solcOutput,
+  }: {
+    input: SolcInput;
+    output: SolcOutput;
+  } = JSON.parse(await fs.readFile(filepath, 'utf8'));
   const transpiled = await transpile(solcInput, solcOutput, paths, options);
 
   await Promise.all(
