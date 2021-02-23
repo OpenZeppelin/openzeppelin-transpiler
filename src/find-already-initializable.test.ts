@@ -1,7 +1,6 @@
 import _test, { TestInterface } from 'ava';
-import { promises as fs } from 'fs';
-import path from 'path';
-import hre from 'hardhat';
+
+import { getBuildInfo } from './test-utils/get-build-info';
 
 import { SolcOutput } from './solc/input-output';
 import { findAlreadyInitializable } from './find-already-initializable';
@@ -13,12 +12,7 @@ interface Context {
 }
 
 test.serial.before('compile', async t => {
-  const buildinfo = path.join(hre.config.paths.artifacts, 'build-info');
-  const filenames = await fs.readdir(buildinfo);
-  t.deepEqual(filenames.length, 1);
-  const filepath = path.join(buildinfo, filenames[0]);
-
-  t.context.solcOutput = JSON.parse(await fs.readFile(filepath, 'utf8')).output;
+  t.context.solcOutput = (await getBuildInfo('0.6')).output as SolcOutput;
 });
 
 test('ok', t => {

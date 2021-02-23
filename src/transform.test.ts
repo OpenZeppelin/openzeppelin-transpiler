@@ -1,7 +1,6 @@
 import _test, { TestInterface } from 'ava';
-import hre from 'hardhat';
-import { promises as fs } from 'fs';
-import path from 'path';
+
+import { getBuildInfo } from './test-utils/get-build-info';
 
 import { findAll } from 'solidity-ast/utils';
 import { getNodeBounds } from './solc/ast-utils';
@@ -33,14 +32,10 @@ interface Context {
 }
 
 test.serial.before('compile', async t => {
-  const buildinfo = path.join(hre.config.paths.artifacts, 'build-info');
-  const filenames = await fs.readdir(buildinfo);
-  t.deepEqual(filenames.length, 1);
-  const filepath = path.join(buildinfo, filenames[0]);
-  const { input: solcInput, output: solcOutput } = JSON.parse(await fs.readFile(filepath, 'utf8'));
+  const buildInfo = await getBuildInfo('0.6');
 
-  t.context.solcInput = solcInput;
-  t.context.solcOutput = solcOutput;
+  t.context.solcInput = buildInfo.input;
+  t.context.solcOutput = buildInfo.output as SolcOutput;
 });
 
 test.beforeEach('transform', async t => {
