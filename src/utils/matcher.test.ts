@@ -3,12 +3,12 @@ import test from 'ava';
 import { matcher } from './matcher';
 
 test('no patterns', t => {
-  t.false(matcher([])('a'));
+  t.is(matcher([])('a'), undefined);
 });
 
 test('no negative patterns', t => {
   t.true(matcher(['a*'])('a'));
-  t.false(matcher(['b*'])('a'));
+  t.is(matcher(['b*'])('a'), undefined);
 });
 
 test('excluded by a negative pattern', t => {
@@ -17,5 +17,5 @@ test('excluded by a negative pattern', t => {
 
 test('no positive patterns', t => {
   t.false(matcher(['!a'])('a'));
-  t.false(matcher(['!b'])('a'));
+  t.is(matcher(['!b'])('a'), undefined);
 });

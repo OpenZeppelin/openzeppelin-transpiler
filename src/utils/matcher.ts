@@ -1,6 +1,6 @@
 import { Minimatch, IMinimatch } from 'minimatch';
 
-export function matcher(patterns: string[]): (path: string) => boolean {
+export function matcher(patterns: string[]): (path: string) => boolean | undefined {
   const positivePatterns: IMinimatch[] = [];
   const negativePatterns: IMinimatch[] = [];
 
@@ -13,6 +13,13 @@ export function matcher(patterns: string[]): (path: string) => boolean {
     }
   }
 
-  return path =>
-    positivePatterns.some(m => m.match(path)) && !negativePatterns.some(m => !m.match(path));
+  return path => {
+    if (negativePatterns.some(m => !m.match(path))) {
+      return false;
+    } else if (positivePatterns.some(m => m.match(path))) {
+      return true;
+    } else {
+      return undefined;
+    }
+  };
 }

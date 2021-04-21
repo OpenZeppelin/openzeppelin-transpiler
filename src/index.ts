@@ -74,7 +74,7 @@ export async function transpile(
   const excludeMatch = matcher(options?.exclude ?? []);
 
   const transform = new Transform(solcInput, solcOutput, {
-    exclude: source => isRenamed(source) || excludeSet.has(source) || excludeMatch(source),
+    exclude: source => excludeSet.has(source) || (excludeMatch(source) ?? isRenamed(source)),
   });
 
   transform.apply(renameIdentifiers);

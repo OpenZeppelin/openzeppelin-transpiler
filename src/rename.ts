@@ -7,7 +7,11 @@ export function isRenamed(name: string): boolean {
 }
 
 export function renameContract(name: string): string {
-  return name + suffix;
+  if (name.endsWith(suffix)) {
+    return name;
+  } else {
+    return name + suffix;
+  }
 }
 
 export function renamePath(filePath: string): string {

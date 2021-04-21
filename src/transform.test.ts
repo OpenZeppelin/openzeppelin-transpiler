@@ -106,6 +106,12 @@ test('transform contract name', t => {
   t.snapshot(t.context.transform.results()[file]);
 });
 
+test('skip contract rename when Upgradeable suffix', t => {
+  const file = 'contracts/solc-0.6/AlreadyUpgradeable.sol';
+  t.context.transform.apply(renameContractDefinition);
+  t.snapshot(t.context.transform.results()[file]);
+});
+
 test('fix import directives', t => {
   const file = 'contracts/solc-0.6/Local.sol';
   t.context.transform.apply(fixImportDirectives);
