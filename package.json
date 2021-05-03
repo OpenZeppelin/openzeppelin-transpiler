@@ -58,7 +58,7 @@
     "eslint-config-prettier": "^8.0.0",
     "eslint-plugin-prettier": "^3.1.4",
     "fgbg": "^0.1.5",
-    "fs-extra": "^9.0.1",
+    "fs-extra": "^10.0.0",
     "hardhat": "^2.0.9",
     "prettier": "^2.1.2",
     "rimraf": "^3.0.2",
