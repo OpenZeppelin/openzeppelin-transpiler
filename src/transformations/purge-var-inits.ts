@@ -10,7 +10,7 @@ export function* removeStateVarInits(sourceUnit: SourceUnit): Generator<Transfor
       yield {
         ...getNodeBounds(varDecl),
         kind: 'purge-var-inits',
-        transform: source => source.replace(/\s+=.*/, ''),
+        transform: source => source.replace(/\s*=.*/s, ''),
       };
     }
   }

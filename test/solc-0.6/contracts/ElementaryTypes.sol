@@ -7,4 +7,7 @@ contract ElementaryTypes  {
     int count = -123;
     uint ucount = 123;
     bytes32 samevar = "stringliteral";
+    uint x =
+        5;
+    uint y=4;
 }
