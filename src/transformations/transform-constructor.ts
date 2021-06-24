@@ -78,13 +78,7 @@ export function* transformConstructor(
         length: 0,
         kind: 'transform-constructor',
         transform: (_, helper) => {
-          const source = helper.read(constructorNode);
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const argsMatch = source.match(/\((.*?)\)/s);
-          if (argsMatch === null) {
-            throw new Error(`Could not find constructor arguments for ${contractNode.name}`);
-          }
-          const [, argsList] = argsMatch;
+          const argsList = helper.read(constructorNode.parameters).replace(/^\((.*)\)$/s, '$1');
           return formatLines(1, initializer(helper, argsList, argNames).slice(0, -1)).trim();
         },
       };

@@ -35,3 +35,14 @@ contract Bar2 is Bar1 {
 contract Bar3 is Bar2 {
 
 }
+
+contract Foo5 {
+    constructor(function () external f) public {}
+}
+
+contract Foo6 {
+    constructor(
+        uint a,
+        uint b
+    ) public {}
+}
