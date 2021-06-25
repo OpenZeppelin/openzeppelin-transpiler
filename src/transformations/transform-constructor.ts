@@ -17,14 +17,10 @@ export function* removeLeftoverConstructorHead(
     const constructorNode = getConstructor(contractNode);
     if (constructorNode) {
       const { start: ctorStart } = getNodeBounds(constructorNode);
-      // TODO: support struct arguments in initializers
-      const match = matchFrom(originalSource, /{/, ctorStart);
-      if (!match) {
-        throw new Error(`Could not find start of constructor for ${contractNode.name}`);
-      }
+      const { start: bodyStart } = getNodeBounds(constructorNode.body!);
       yield {
         start: ctorStart,
-        length: match.index + 1 - ctorStart,
+        length: bodyStart + 1 - ctorStart,
         kind: 'remove-leftover-constructor',
         text: '',
       };
@@ -64,17 +60,11 @@ export function* transformConstructor(
     ];
 
     if (constructorNode) {
-      const { start: ctorStart } = getNodeBounds(constructorNode);
-      // TODO: support struct arguments in initializers
-      const match = matchFrom(originalSource, /{/, ctorStart);
-      if (!match) {
-        throw new Error(`Could not find start of constructor for ${contractNode.name}`);
-      }
-
+      const { start: bodyStart } = getNodeBounds(constructorNode.body!);
       const argNames = constructorNode.parameters.parameters.map(p => p.name);
 
       yield {
-        start: match.index + match[0].length,
+        start: bodyStart + 1,
         length: 0,
         kind: 'transform-constructor',
         transform: (_, helper) => {
