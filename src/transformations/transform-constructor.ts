@@ -5,14 +5,10 @@ import { Transformation, TransformHelper } from './type';
 import { buildSuperCallsForChain2 } from './utils/build-super-calls-for-chain';
 import { findAll } from 'solidity-ast/utils';
 import { TransformerTools } from '../transform';
-import { matchFrom } from '../utils/match-from';
 import { newFunctionPosition } from './utils/new-function-position';
 import { formatLines } from './utils/format-lines';
 
-export function* removeLeftoverConstructorHead(
-  sourceUnit: SourceUnit,
-  { originalSource }: TransformerTools,
-): Generator<Transformation> {
+export function* removeLeftoverConstructorHead(sourceUnit: SourceUnit): Generator<Transformation> {
   for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
     const constructorNode = getConstructor(contractNode);
     if (constructorNode) {
@@ -32,8 +28,6 @@ export function* transformConstructor(
   sourceUnit: SourceUnit,
   tools: TransformerTools,
 ): Generator<Transformation> {
-  const { originalSource } = tools;
-
   for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
     if (contractNode.contractKind !== 'contract') {
       continue;
@@ -54,7 +48,6 @@ export function* transformConstructor(
       `}`,
       ``,
       `function __${name}_init_unchained(${argsList}) internal initializer {`,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       varInitNodes.map(v => `${v.name} = ${helper.read(v.value!)};`),
       `}`,
     ];

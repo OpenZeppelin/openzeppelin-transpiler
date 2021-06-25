@@ -26,7 +26,6 @@ export function generateWithInit(transform: Transform, destPath: string): string
 
       if (constructorNode) {
         const source = transform.read(constructorNode);
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const argsMatch = source.match(/\((.*?)\)/s);
         if (argsMatch === null) {
           throw new Error(`Could not find constructor arguments for ${contract.name}`);
