@@ -4,9 +4,17 @@ contract Foo {
     constructor(uint x) public {}
 }
 
+contract Bar {
+}
+
 contract TransformNew {
-    function test() external {
+    function test1() external {
         Foo foo;
         foo = new Foo(1);
+    }
+
+    function test2() external {
+        Bar bar;
+        bar = new Bar();
     }
 }

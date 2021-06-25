@@ -9,7 +9,7 @@ export function buildPublicInitialize(
 ): string {
   const ctor = getConstructor(contract);
 
-  let args = '';
+  let args = '()';
   let argNames = '';
   if (ctor) {
     args = tools.readOriginal(ctor.parameters);
