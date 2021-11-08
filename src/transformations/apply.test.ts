@@ -12,11 +12,13 @@ const defaultHelper: TransformHelper = {
 
 function applyAll(content: string, ts: Transformation[], helper = defaultHelper): string {
   const shifts: Shift[] = [];
-  return ts.reduce((content, t) => {
-    const { result, shift } = applyTransformation(t, content, shifts, helper);
-    shifts.push(shift);
-    return result;
-  }, content);
+  return ts
+    .reduce((content, t) => {
+      const { result, shift } = applyTransformation(t, content, shifts, helper);
+      shifts.push(shift);
+      return result;
+    }, Buffer.from(content))
+    .toString();
 }
 
 test('apply non overlapping length preserved', t => {

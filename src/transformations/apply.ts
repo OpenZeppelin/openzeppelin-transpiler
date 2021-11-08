@@ -4,19 +4,19 @@ import { Shift, shiftBounds } from '../shifts';
 import { compareTransformations } from './compare';
 
 interface ApplyResult {
-  result: string;
+  result: Buffer;
   shift: Shift;
 }
 
 export function applyTransformation(
   t: Transformation,
-  content: string,
+  content: Buffer,
   shifts: Shift[],
   helper: TransformHelper,
 ): ApplyResult {
   const sb = shiftBounds(shifts, t);
   const [pre, mid, post] = split(content, sb.start, sb.length);
-  const text = 'text' in t ? t.text : t.transform(mid, helper);
+  const text = Buffer.from('text' in t ? t.text : t.transform(mid.toString(), helper));
 
   const shift = {
     amount: text.length - sb.length,
@@ -24,12 +24,12 @@ export function applyTransformation(
     lengthZero: t.length === 0,
   };
 
-  const result = [pre, text, post].join('');
+  const result = Buffer.concat([pre, text, post]);
 
   return { result, shift };
 }
 
-export function split(source: string, start: number, length: number): [string, string, string] {
+export function split(source: Buffer, start: number, length: number): [Buffer, Buffer, Buffer] {
   const pre = source.slice(0, start);
   const mid = source.slice(start, start + length);
   const post = source.slice(start + length);

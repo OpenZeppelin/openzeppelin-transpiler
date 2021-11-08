@@ -29,8 +29,9 @@ interface TransformState {
   ast: SourceUnit;
   transformations: Transformation[];
   shifts: Shift[];
-  content: string;
+  content: Buffer;
   original: string;
+  originalBuf: Buffer;
 }
 
 interface TransformOptions {
@@ -63,10 +64,12 @@ export class Transform {
         throw new Error(`Missing content for ${source}`);
       }
 
+      const contentBuf = Buffer.from(s.content);
       this.state[source] = {
         ast: output.sources[source].ast,
         original: s.content,
-        content: s.content,
+        originalBuf: contentBuf,
+        content: contentBuf,
         transformations: [],
         shifts: [],
       };
@@ -79,7 +82,13 @@ export class Transform {
       const { resolver, getLayout } = this;
       const readOriginal = this.readOriginal.bind(this);
       const getData = this.getData.bind(this);
-      const tools = { originalSource, resolver, readOriginal, getData, getLayout };
+      const tools: TransformerTools = {
+        originalSource,
+        resolver,
+        readOriginal,
+        getData,
+        getLayout,
+      };
 
       for (const t of transform(ast, tools)) {
         const { content, shifts, transformations } = this.state[source];
@@ -105,8 +114,8 @@ export class Transform {
 
   readOriginal(node: WithSrc): string {
     const { source, start, length } = this.decodeSrc(node.src);
-    const { original } = this.state[source];
-    return original.slice(start, start + length);
+    const { originalBuf } = this.state[source];
+    return originalBuf.slice(start, start + length).toString();
   }
 
   read(node: WithSrc): string {
@@ -122,11 +131,11 @@ export class Transform {
     }
 
     const sb = shiftBounds(shifts, bounds);
-    return content.slice(sb.start, sb.start + sb.length);
+    return content.slice(sb.start, sb.start + sb.length).toString();
   }
 
   results(): { [file in string]: string } {
-    return mapValues(this.state, s => s.content);
+    return mapValues(this.state, s => s.content.toString());
   }
 
   asts(): SourceUnit[] {

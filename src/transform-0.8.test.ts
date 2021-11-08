@@ -31,3 +31,9 @@ test('rename parents in solidity 0.8', t => {
   t.context.transform.apply(renameIdentifiers);
   t.snapshot(t.context.transform.results()[file]);
 });
+
+test('correctly index when utf8 characters', t => {
+  const file = 'contracts/TransformUtf8Chars.sol';
+  t.context.transform.apply(renameIdentifiers);
+  t.snapshot(t.context.transform.results()[file]);
+});
