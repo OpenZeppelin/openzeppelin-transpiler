@@ -16,8 +16,7 @@
     "test": "tsc && hardhat compile && ava",
     "test:watch": "fgbg 'hardhat compile && ava -w' 'tsc -w' --",
     "compile": "tsc",
-    "prepublish": "rimraf dist",
-    "prepare": "npm run compile",
+    "prepare": "rimraf dist && npm run compile",
     "watch": "tsc -w",
     "lint": "eslint . --ignore-path .gitignore --max-warnings 0"
   },
