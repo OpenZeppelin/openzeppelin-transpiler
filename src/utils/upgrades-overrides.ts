@@ -1,11 +1,25 @@
 import { Node } from 'solidity-ast/node';
 import { execall } from '../utils/execall';
 
+const errorKinds = [
+  'state-variable-assignment',
+  'state-variable-immutable',
+  'external-library-linking',
+  'struct-definition',
+  'enum-definition',
+  'constructor',
+  'delegatecall',
+  'selfdestruct',
+  'missing-public-upgradeto',
+] as const;
+
+type ValidationErrorKind = typeof errorKinds[number];
+
 export function hasImmutableOverride(node: Node): boolean {
-  return getOverrides(node).includes('immutable');
+  return getOverrides(node).includes('state-variable-immutable');
 }
 
-export function getOverrides(node: Node): string[] {
+export function getOverrides(node: Node): ValidationErrorKind[] {
   if ('documentation' in node) {
     const doc = typeof node.documentation === 'string' ? node.documentation : node.documentation?.text ?? '';
 
@@ -19,7 +33,13 @@ export function getOverrides(node: Node): string[] {
       }
     }
 
-    return result;
+    result.forEach(arg => {
+      if (!(errorKinds as readonly string[]).includes(arg)) {
+        throw new Error(`NatSpec: oz-upgrades-unsafe-allow argument not recognized: ${arg}`);
+      }
+    });
+
+    return result as ValidationErrorKind[];
   } else {
     return [];
   }
