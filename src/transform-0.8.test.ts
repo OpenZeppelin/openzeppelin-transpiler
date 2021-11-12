@@ -6,6 +6,9 @@ import { SolcInput, SolcOutput } from './solc/input-output';
 import { Transform } from './transform';
 
 import { renameIdentifiers } from './transformations/rename-identifiers';
+import { removeImmutable } from './transformations/remove-immutable';
+import { removeStateVarInits } from './transformations/purge-var-inits';
+import { transformConstructor } from './transformations/transform-constructor';
 
 const test = _test as TestInterface<Context>;
 
@@ -35,5 +38,13 @@ test('rename parents in solidity 0.8', t => {
 test('correctly index when utf8 characters', t => {
   const file = 'contracts/TransformUtf8Chars.sol';
   t.context.transform.apply(renameIdentifiers);
+  t.snapshot(t.context.transform.results()[file]);
+});
+
+test('preserves immutable if allowed', t => {
+  const file = 'contracts/TransformAllowedImmutable.sol';
+  t.context.transform.apply(transformConstructor);
+  t.context.transform.apply(removeStateVarInits);
+  t.context.transform.apply(removeImmutable);
   t.snapshot(t.context.transform.results()[file]);
 });

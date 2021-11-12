@@ -9,6 +9,6 @@ internalTask(TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT, async (args, hre, runSupe
 
 module.exports = {
   solidity: {
-    compilers: [{ version: '0.6.7' }, { version: '0.8.0' }],
+    compilers: [{ version: '0.6.7' }, { version: '0.8.2' }],
   },
 };
