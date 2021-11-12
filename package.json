@@ -45,7 +45,7 @@
     "source-map-support": "^0.5.19"
   },
   "devDependencies": {
-    "@ava/typescript": "^2.0.0",
+    "@ava/typescript": "^3.0.0",
     "@types/lodash": "^4.14.165",
     "@types/minimatch": "^3.0.3",
     "@types/minimist": "^1.2.1",
