@@ -7,7 +7,7 @@ import { findAll } from 'solidity-ast/utils';
 import { TransformerTools } from '../transform';
 import { newFunctionPosition } from './utils/new-function-position';
 import { formatLines } from './utils/format-lines';
-import { hasImmutableOverride } from '../utils/upgrades-overrides';
+import { hasOverride } from '../utils/upgrades-overrides';
 
 export function* removeLeftoverConstructorHead(sourceUnit: SourceUnit): Generator<Transformation> {
   for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
@@ -39,7 +39,7 @@ export function* transformConstructor(
     const constructorNode = getConstructor(contractNode);
 
     const varInitNodes = [...findAll('VariableDeclaration', contractNode)].filter(
-      v => v.stateVariable && v.value && !v.constant && (v.mutability !== 'immutable' || !hasImmutableOverride(v)),
+      v => v.stateVariable && v.value && !v.constant && !hasOverride(v, 'state-variable-assignment'),
     );
 
     const initializer = (helper: TransformHelper, argsList = '', argNames: string[] = []) => [

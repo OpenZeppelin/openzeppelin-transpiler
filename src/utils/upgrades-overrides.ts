@@ -15,8 +15,8 @@ const errorKinds = [
 
 type ValidationErrorKind = typeof errorKinds[number];
 
-export function hasImmutableOverride(node: Node): boolean {
-  return getOverrides(node).includes('state-variable-immutable');
+export function hasOverride(node: Node, override: ValidationErrorKind): boolean {
+  return getOverrides(node).includes(override);
 }
 
 export function getOverrides(node: Node): ValidationErrorKind[] {
