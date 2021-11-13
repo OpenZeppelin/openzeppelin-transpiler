@@ -21,7 +21,8 @@ export function hasOverride(node: Node, override: ValidationErrorKind): boolean 
 
 export function getOverrides(node: Node): ValidationErrorKind[] {
   if ('documentation' in node) {
-    const doc = typeof node.documentation === 'string' ? node.documentation : node.documentation?.text ?? '';
+    const doc =
+      typeof node.documentation === 'string' ? node.documentation : node.documentation?.text ?? '';
 
     const result: string[] = [];
     for (const { groups } of execall(

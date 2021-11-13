@@ -39,7 +39,8 @@ export function* transformConstructor(
     const constructorNode = getConstructor(contractNode);
 
     const varInitNodes = [...findAll('VariableDeclaration', contractNode)].filter(
-      v => v.stateVariable && v.value && !v.constant && !hasOverride(v, 'state-variable-assignment'),
+      v =>
+        v.stateVariable && v.value && !v.constant && !hasOverride(v, 'state-variable-assignment'),
     );
 
     const initializer = (helper: TransformHelper, argsList = '', argNames: string[] = []) => [

@@ -9,4 +9,3 @@ export function* execall(re: RegExp, text: string) {
     }
   }
 }
-
