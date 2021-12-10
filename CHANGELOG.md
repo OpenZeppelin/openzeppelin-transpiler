@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0 (2021-12-10)
+
+- Breaking change: Use `onlyInitializing` modifier for internal initializer functions.
+
 ## 0.1.1 (2020-11-16)
 
 - Support Solidity 0.7.
