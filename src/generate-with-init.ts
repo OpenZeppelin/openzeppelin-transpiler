@@ -40,7 +40,7 @@ export function generateWithInit(transform: Transform, destPath: string): string
         ``,
         `contract ${renamedContract}WithInit is ${renamedContract} {`,
         [
-          `constructor(${argsList}) public payable {`,
+          `constructor(${argsList}) public payable initializer {`,
           [`__${contract.name}_init(${argNames});`],
           `}`,
         ],
