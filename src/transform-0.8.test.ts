@@ -8,7 +8,7 @@ import { Transform } from './transform';
 import { renameIdentifiers } from './transformations/rename-identifiers';
 import { removeImmutable } from './transformations/remove-immutable';
 import { removeStateVarInits } from './transformations/purge-var-inits';
-import { transformConstructor } from './transformations/transform-constructor';
+import { removeLeftoverConstructorHead, transformConstructor } from './transformations/transform-constructor';
 
 const test = _test as TestInterface<Context>;
 
@@ -44,6 +44,7 @@ test('correctly index when utf8 characters', t => {
 test('preserves immutable if allowed', t => {
   const file = 'contracts/TransformAllowedImmutable.sol';
   t.context.transform.apply(transformConstructor);
+  t.context.transform.apply(removeLeftoverConstructorHead);
   t.context.transform.apply(removeStateVarInits);
   t.context.transform.apply(removeImmutable);
   t.snapshot(t.context.transform.results()[file]);

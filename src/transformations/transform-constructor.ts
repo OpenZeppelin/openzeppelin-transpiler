@@ -7,10 +7,14 @@ import { findAll } from 'solidity-ast/utils';
 import { TransformerTools } from '../transform';
 import { newFunctionPosition } from './utils/new-function-position';
 import { formatLines } from './utils/format-lines';
-import { hasOverride } from '../utils/upgrades-overrides';
+import { hasConstructorOverride, hasOverride } from '../utils/upgrades-overrides';
 
 export function* removeLeftoverConstructorHead(sourceUnit: SourceUnit): Generator<Transformation> {
   for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
+    if (hasConstructorOverride(contractNode)) {
+      continue;
+    }
+
     const constructorNode = getConstructor(contractNode);
     if (constructorNode) {
       const { start: ctorStart } = getNodeBounds(constructorNode);
@@ -30,17 +34,13 @@ export function* transformConstructor(
   tools: TransformerTools,
 ): Generator<Transformation> {
   for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
-    if (contractNode.contractKind !== 'contract') {
+    if (contractNode.contractKind !== 'contract' || hasConstructorOverride(contractNode)) {
       continue;
     }
 
     const { name } = contractNode;
 
     const constructorNode = getConstructor(contractNode);
-
-    if (constructorNode && hasOverride(constructorNode, 'constructor')) {
-      continue;
-    }
 
     const varInitNodes = [...findAll('VariableDeclaration', contractNode)].filter(
       v =>

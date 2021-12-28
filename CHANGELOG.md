@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.3 (2021-12-27)
+
+- Fix bug in constructor transformation.
+
 ## 0.3.2 (2021-12-27)
 
 - Add handling of 'unsafe-allow override'.
