@@ -12,7 +12,11 @@ export function generateWithInit(transform: Transform, destPath: string): string
 
   for (const sourceUnit of transform.asts()) {
     for (const contract of findAll('ContractDefinition', sourceUnit)) {
-      if (contract.contractKind !== 'contract' || contract.abstract || hasConstructorOverride(contract)) {
+      if (
+        contract.contractKind !== 'contract' ||
+        contract.abstract ||
+        hasConstructorOverride(contract)
+      ) {
         continue;
       }
 
