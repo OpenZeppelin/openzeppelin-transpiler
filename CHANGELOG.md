@@ -1,8 +1,12 @@
 # Changelog
 
-## 0.3.1 (2021-12-27)
+## 0.3.2 (2021-12-27)
 
-- Add handling of 'unsafe-allow override'
+- Add handling of 'unsafe-allow override'.
+
+## 0.3.1 (2021-12-14)
+
+- Add `initializer` modifier to WithInit constructors.
 
 ## 0.3.0 (2021-12-10)
 
