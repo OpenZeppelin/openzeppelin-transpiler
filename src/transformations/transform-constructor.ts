@@ -38,6 +38,10 @@ export function* transformConstructor(
 
     const constructorNode = getConstructor(contractNode);
 
+    if (constructorNode && hasOverride(constructorNode, 'constructor')) {
+      continue;
+    }
+
     const varInitNodes = [...findAll('VariableDeclaration', contractNode)].filter(
       v =>
         v.stateVariable && v.value && !v.constant && !hasOverride(v, 'state-variable-assignment'),

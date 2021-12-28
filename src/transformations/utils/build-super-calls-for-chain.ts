@@ -6,6 +6,7 @@ import { ContractDefinition } from 'solidity-ast';
 import { Node } from 'solidity-ast/node';
 import { TransformHelper } from '../type';
 import { TransformerTools } from '../../transform';
+import { hasConstructorOverride } from '../../utils/upgrades-overrides';
 
 // builds an __init call with given arguments, for example
 // ERC20DetailedUpgradeable.__init(false, "Gold", "GLD", 18)
@@ -84,7 +85,7 @@ export function buildSuperCallsForChain2(
   const linearizedCtorCalls: string[] = [];
 
   for (const parentNode of chain) {
-    if (parentNode === contractNode) {
+    if (parentNode === contractNode || hasConstructorOverride(parentNode)) {
       continue;
     }
 

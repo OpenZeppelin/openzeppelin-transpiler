@@ -5,13 +5,14 @@ import { findAll } from 'solidity-ast/utils';
 import { getConstructor } from './solc/ast-utils';
 import { renameContract, renamePath } from './rename';
 import { relativePath } from './utils/relative-path';
+import { hasConstructorOverride } from './utils/upgrades-overrides';
 
 export function generateWithInit(transform: Transform, destPath: string): string {
   const res: Line[] = [`pragma solidity >=0.6 <0.9;`, `pragma experimental ABIEncoderV2;`, ``];
 
   for (const sourceUnit of transform.asts()) {
     for (const contract of findAll('ContractDefinition', sourceUnit)) {
-      if (contract.contractKind !== 'contract' || contract.abstract) {
+      if (contract.contractKind !== 'contract' || contract.abstract || hasConstructorOverride(contract)) {
         continue;
       }
 

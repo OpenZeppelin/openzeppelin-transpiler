@@ -1,4 +1,6 @@
+import { ContractDefinition } from 'solidity-ast';
 import { Node } from 'solidity-ast/node';
+import { getConstructor } from '../solc/ast-utils';
 import { execall } from '../utils/execall';
 
 const errorKinds = [
@@ -44,4 +46,9 @@ export function getOverrides(node: Node): ValidationErrorKind[] {
   } else {
     return [];
   }
+}
+
+export function hasConstructorOverride(contract: ContractDefinition): boolean {
+  const ctor = getConstructor(contract);
+  return ctor ? hasOverride(ctor, 'constructor') : false;
 }
