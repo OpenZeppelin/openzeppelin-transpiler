@@ -9,6 +9,32 @@ import { newFunctionPosition } from './utils/new-function-position';
 import { formatLines } from './utils/format-lines';
 import { hasConstructorOverride, hasOverride } from '../utils/upgrades-overrides';
 
+//Removes parameters unused by the constructor body
+function GetUnchainedArguments(constructor: any, helper: any): any {//TODO fix type later
+  const parameters = constructor.parameters.parameters;
+
+  if(parameters?.length){
+    const identifiers = [...findAll('Identifier', constructor.body)];
+
+    const newParams: any = parameters.filter((p: any) => {//TODO fix type later
+     //check if parameter is used
+     const found = identifiers.some(id => id.name === p.name && id.referencedDeclaration === p.id);
+     if(!found){
+      p.name = '';
+     }
+     return p;
+    });
+
+    constructor.parameters.parameters = newParams;
+    const hereGoesNothing = helper.read(constructor.parameters).replace(/^\((.*)\)$/s, '$1');
+    console.log(newParams, hereGoesNothing);
+    return constructor.parameters;
+
+   }else{
+    return '';
+  }
+}
+
 export function* removeLeftoverConstructorHead(sourceUnit: SourceUnit): Generator<Transformation> {
   for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
     if (hasConstructorOverride(contractNode)) {
@@ -59,6 +85,7 @@ export function* transformConstructor(
     ];
 
     if (constructorNode) {
+      if(name === 'ConstructorUpdates'){
       const { start: bodyStart } = getNodeBounds(constructorNode.body!);
       const argNames = constructorNode.parameters.parameters.map(p => p.name);
 
@@ -68,10 +95,11 @@ export function* transformConstructor(
         kind: 'transform-constructor',
         transform: (_, helper) => {
           const argsList = helper.read(constructorNode.parameters).replace(/^\((.*)\)$/s, '$1');
-          const uArgList = '';
+          const uArgList = GetUnchainedArguments(constructorNode, helper);
           return formatLines(1, initializer(helper, argsList, uArgList, argNames).slice(0, -1)).trim();
         },
       };
+      }
     } else {
       const start = newFunctionPosition(contractNode, tools);
 
