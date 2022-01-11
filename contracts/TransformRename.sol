@@ -1,1 +1,1 @@
-../test/solc-0.6/contracts/Rename.sol
+import "../test/solc-0.6/contracts/Rename.sol";

@@ -47,13 +47,13 @@ export function* transformConstructor(
         v.stateVariable && v.value && !v.constant && !hasOverride(v, 'state-variable-assignment'),
     );
 
-    const initializer = (helper: TransformHelper, argsList = '', argNames: string[] = []) => [
+    const initializer = (helper: TransformHelper, argsList = '', uArgsList = '', argNames: string[] = []) => [
       `function __${name}_init(${argsList}) internal onlyInitializing {`,
       buildSuperCallsForChain2(contractNode, tools, helper),
       [`__${name}_init_unchained(${argNames.join(', ')});`],
       `}`,
       ``,
-      `function __${name}_init_unchained(${argsList}) internal onlyInitializing {`,
+      `function __${name}_init_unchained(${uArgsList}) internal onlyInitializing {`,
       varInitNodes.map(v => `${v.name} = ${helper.read(v.value!)};`),
       `}`,
     ];
@@ -68,7 +68,8 @@ export function* transformConstructor(
         kind: 'transform-constructor',
         transform: (_, helper) => {
           const argsList = helper.read(constructorNode.parameters).replace(/^\((.*)\)$/s, '$1');
-          return formatLines(1, initializer(helper, argsList, argNames).slice(0, -1)).trim();
+          const uArgList = '';
+          return formatLines(1, initializer(helper, argsList, uArgList, argNames).slice(0, -1)).trim();
         },
       };
     } else {
