@@ -8,7 +8,10 @@ import { Transform } from './transform';
 import { renameIdentifiers } from './transformations/rename-identifiers';
 import { removeImmutable } from './transformations/remove-immutable';
 import { removeStateVarInits } from './transformations/purge-var-inits';
-import { removeLeftoverConstructorHead, transformConstructor } from './transformations/transform-constructor';
+import {
+  removeLeftoverConstructorHead,
+  transformConstructor,
+} from './transformations/transform-constructor';
 import { renameInheritdoc } from './transformations/rename-inheritdoc';
 
 const test = _test as TestInterface<Context>;
