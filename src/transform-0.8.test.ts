@@ -9,6 +9,7 @@ import { renameIdentifiers } from './transformations/rename-identifiers';
 import { removeImmutable } from './transformations/remove-immutable';
 import { removeStateVarInits } from './transformations/purge-var-inits';
 import { removeLeftoverConstructorHead, transformConstructor } from './transformations/transform-constructor';
+import { renameInheritdoc } from './transformations/rename-inheritdoc';
 
 const test = _test as TestInterface<Context>;
 
@@ -32,6 +33,7 @@ test.beforeEach('transform', async t => {
 test('rename parents in solidity 0.8', t => {
   const file = 'contracts/rename-0.8.sol';
   t.context.transform.apply(renameIdentifiers);
+  t.context.transform.apply(renameInheritdoc);
   t.snapshot(t.context.transform.results()[file]);
 });
 

@@ -1,9 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8;
 
-contract A {}
+contract A {
+    function foo() external virtual {}
+}
 
-contract B is A {}
+contract B is A {
+    /// @inheritdoc A
+    function foo() external override {}
+}
 
 library L {
     struct S {
