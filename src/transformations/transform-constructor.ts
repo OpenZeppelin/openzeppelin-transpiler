@@ -11,6 +11,7 @@ import { hasConstructorOverride, hasOverride } from '../utils/upgrades-overrides
 
 //Removes parameters unused by the constructor body
 function GetUnchainedArguments(constructor: any, helper: any): any {//TODO fix type later
+  let constructorCopy = Object.create(constructor);
   const parameters = constructor.parameters.parameters;
 
   if(parameters?.length){
@@ -25,10 +26,10 @@ function GetUnchainedArguments(constructor: any, helper: any): any {//TODO fix t
      return p;
     });
 
-    constructor.parameters.parameters = newParams;
-    const hereGoesNothing = helper.read(constructor.parameters).replace(/^\((.*)\)$/s, '$1');
-    console.log(newParams, hereGoesNothing);
-    return constructor.parameters;
+    constructorCopy.parameters.parameters = Object.create(newParams);
+    const result = helper.read(constructorCopy.parameters).replace(/^\((.*)\)$/s, '$1');
+    console.log(constructorCopy.parameters, result);
+    return constructorCopy.parameters;
 
    }else{
     return '';
