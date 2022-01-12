@@ -4,20 +4,21 @@ import { getConstructor, getNodeBounds } from '../solc/ast-utils';
 import { Transformation, TransformHelper } from './type';
 import { buildSuperCallsForChain2 } from './utils/build-super-calls-for-chain';
 import { findAll } from 'solidity-ast/utils';
+import { FunctionDefinition, VariableDeclaration } from 'solidity-ast';
 import { TransformerTools } from '../transform';
 import { newFunctionPosition } from './utils/new-function-position';
 import { formatLines } from './utils/format-lines';
 import { hasConstructorOverride, hasOverride } from '../utils/upgrades-overrides';
 
-//Removes parameters unused by the constructor body
-function GetUnchainedArguments(constructor: any, current: string): string {
+//Removes parameters unused by the constructor's body
+function GetUnchainedArguments(constructor: FunctionDefinition, current: string): string {
   const parameters = constructor.parameters.parameters;
 
   if (parameters?.length) {
-    const identifiers = [...findAll('Identifier', constructor.body)];
+    const identifiers = [...findAll('Identifier', constructor.body!)];
     let result: string = current;
 
-    parameters.map((p: any) => {
+    parameters.map((p: VariableDeclaration) => {
       //check if parameter is used
       const found = identifiers.some(id => id.referencedDeclaration === p.id);
       if (!found) {
