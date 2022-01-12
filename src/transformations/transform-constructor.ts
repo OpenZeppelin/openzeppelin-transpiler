@@ -10,26 +10,25 @@ import { formatLines } from './utils/format-lines';
 import { hasConstructorOverride, hasOverride } from '../utils/upgrades-overrides';
 
 //Removes parameters unused by the constructor body
-function* GetUnchainedArguments(constructor: any, helper: any):  Generator<Transformation> {//TODO fix type later
-  let constructorCopy = Object.create(constructor);
+function GetUnchainedArguments(constructor: any, current: string): string {
+
   const parameters = constructor.parameters.parameters;
 
   if(parameters?.length){
     const identifiers = [...findAll('Identifier', constructor.body)];
-
-    const newParams: any = parameters.filter((p: any) => {//TODO fix type later
+    let result : string = '';
+    const newParams: any = parameters.filter((p: any) => {//use map TODO
      //check if parameter is used
      const found = identifiers.some(id => id.referencedDeclaration === p.id);
      if(!found){
-      p.name = '';
+      //Remove unused parameter
+      const reg = new RegExp("\\s" + p.name + "\\,?\\b", "gi");
+      result = current.replace(reg,'');
      }
      return p;
     });
 
-    constructorCopy.parameters.parameters = Object.create(newParams);
-    const result = helper.read(constructorCopy.parameters).replace(/^\((.*)\)$/s, '$1');
-    console.log(constructorCopy.parameters, result);
-    return constructorCopy;
+    return result;
 
    }else{
     return '';
@@ -86,7 +85,6 @@ export function* transformConstructor(
     ];
 
     if (constructorNode) {
-      if(name === 'ConstructorUpdates'){
       const { start: bodyStart } = getNodeBounds(constructorNode.body!);
       const argNames = constructorNode.parameters.parameters.map(p => p.name);
 
@@ -96,13 +94,11 @@ export function* transformConstructor(
         kind: 'transform-constructor',
         transform: (_, helper) => {
           const argsList = helper.read(constructorNode.parameters).replace(/^\((.*)\)$/s, '$1');
-          const uArgList = GetUnchainedArguments(constructorNode, helper);
-          console.log(uArgList);
-          //const result = helper.read(uArgList.parameters).replace(/^\((.*)\)$/s, '$1');//todo fix this part beauty
-          return formatLines(1, initializer(helper, argsList, '', argNames).slice(0, -1)).trim();
+          const uArgList = GetUnchainedArguments(constructorNode, argsList);
+          return formatLines(1, initializer(helper, argsList, uArgList, argNames).slice(0, -1)).trim();
         },
       };
-      }
+
     } else {
       const start = newFunctionPosition(contractNode, tools);
 
