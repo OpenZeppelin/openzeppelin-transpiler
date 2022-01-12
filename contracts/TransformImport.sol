@@ -1,1 +1,1 @@
-import "../test/solc-0.6/contracts/Local.sol";
+../test/solc-0.6/contracts/Local.sol
