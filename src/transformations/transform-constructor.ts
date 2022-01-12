@@ -16,16 +16,17 @@ function GetUnchainedArguments(constructor: any, current: string): string {
 
   if(parameters?.length){
     const identifiers = [...findAll('Identifier', constructor.body)];
-    let result : string = '';
-    const newParams: any = parameters.filter((p: any) => {//use map TODO
+    let result : string = current;
+
+    parameters.map((p: any) => {
      //check if parameter is used
      const found = identifiers.some(id => id.referencedDeclaration === p.id);
      if(!found){
       //Remove unused parameter
       const reg = new RegExp("\\s" + p.name + "\\,?\\b", "gi");
-      result = current.replace(reg,'');
+      result = result.replace(reg,'');
      }
-     return p;
+
     });
 
     return result;
@@ -95,6 +96,7 @@ export function* transformConstructor(
         transform: (_, helper) => {
           const argsList = helper.read(constructorNode.parameters).replace(/^\((.*)\)$/s, '$1');
           const uArgList = GetUnchainedArguments(constructorNode, argsList);
+          console.log(name,':',uArgList);
           return formatLines(1, initializer(helper, argsList, uArgList, argNames).slice(0, -1)).trim();
         },
       };
