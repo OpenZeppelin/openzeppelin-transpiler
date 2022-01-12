@@ -42,7 +42,7 @@ test.beforeEach('transform', async t => {
   t.context.transform = new Transform(t.context.solcInput, t.context.solcOutput);
 });
 
-test('read', t => {
+/*test('read', t => {
   const text = t.context.transform.read({ src: '0:6:0' });
   t.deepEqual('pragma', text);
 });
@@ -135,7 +135,7 @@ test('append initializable import custom', t => {
   const file = 'contracts/solc-0.6/Local.sol';
   t.context.transform.apply(appendInitializableImport('contracts/solc-0.6/Initializable2.sol'));
   t.snapshot(t.context.transform.results()[file]);
-});
+});*/
 
 test('transform constructor', t => {
   const file = 'contracts/TransformConstructor.sol';
@@ -150,7 +150,7 @@ test('fix new statement', t => {
   t.context.transform.apply(addRequiredPublicInitializer([]));
   t.snapshot(t.context.transform.results()[file]);
 });
-
+/*
 test('exclude', t => {
   const file = 'contracts/TransformInitializable.sol';
   const transform = new Transform(t.context.solcInput, t.context.solcOutput, {
@@ -179,4 +179,4 @@ test('remove immutable', t => {
   const file = 'contracts/TransformImmutable.sol';
   t.context.transform.apply(removeImmutable);
   t.snapshot(t.context.transform.results()[file]);
-});
+});*/
