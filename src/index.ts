@@ -20,6 +20,7 @@ import { appendInitializableImport } from './transformations/append-initializabl
 import { fixNewStatement } from './transformations/fix-new-statement';
 import { addRequiredPublicInitializer } from './transformations/add-required-public-initializers';
 import { addStorageGaps } from './transformations/add-storage-gaps';
+import { renameInheritdoc } from './transformations/rename-inheritdoc';
 import {
   transformConstructor,
   removeLeftoverConstructorHead,
@@ -79,6 +80,7 @@ export async function transpile(
 
   transform.apply(renameIdentifiers);
   transform.apply(renameContractDefinition);
+  transform.apply(renameInheritdoc);
   transform.apply(prependInitializableBase);
   transform.apply(fixImportDirectives);
   transform.apply(appendInitializableImport(outputPaths.initializable));

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.4 (2022-01-11)
+
+- Fix @inheritdoc tags by renaming the contract name
+
 ## 0.3.3 (2021-12-27)
 
 - Fix bug in constructor transformation.
