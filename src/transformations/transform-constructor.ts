@@ -10,7 +10,7 @@ import { formatLines } from './utils/format-lines';
 import { hasConstructorOverride, hasOverride } from '../utils/upgrades-overrides';
 
 //Removes parameters unused by the constructor body
-function GetUnchainedArguments(constructor: any, helper: any): any {//TODO fix type later
+function* GetUnchainedArguments(constructor: any, helper: any):  Generator<Transformation> {//TODO fix type later
   let constructorCopy = Object.create(constructor);
   const parameters = constructor.parameters.parameters;
 
@@ -19,7 +19,7 @@ function GetUnchainedArguments(constructor: any, helper: any): any {//TODO fix t
 
     const newParams: any = parameters.filter((p: any) => {//TODO fix type later
      //check if parameter is used
-     const found = identifiers.some(id => id.name === p.name && id.referencedDeclaration === p.id);
+     const found = identifiers.some(id => id.referencedDeclaration === p.id);
      if(!found){
       p.name = '';
      }
@@ -29,7 +29,7 @@ function GetUnchainedArguments(constructor: any, helper: any): any {//TODO fix t
     constructorCopy.parameters.parameters = Object.create(newParams);
     const result = helper.read(constructorCopy.parameters).replace(/^\((.*)\)$/s, '$1');
     console.log(constructorCopy.parameters, result);
-    return constructorCopy.parameters;
+    return constructorCopy;
 
    }else{
     return '';
@@ -97,7 +97,9 @@ export function* transformConstructor(
         transform: (_, helper) => {
           const argsList = helper.read(constructorNode.parameters).replace(/^\((.*)\)$/s, '$1');
           const uArgList = GetUnchainedArguments(constructorNode, helper);
-          return formatLines(1, initializer(helper, argsList, uArgList, argNames).slice(0, -1)).trim();
+          console.log(uArgList);
+          //const result = helper.read(uArgList.parameters).replace(/^\((.*)\)$/s, '$1');//todo fix this part beauty
+          return formatLines(1, initializer(helper, argsList, '', argNames).slice(0, -1)).trim();
         },
       };
       }
