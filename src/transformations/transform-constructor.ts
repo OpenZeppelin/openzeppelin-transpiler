@@ -10,7 +10,7 @@ import { newFunctionPosition } from './utils/new-function-position';
 import { formatLines } from './utils/format-lines';
 import { hasConstructorOverride, hasOverride } from '../utils/upgrades-overrides';
 
-//Removes parameters unused by the constructor's body
+// Removes parameters unused by the constructor's body
 function GetUnchainedArguments(constructor: FunctionDefinition, current: string): string {
   const parameters = constructor.parameters.parameters;
 
@@ -19,10 +19,10 @@ function GetUnchainedArguments(constructor: FunctionDefinition, current: string)
     let result: string = current;
 
     parameters.map((p: VariableDeclaration) => {
-      //check if parameter is used
+      // Check if parameter is used
       const found = identifiers.some(id => id.referencedDeclaration === p.id);
       if (!found) {
-        //Remove unused parameter
+        // Remove unused parameter
         const reg = new RegExp('\\s' + p.name + '\\,?\\b', 'gi');
         result = result.replace(reg, '');
       }
