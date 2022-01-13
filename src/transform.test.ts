@@ -79,7 +79,9 @@ test('remove functions', t => {
 test('rename identifiers', t => {
   const file = 'contracts/solc-0.6/Rename.sol';
   t.context.transform.apply(renameIdentifiers);
+  console.log('test');
   t.snapshot(t.context.transform.results()[file]);
+  console.log(Object.keys(t.context.transform.results()));
 });
 
 test('prepend Initializable base', t => {
