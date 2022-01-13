@@ -11,12 +11,12 @@ export interface Bounds {
   length: number;
 }
 
-interface TransformationText extends Bounds {
+export interface TransformationText extends Bounds {
   kind: string;
   text: string;
 }
 
-interface TransformationFunction extends Bounds {
+export interface TransformationFunction extends Bounds {
   kind: string;
   transform: (source: string, helper: TransformHelper) => string;
 }
