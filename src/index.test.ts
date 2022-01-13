@@ -1,4 +1,4 @@
-import _test, { TestInterface } from 'ava';
+import _test, { TestFn } from 'ava';
 import hre from 'hardhat';
 
 import { getBuildInfo } from './test-utils/get-build-info';
@@ -6,7 +6,7 @@ import { getBuildInfo } from './test-utils/get-build-info';
 import { OutputFile, transpile } from '.';
 import { SolcOutput } from './solc/input-output';
 
-const test = _test as TestInterface<Context>;
+const test = _test as TestFn<Context>;
 
 interface Context {
   files: OutputFile[];

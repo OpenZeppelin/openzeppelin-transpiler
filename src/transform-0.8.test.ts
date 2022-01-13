@@ -1,4 +1,4 @@
-import _test, { TestInterface } from 'ava';
+import _test, { TestFn } from 'ava';
 
 import { getBuildInfo } from './test-utils/get-build-info';
 
@@ -14,7 +14,7 @@ import {
 } from './transformations/transform-constructor';
 import { renameInheritdoc } from './transformations/rename-inheritdoc';
 
-const test = _test as TestInterface<Context>;
+const test = _test as TestFn<Context>;
 
 interface Context {
   solcInput: SolcInput;
