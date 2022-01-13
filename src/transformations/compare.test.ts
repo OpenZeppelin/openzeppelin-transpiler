@@ -1,9 +1,9 @@
 import test from 'ava';
 
-import { Transformation } from './type';
+import { TransformationText } from './type';
 import { compareTransformations } from './compare';
 
-function sortTransformations(ts: Transformation[]): Transformation[] {
+function sortTransformations(ts: TransformationText[]): TransformationText[] {
   return Array.from(ts).sort(compareTransformations);
 }
 
