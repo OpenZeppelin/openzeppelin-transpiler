@@ -24,7 +24,7 @@ function getUnchainedArguments(constructor: FunctionDefinition, helper: Transfor
     );
     let result: string = getArgsList(constructor, helper);
 
-    parameters.forEach((p: VariableDeclaration) => {
+    for (const p of parameters) {
       // Check if parameter is used
       const found = identifiersIds.has(p.id);
       if (!found) {
