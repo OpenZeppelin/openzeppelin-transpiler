@@ -1,8 +1,13 @@
 # Changelog
 
+## 0.3.5 (2022-01-13)
+
+- Delete unused parameter names in unchained initializers. Removes compiler warnings.
+- Remove visibility from constructor in WithInit.sol file.
+
 ## 0.3.4 (2022-01-11)
 
-- Fix @inheritdoc tags by renaming the contract name
+- Fix @inheritdoc tags by renaming the contract name.
 
 ## 0.3.3 (2021-12-27)
 
