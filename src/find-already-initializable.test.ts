@@ -1,11 +1,11 @@
-import _test, { TestInterface } from 'ava';
+import _test, { TestFn } from 'ava';
 
 import { getBuildInfo } from './test-utils/get-build-info';
 
 import { SolcOutput } from './solc/input-output';
 import { findAlreadyInitializable } from './find-already-initializable';
 
-const test = _test as TestInterface<Context>;
+const test = _test as TestFn<Context>;
 
 interface Context {
   solcOutput: SolcOutput;
