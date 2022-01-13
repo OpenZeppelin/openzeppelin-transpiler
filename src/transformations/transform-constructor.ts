@@ -31,7 +31,7 @@ function getUnchainedArguments(constructor: FunctionDefinition, helper: Transfor
         // Remove unused parameter
         result = result.replace(/\s+[a-z0-9$_]+/gi, m => (m.trim() === p.name ? '' : m));
       }
-    });
+    }
 
     return result;
   } else {
