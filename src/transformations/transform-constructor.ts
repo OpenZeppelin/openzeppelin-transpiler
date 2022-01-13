@@ -4,7 +4,7 @@ import { getConstructor, getNodeBounds } from '../solc/ast-utils';
 import { Transformation, TransformHelper } from './type';
 import { buildSuperCallsForChain2 } from './utils/build-super-calls-for-chain';
 import { findAll } from 'solidity-ast/utils';
-import { FunctionDefinition, VariableDeclaration } from 'solidity-ast';
+import { FunctionDefinition } from 'solidity-ast';
 import { TransformerTools } from '../transform';
 import { newFunctionPosition } from './utils/new-function-position';
 import { formatLines } from './utils/format-lines';
