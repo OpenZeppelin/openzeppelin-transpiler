@@ -34,8 +34,6 @@ test.serial.before('compile', async t => {
   const solcInput = buildInfo.input;
   const solcOutput = buildInfo.output as SolcOutput;
 
-  console.log(Object.keys(solcInput.sources));
-
   t.context.files = await transpile(solcInput, solcOutput, hre.config.paths);
 });
 
