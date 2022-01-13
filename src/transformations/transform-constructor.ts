@@ -10,21 +10,26 @@ import { newFunctionPosition } from './utils/new-function-position';
 import { formatLines } from './utils/format-lines';
 import { hasConstructorOverride, hasOverride } from '../utils/upgrades-overrides';
 
+function getArgsList(constructor: FunctionDefinition, helper: TransformHelper): string {
+  return helper.read(constructor.parameters).replace(/^\((.*)\)$/s, '$1');
+}
+
 // Removes parameters unused by the constructor's body
-function GetUnchainedArguments(constructor: FunctionDefinition, current: string): string {
+function getUnchainedArguments(constructor: FunctionDefinition, helper: TransformHelper): string {
   const parameters = constructor.parameters.parameters;
 
   if (parameters?.length) {
-    const identifiers = [...findAll('Identifier', constructor.body!)];
-    let result: string = current;
+    const identifiersIds = new Set(
+      [...findAll('Identifier', constructor.body!)].map(i => i.referencedDeclaration),
+    );
+    let result: string = getArgsList(constructor, helper);
 
-    parameters.map((p: VariableDeclaration) => {
+    parameters.forEach((p: VariableDeclaration) => {
       // Check if parameter is used
-      const found = identifiers.some(id => id.referencedDeclaration === p.id);
+      const found = identifiersIds.has(p.id);
       if (!found) {
         // Remove unused parameter
-        const reg = new RegExp('\\s' + p.name + '\\,?\\b', 'gi');
-        result = result.replace(reg, '');
+        result = result.replace(/\s+[a-z0-9$_]+/gi, m => (m.trim() === p.name ? '' : m));
       }
     });
 
@@ -75,7 +80,7 @@ export function* transformConstructor(
     const initializer = (
       helper: TransformHelper,
       argsList = '',
-      uArgsList = '',
+      unchainedArgsList = '',
       argNames: string[] = [],
     ) => [
       `function __${name}_init(${argsList}) internal onlyInitializing {`,
@@ -83,7 +88,7 @@ export function* transformConstructor(
       [`__${name}_init_unchained(${argNames.join(', ')});`],
       `}`,
       ``,
-      `function __${name}_init_unchained(${uArgsList}) internal onlyInitializing {`,
+      `function __${name}_init_unchained(${unchainedArgsList}) internal onlyInitializing {`,
       varInitNodes.map(v => `${v.name} = ${helper.read(v.value!)};`),
       `}`,
     ];
@@ -97,12 +102,12 @@ export function* transformConstructor(
         length: 0,
         kind: 'transform-constructor',
         transform: (_, helper) => {
-          const argsList = helper.read(constructorNode.parameters).replace(/^\((.*)\)$/s, '$1');
-          const uArgList = GetUnchainedArguments(constructorNode, argsList);
+          const argsList = getArgsList(constructorNode, helper);
+          const unchainedArgsList = getUnchainedArguments(constructorNode, helper);
 
           return formatLines(
             1,
-            initializer(helper, argsList, uArgList, argNames).slice(0, -1),
+            initializer(helper, argsList, unchainedArgsList, argNames).slice(0, -1),
           ).trim();
         },
       };
