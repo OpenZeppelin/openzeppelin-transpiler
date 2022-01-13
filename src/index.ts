@@ -46,6 +46,7 @@ interface TranspileOptions {
   exclude?: string[];
   publicInitializers?: string[];
   extractStorage?: boolean;
+  solcVersion?: string;
 }
 
 function getExtraOutputPaths(
@@ -141,7 +142,7 @@ export async function transpile(
   }
 
   outputFiles.push({
-    source: generateWithInit(transform, outputPaths.withInit),
+    source: generateWithInit(transform, outputPaths.withInit, options?.solcVersion),
     path: outputPaths.withInit,
     fileName: path.basename(outputPaths.withInit),
   });

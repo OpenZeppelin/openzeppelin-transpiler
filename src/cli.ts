@@ -76,11 +76,14 @@ async function main() {
   const {
     input: solcInput,
     output: solcOutput,
+    solcVersion,
   }: {
     input: SolcInput;
     output: SolcOutput;
+    solcVersion: string,
   } = JSON.parse(await fs.readFile(filepath, 'utf8'));
-  const transpiled = await transpile(solcInput, solcOutput, paths, options);
+
+  const transpiled = await transpile(solcInput, solcOutput, paths, { solcVersion, ...options });
 
   await Promise.all(
     transpiled.map(async t => {
