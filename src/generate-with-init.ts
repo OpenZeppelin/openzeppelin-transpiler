@@ -1,5 +1,5 @@
 import path from 'path';
-import { satisfies, default as compare } from 'compare-versions';
+import { satisfies } from 'compare-versions';
 import { Transform } from './transform';
 import { formatLines, Line } from './transformations/utils/format-lines';
 import { findAll } from 'solidity-ast/utils';
@@ -8,9 +8,17 @@ import { renameContract, renamePath } from './rename';
 import { relativePath } from './utils/relative-path';
 import { hasConstructorOverride } from './utils/upgrades-overrides';
 
-export function generateWithInit(transform: Transform, destPath: string, solcVersion = '0.6.0'): string {
+export function generateWithInit(
+  transform: Transform,
+  destPath: string,
+  solcVersion = '0.6.0',
+): string {
   const pragmaVersion = satisfies(solcVersion, '>=0.7') ? '0.7' : '0.6';
-  const res: Line[] = [`pragma solidity >=${pragmaVersion} <0.9;`, `pragma experimental ABIEncoderV2;`, ``];
+  const res: Line[] = [
+    `pragma solidity >=${pragmaVersion} <0.9;`,
+    `pragma experimental ABIEncoderV2;`,
+    ``,
+  ];
 
   for (const sourceUnit of transform.asts()) {
     for (const contract of findAll('ContractDefinition', sourceUnit)) {
@@ -49,7 +57,7 @@ export function generateWithInit(transform: Transform, destPath: string, solcVer
         [
           [
             `constructor(${argsList})`,
-            ...satisfies(pragmaVersion, '>=0.7') ? [] : [`public`],
+            ...(satisfies(pragmaVersion, '>=0.7') ? [] : [`public`]),
             `payable initializer {`,
           ].join(' '),
           [`__${contract.name}_init(${argNames});`],

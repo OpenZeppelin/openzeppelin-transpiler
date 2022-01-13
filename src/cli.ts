@@ -80,7 +80,7 @@ async function main() {
   }: {
     input: SolcInput;
     output: SolcOutput;
-    solcVersion: string,
+    solcVersion: string;
   } = JSON.parse(await fs.readFile(filepath, 'utf8'));
 
   const transpiled = await transpile(solcInput, solcOutput, paths, { solcVersion, ...options });
