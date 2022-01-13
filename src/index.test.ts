@@ -4,7 +4,7 @@ import hre from 'hardhat';
 import { getBuildInfo } from './test-utils/get-build-info';
 
 import { OutputFile, transpile } from '.';
-import { SolcInput, SolcOutput } from './solc/input-output';
+import { SolcOutput } from './solc/input-output';
 
 const test = _test as TestInterface<Context>;
 
