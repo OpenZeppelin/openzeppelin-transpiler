@@ -46,3 +46,12 @@ contract Foo6 {
         uint b
     ) public {}
 }
+
+contract Foo7 {
+    uint a;
+    constructor(
+        uint _a
+    ) public {
+        a = _a;
+    }
+}
