@@ -53,6 +53,5 @@ contract Foo7 {
         uint _a
     ) public {
         a = _a;
-        a = 2*_a;
     }
 }
