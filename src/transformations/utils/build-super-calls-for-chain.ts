@@ -110,6 +110,8 @@ function isImplicitlyConstructed(contract: ContractDefinition): boolean {
 
   return (
     contract.contractKind === 'contract' &&
-    (ctor == undefined || ctor.parameters.parameters.length === 0)
+    (ctor == undefined ||
+      ctor.parameters.parameters.length === 0 ||
+      ctor.body?.statements?.length == undefined)
   );
 }
