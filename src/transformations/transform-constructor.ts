@@ -81,11 +81,11 @@ export function* transformConstructor(
       helper: TransformHelper,
       argsList = '',
       unchainedArgsList = '',
-      argNames: string[] = [],
+      unchainedCall : string[] = [],
     ) => [
       `function __${name}_init(${argsList}) internal onlyInitializing {`,
       buildSuperCallsForChain2(contractNode, tools, helper),
-      [`__${name}_init_unchained(${argNames.join(', ')});`],
+      unchainedCall,
       `}`,
       ``,
       `function __${name}_init_unchained(${unchainedArgsList}) internal onlyInitializing {`,
@@ -96,6 +96,8 @@ export function* transformConstructor(
     if (constructorNode) {
       const { start: bodyStart } = getNodeBounds(constructorNode.body!);
       const argNames = constructorNode.parameters.parameters.map(p => p.name);
+      const hasStatements = constructorNode.body?.statements?.length! > 0;
+      const unchainedCall = hasStatements ? [`__${name}_init_unchained(${argNames.join(', ')});`]: [];
 
       yield {
         start: bodyStart + 1,
@@ -107,7 +109,7 @@ export function* transformConstructor(
 
           return formatLines(
             1,
-            initializer(helper, argsList, unchainedArgsList, argNames).slice(0, -1),
+            initializer(helper, argsList, unchainedArgsList, unchainedCall).slice(0, -1),
           ).trim();
         },
       };
