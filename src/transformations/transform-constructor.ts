@@ -103,7 +103,11 @@ export function* transformConstructor(
     if (constructorNode) {
       const { start: bodyStart } = getNodeBounds(constructorNode.body!);
       const argNames = constructorNode.parameters.parameters.map(p => p.name);
-      const hasStatements = constructorNode.body?.statements?.length ?? 0 > 0;
+      const hasStatements =
+        (constructorNode.body?.statements?.length ?? 0) > 0 ||
+        constructorNode.modifiers.length > 0 ||
+        varInitNodes.length > 0;
+
       const unchainedCall = hasStatements
         ? [`__${name}_init_unchained(${argNames.join(', ')});`]
         : [];
@@ -124,12 +128,15 @@ export function* transformConstructor(
       };
     } else {
       const start = newFunctionPosition(contractNode, tools);
+      const hasStatements = varInitNodes.length > 0;
+
+      const unchainedCall = hasStatements ? [`__${name}_init_unchained();`] : [];
 
       yield {
         start,
         length: 0,
         kind: 'transform-constructor',
-        transform: (source, helper) => formatLines(1, initializer(helper)),
+        transform: (source, helper) => formatLines(1, initializer(helper, '', '', unchainedCall)),
       };
     }
   }

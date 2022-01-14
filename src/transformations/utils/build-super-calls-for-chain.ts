@@ -1,12 +1,12 @@
 import { flatten, keyBy } from 'lodash';
 
 import { getConstructor } from '../../solc/ast-utils';
-
+import { findAll } from 'solidity-ast/utils';
 import { ContractDefinition } from 'solidity-ast';
 import { Node } from 'solidity-ast/node';
 import { TransformHelper } from '../type';
 import { TransformerTools } from '../../transform';
-import { hasConstructorOverride } from '../../utils/upgrades-overrides';
+import { hasConstructorOverride, hasOverride } from '../../utils/upgrades-overrides';
 
 // builds an __init call with given arguments, for example
 // ERC20DetailedUpgradeable.__init(false, "Gold", "GLD", 18)
@@ -107,11 +107,16 @@ export function buildSuperCallsForChain2(
 
 function isImplicitlyConstructed(contract: ContractDefinition): boolean {
   const ctor = getConstructor(contract);
+  const varInitNodes = [...findAll('VariableDeclaration', contract)].filter(
+    v => v.stateVariable && v.value && !v.constant && !hasOverride(v, 'state-variable-assignment'),
+  );
 
   return (
     contract.contractKind === 'contract' &&
     (ctor == undefined ||
       ctor.parameters.parameters.length === 0 ||
-      ctor.body?.statements?.length == undefined)
+      (ctor.body?.statements?.length == undefined &&
+        ctor.modifiers.length == 0 &&
+        varInitNodes.length == 0))
   );
 }

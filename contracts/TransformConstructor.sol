@@ -55,3 +55,27 @@ contract Foo7 {
         a = _a;
     }
 }
+
+contract Foo8 {
+
+    modifier hasModifier(){
+        _;
+    }
+
+    constructor() public hasModifier{
+    }
+}
+
+contract Foo9 {
+    constructor(
+        uint a,
+        uint b
+    ) public {
+        b = 0;
+    }
+}
+
+contract Foo10 is Foo7(123){
+
+    uint bar = 1;
+}
