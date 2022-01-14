@@ -77,27 +77,36 @@ export function* transformConstructor(
         v.stateVariable && v.value && !v.constant && !hasOverride(v, 'state-variable-assignment'),
     );
 
+    const unchainedBody = (helper: TransformHelper, unchainedArgsList = '', show: boolean) =>
+      show
+        ? [
+            `function __${name}_init_unchained(${unchainedArgsList}) internal onlyInitializing {`,
+            varInitNodes.map(v => `${v.name} = ${helper.read(v.value!)};`),
+            `}`,
+          ]
+        : [];
+
     const initializer = (
       helper: TransformHelper,
       argsList = '',
       unchainedArgsList = '',
-      unchainedCall : string[] = [],
-    ) => [
-      `function __${name}_init(${argsList}) internal onlyInitializing {`,
-      buildSuperCallsForChain2(contractNode, tools, helper),
-      unchainedCall,
-      `}`,
-      ``,
-      `function __${name}_init_unchained(${unchainedArgsList}) internal onlyInitializing {`,
-      varInitNodes.map(v => `${v.name} = ${helper.read(v.value!)};`),
-      `}`,
-    ];
+      unchainedCall: string[] = [],
+    ) =>
+      [
+        `function __${name}_init(${argsList}) internal onlyInitializing {`,
+        buildSuperCallsForChain2(contractNode, tools, helper),
+        unchainedCall,
+        `}`,
+        ``,
+      ].concat(unchainedBody(helper, unchainedArgsList, unchainedCall.length > 0));
 
     if (constructorNode) {
       const { start: bodyStart } = getNodeBounds(constructorNode.body!);
       const argNames = constructorNode.parameters.parameters.map(p => p.name);
       const hasStatements = constructorNode.body?.statements?.length! > 0;
-      const unchainedCall = hasStatements ? [`__${name}_init_unchained(${argNames.join(', ')});`]: [];
+      const unchainedCall = hasStatements
+        ? [`__${name}_init_unchained(${argNames.join(', ')});`]
+        : [];
 
       yield {
         start: bodyStart + 1,
