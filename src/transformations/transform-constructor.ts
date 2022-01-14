@@ -80,8 +80,6 @@ export function* transformConstructor(
     const unchainedBody = (helper: TransformHelper, unchainedArgsList = '', show: boolean) =>
       show
         ? [
-            `}`,
-            ``,
             `function __${name}_init_unchained(${unchainedArgsList}) internal onlyInitializing {`,
             varInitNodes.map(v => `${v.name} = ${helper.read(v.value!)};`),
             `}`,
@@ -98,6 +96,8 @@ export function* transformConstructor(
         `function __${name}_init(${argsList}) internal onlyInitializing {`,
         buildSuperCallsForChain2(contractNode, tools, helper),
         unchainedCall,
+        `}`,
+        ``,
       ].concat(unchainedBody(helper, unchainedArgsList, unchainedCall.length > 0));
 
     if (constructorNode) {
