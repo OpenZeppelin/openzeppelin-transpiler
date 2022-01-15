@@ -21,6 +21,7 @@ interface Options {
   deleteOriginals: boolean;
   exclude: string[];
   publicInitializers: string[];
+  extractStorage: boolean;
 }
 
 function readCommandFlags(resolveRootRelative: (p: string) => string): Options {
@@ -29,6 +30,7 @@ function readCommandFlags(resolveRootRelative: (p: string) => string): Options {
     p: publicInitializers = [],
     D: deleteOriginals = false,
     x: exclude = [],
+    E: extractStorage = false,
   } = minimist(process.argv.slice(2));
   return {
     deleteOriginals,
@@ -40,6 +42,7 @@ function readCommandFlags(resolveRootRelative: (p: string) => string): Options {
         (_: string, neg: string, pat: string) => neg + resolveRootRelative(pat),
       ),
     ),
+    extractStorage,
   };
 }
 

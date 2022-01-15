@@ -84,7 +84,7 @@ test('rename identifiers', t => {
 
 test('prepend Initializable base', t => {
   const file = 'contracts/solc-0.6/Rename.sol';
-  t.context.transform.apply(prependInitializableBase);
+  t.context.transform.apply(prependInitializableBase(false));
   t.snapshot(t.context.transform.results()[file]);
 });
 

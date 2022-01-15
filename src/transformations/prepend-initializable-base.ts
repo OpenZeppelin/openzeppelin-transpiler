@@ -4,41 +4,40 @@ import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
 import { TransformerTools } from '../transform';
 
-export function* prependInitializableBase(
-  sourceUnit: SourceUnit,
-  { originalSource }: TransformerTools,
-): Generator<Transformation> {
-  for (const contract of findAll('ContractDefinition', sourceUnit)) {
-    if (contract.contractKind !== 'contract') {
-      continue;
-    }
-
-    if (contract.baseContracts.length > 0) {
-      const { start } = getNodeBounds(contract.baseContracts[0]);
-      yield {
-        kind: 'prepend-initializable-base',
-        start,
-        length: 0,
-        text: `Initializable, `,
-      };
-    } else {
-      const bounds = getNodeBounds(contract);
-      const re = /(?:abstract\s+)?contract\s+([a-zA-Z0-9$_]+)/y;
-      re.lastIndex = bounds.start;
-      const match = re.exec(originalSource);
-
-      if (match === null) {
-        throw new Error(`Can't find ${contract.name} in ${sourceUnit.absolutePath}`);
+export function prependInitializableBase(extractStorage: boolean | undefined) {
+  return function* (sourceUnit: SourceUnit, {originalSource}: TransformerTools): Generator<Transformation> {
+    for (const contract of findAll('ContractDefinition', sourceUnit)) {
+      if (contract.contractKind !== 'contract') {
+        continue;
       }
 
-      const start = match.index + match[0].length;
+      if (contract.baseContracts.length > 0) {
+        const {start} = getNodeBounds(contract.baseContracts[0]);
+        yield {
+          kind: 'prepend-initializable-base',
+          start,
+          length: 0,
+          text: 'Initializable, ',
+        };
+      } else {
+        const bounds = getNodeBounds(contract);
+        const re = /(?:abstract\s+)?contract\s+([a-zA-Z0-9$_]+)/y;
+        re.lastIndex = bounds.start;
+        const match = re.exec(originalSource);
 
-      yield {
-        start,
-        length: 0,
-        kind: 'prepend-initializable-base',
-        text: ' is Initializable',
-      };
+        if (match === null) {
+          throw new Error(`Can't find ${contract.name} in ${sourceUnit.absolutePath}`);
+        }
+
+        const start = match.index + match[0].length;
+
+        yield {
+          start,
+          length: 0,
+          kind: 'prepend-initializable-base',
+          text: ' is Initializable',
+        };
+      }
     }
   }
 }

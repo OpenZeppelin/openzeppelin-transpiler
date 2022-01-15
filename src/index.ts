@@ -26,6 +26,10 @@ import {
   removeLeftoverConstructorHead,
 } from './transformations/transform-constructor';
 
+import {addDiamondStorage} from "./transformations/add-diamond-storage";
+import {addDiamondAccess} from "./transformations/add-diamond-access";
+import {removeStateVariables} from "./transformations/remove-state-variables";
+
 interface Paths {
   root: string;
   sources: string;
@@ -41,6 +45,7 @@ interface TranspileOptions {
   initializablePath?: string;
   exclude?: string[];
   publicInitializers?: string[];
+  extractStorage?: boolean;
 }
 
 function getExtraOutputPaths(
@@ -74,6 +79,9 @@ export async function transpile(
   const excludeSet = new Set([...alreadyInitializable, ...Object.values(outputPaths)]);
   const excludeMatch = matcher(options?.exclude ?? []);
 
+  // build a final array of files to return
+  const outputFiles: OutputFile[] = [];
+
   const transform = new Transform(solcInput, solcOutput, {
     exclude: source => excludeSet.has(source) || (excludeMatch(source) ?? isRenamed(source)),
   });
@@ -81,7 +89,7 @@ export async function transpile(
   transform.apply(renameIdentifiers);
   transform.apply(renameContractDefinition);
   transform.apply(renameInheritdoc);
-  transform.apply(prependInitializableBase);
+  transform.apply(prependInitializableBase(options?.extractStorage));
   transform.apply(fixImportDirectives);
   transform.apply(appendInitializableImport(outputPaths.initializable));
   transform.apply(fixNewStatement);
@@ -91,10 +99,13 @@ export async function transpile(
   transform.apply(removeInheritanceListArguments);
   transform.apply(removeStateVarInits);
   transform.apply(removeImmutable);
-  transform.apply(addStorageGaps);
-
-  // build a final array of files to return
-  const outputFiles: OutputFile[] = [];
+  if (!options?.extractStorage) {
+    transform.apply(addStorageGaps);
+  } else {
+    transform.apply(addDiamondStorage(outputFiles));
+    transform.apply(addDiamondAccess)
+    transform.apply(removeStateVariables);
+  }
 
   const results = transform.results();
 
@@ -111,7 +122,7 @@ export async function transpile(
   const initializableSource =
     options?.initializablePath !== undefined
       ? transpileInitializable(solcInput, solcOutput, paths, options?.initializablePath)
-      : fs.readFileSync(require.resolve('../Initializable.sol'), 'utf8');
+      : fs.readFileSync(require.resolve(options?.extractStorage ? '../InitializableFacet.sol': '../Initializable.sol'), 'utf8');
 
   outputFiles.push({
     source: initializableSource,
@@ -119,11 +130,21 @@ export async function transpile(
     fileName: path.basename(outputPaths.initializable),
   });
 
+  if (options?.extractStorage && options?.initializablePath === undefined) {
+    const initFacetStorage = fs.readFileSync(require.resolve('../InitializableFacetStorage.sol'), 'utf8');
+    outputFiles.push( {
+      source: initFacetStorage,
+      path: path.dirname(outputPaths.initializable) + path.sep + 'InitializableStorage.sol',
+      fileName: 'InitializableStorage.sol',
+    });
+  }
+
   outputFiles.push({
     source: generateWithInit(transform, outputPaths.withInit),
     path: outputPaths.withInit,
     fileName: path.basename(outputPaths.withInit),
   });
+
 
   return outputFiles;
 }
