@@ -3,6 +3,7 @@
 pragma solidity ^0.8.0;
 
 contract ElementaryTypesWithConstructor  {
+<<<<<<< HEAD
 
     struct ElementaryStructType {
         uint256 counter1;
@@ -25,13 +26,26 @@ contract ElementaryTypesWithConstructor  {
         /**
          * @dev just a random setting of the address
         */
+=======
+    address public owner;
+    bool active;
+    string hello;
+    int count;
+    uint ucount;
+    bytes32 samevar;
+
+    constructor() {
+>>>>>>> 080f60b... wip - adding testing for solc 0.8.0 and diamond storage generation
         owner = address(0x123);
         active = true;
         hello = "hello";
         count = -123;
         ucount = 123;
         samevar = "stringliteral";
+<<<<<<< HEAD
         esTypeTest.counter1 = 450;
         esTypeTest.randomAddress = address(0xDEADC0DE);
+=======
+>>>>>>> 080f60b... wip - adding testing for solc 0.8.0 and diamond storage generation
     }
 }

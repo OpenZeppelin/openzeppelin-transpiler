@@ -180,6 +180,7 @@ ${ variables.map(v =>  {
     
     return comments.get(v.id) + '    ' + typeString + ' ' + v.name + ';'  }).join('\n')
   }
+  
   }
   
   bytes32 internal constant STORAGE_SLOT = keccak256('openzepplin.contracts.storage.${name}');

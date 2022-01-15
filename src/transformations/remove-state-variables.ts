@@ -5,8 +5,6 @@ import { hasConstructorOverride, hasOverride } from '../utils/upgrades-overrides
 
 import { Transformation } from './type';
 import { TransformerTools } from '../transform';
-import {prevNodeBounds} from "./utils/prev-contract-node";
-import {newFunctionPosition} from "./utils/new-function-position";
 
 export function* removeStateVariables(sourceUnit: SourceUnit, tools: TransformerTools): Generator<Transformation> {
   for (const contractNode of findAll('ContractDefinition', sourceUnit)) {

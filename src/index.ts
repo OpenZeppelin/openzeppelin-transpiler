@@ -45,8 +45,8 @@ interface TranspileOptions {
   initializablePath?: string;
   exclude?: string[];
   publicInitializers?: string[];
-  extractStorage?: boolean;
   solcVersion?: string;
+  extractStorage?: boolean;
 }
 
 function getExtraOutputPaths(

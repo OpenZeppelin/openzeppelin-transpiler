@@ -5,12 +5,24 @@ import { getBuildInfo } from './test-utils/get-build-info';
 
 import { OutputFile, transpile } from '.';
 import { SolcOutput } from './solc/input-output';
+import path from "path";
+import { promises as fs } from "fs";
 
 const test = _test as TestFn<Context>;
 
 interface Context {
   files: OutputFile[];
 }
+
+test.before('transpile', async t => {
+  const buildinfo = path.join(hre.config.paths.artifacts, 'build-info');
+  const filenames =  await fs.readdir(buildinfo);
+  t.deepEqual(filenames.length, 1);
+  const filepath = path.join(buildinfo, filenames[0]);
+  const { input: solcInput, output: solcOutput } = JSON.parse(await fs.readFile(filepath, 'utf8'));
+  t.context.files = await transpile(solcInput, solcOutput, hre.config.paths);
+  console.log(t.context.files)
+});
 
 const fileNames = [
   'ClassInheritance.sol',
