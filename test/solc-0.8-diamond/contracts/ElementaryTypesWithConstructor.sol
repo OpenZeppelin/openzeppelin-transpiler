@@ -3,6 +3,9 @@
 pragma solidity ^0.8.0;
 
 contract ElementaryTypesWithConstructor  {
+    /**
+     * @dev Indicates who the owner is.
+    */
     address public owner;
     bool active;
     string hello;
