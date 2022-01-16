@@ -19,6 +19,17 @@ export class ASTResolver {
     }
   }
 
+  resolveContractPath(id: number): string | undefined {
+    for (const source in this.output.sources) {
+      for (const c of findAll('ContractDefinition', this.output.sources[source].ast)) {
+        if (c.id === id) {
+            return this.output.sources[source].ast.absolutePath;
+        }
+      }
+    }
+
+    throw new ASTResolverError('ContractDefinition');
+  }
   resolveNode<T extends NodeType>(nodeType: T, id: number): NodeTypeMap[T] {
     for (const source in this.output.sources) {
       for (const c of findAll(nodeType, this.output.sources[source].ast)) {

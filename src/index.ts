@@ -97,9 +97,9 @@ export async function transpile(
   transform.apply(transformConstructor);
   transform.apply(removeLeftoverConstructorHead);
   transform.apply(removeInheritanceListArguments);
-  transform.apply(removeStateVarInits);
   transform.apply(removeImmutable);
   if (!options?.extractStorage) {
+    transform.apply(removeStateVarInits);
     transform.apply(addStorageGaps);
   } else {
     transform.apply(addDiamondStorage(outputFiles));

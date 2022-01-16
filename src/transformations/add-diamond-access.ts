@@ -2,14 +2,14 @@ import { SourceUnit } from 'solidity-ast';
 import { findAll } from 'solidity-ast/utils';
 
 import { getNodeBounds } from '../solc/ast-utils';
-import {Transformation, TransformHelper} from './type';
+import { Transformation, TransformHelper } from './type';
 import { TransformerTools } from '../transform';
-import {hasConstructorOverride, hasOverride} from "../utils/upgrades-overrides";
-import {Node} from "solidity-ast/node";
-import {relativePath} from "../utils/relative-path";
+import { hasConstructorOverride, hasOverride } from "../utils/upgrades-overrides";
+import { Node } from "solidity-ast/node";
+import { relativePath } from "../utils/relative-path";
 import path from "path";
 
- export function* addDiamondAccess(sourceUnit: SourceUnit,
+export function* addDiamondAccess(sourceUnit: SourceUnit,
                    tools: TransformerTools,
   ): Generator<Transformation>  {
       const contracts = [...findAll('ContractDefinition', sourceUnit)];
@@ -38,8 +38,11 @@ import path from "path";
                   v.stateVariable && !v.constant && !hasOverride(v, 'state-variable-assignment'),
           );
           if (variableNodes.length > 0) {
+              if (needsContractStorageImport ) {
+                  contractNames += ', ';
+              }
+              contractNames += contract.name + 'Storage';
               needsContractStorageImport = true;
-              contractNames += contract.name + ' ';
           }
       }
 
@@ -52,7 +55,7 @@ import path from "path";
           start,
           length: 0,
           kind: 'append-storage-imports',
-          text: '\nimport {' +  contractNames + '} from "' + storageFileName + '";'
+          text: '\nimport { ' +  contractNames + ' } from "' + storageFileName + '";'
       };
 
 /*    const {resolver, getData} = tools;

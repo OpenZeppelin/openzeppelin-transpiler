@@ -9,13 +9,13 @@ pragma solidity ^0.8.0;
 library InitializableStorage {
 
   struct Layout {
-    /**
-    * @dev Indicates that the contract has been initialized.
+    /*
+    * Indicates that the contract has been initialized.
     */
     bool _initialized;
 
-    /**
-    * @dev Indicates that the contract is in the process of being initialized.
+    /*
+    * Indicates that the contract is in the process of being initialized.
     */
     bool _initializing;
   }
