@@ -6,7 +6,7 @@ contract ElementaryTypesWithConstructor  {
     /**
      * @dev Indicates who the owner is.
     */
-    address public owner;
+    address public owner  ;
     bool active;
     string hello;
     int count;
@@ -14,6 +14,9 @@ contract ElementaryTypesWithConstructor  {
     bytes32 samevar;
 
     constructor() {
+        /**
+         * @dev just a random setting of the address
+        */
         owner = address(0x123);
         active = true;
         hello = "hello";

@@ -17,7 +17,7 @@ pragma solidity ^0.8.0;
 import { InitializableStorage } from './InitializableStorage.sol';
 
 abstract contract Initializable {
-  using InitializableStorage for InitializeableStorage.Layout;
+  using InitializableStorage for InitializableStorage.Layout;
   /**
    * @dev Modifier to protect an initializer function from being invoked twice.
    */
@@ -25,19 +25,19 @@ abstract contract Initializable {
     // If the contract is initializing we ignore whether _initialized is set in order to support multiple
     // inheritance patterns, but we only do this in the context of a constructor, because in other contexts the
     // contract may have been reentered.
-    require(InitializeableStorage.layout()._initializing ? _isConstructor() :
-        !InitializeableStorage.layout()._initialized, "Initializable: contract is already initialized");
+    require(InitializableStorage.layout()._initializing ? _isConstructor() :
+        !InitializableStorage.layout()._initialized, "Initializable: contract is already initialized");
 
-    bool isTopLevelCall = !InitializeableStorage.layout()._initializing;
+    bool isTopLevelCall = !InitializableStorage.layout()._initializing;
     if (isTopLevelCall) {
-      InitializeableStorage.layout()._initializing = true;
-      InitializeableStorage.layout()._initialized = true;
+      InitializableStorage.layout()._initializing = true;
+      InitializableStorage.layout()._initialized = true;
     }
 
     _;
 
     if (isTopLevelCall) {
-      InitializeableStorage.layout()._initializing = false;
+      InitializableStorage.layout()._initializing = false;
     }
   }
 
@@ -46,7 +46,7 @@ abstract contract Initializable {
    * {initializer} modifier, directly or indirectly.
    */
   modifier onlyInitializing() {
-    require(InitializeableStorage.layout()._initializing, "Initializable: contract is not initializing");
+    require(InitializableStorage.layout()._initializing, "Initializable: contract is not initializing");
     _;
   }
 

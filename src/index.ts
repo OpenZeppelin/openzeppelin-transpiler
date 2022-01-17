@@ -86,6 +86,7 @@ export async function transpile(
     exclude: source => excludeSet.has(source) || (excludeMatch(source) ?? isRenamed(source)),
   });
 
+
   transform.apply(renameIdentifiers);
   transform.apply(renameContractDefinition);
   transform.apply(renameInheritdoc);
@@ -102,8 +103,8 @@ export async function transpile(
     transform.apply(removeStateVarInits);
     transform.apply(addStorageGaps);
   } else {
-    transform.apply(addDiamondStorage(outputFiles));
     transform.apply(addDiamondAccess)
+    transform.apply(addDiamondStorage(outputFiles));
     transform.apply(removeStateVariables);
   }
 

@@ -14,7 +14,7 @@ export function* addDiamondAccess(sourceUnit: SourceUnit,
   ): Generator<Transformation>  {
       const contracts = [...findAll('ContractDefinition', sourceUnit)];
       if (!contracts.some(c => c.contractKind === 'contract')) {
-      return;
+        return;
       }
 
      let last: Node | undefined;

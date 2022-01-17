@@ -1,6 +1,6 @@
 /build
 /contracts/__upgradeable__
-mocks
-contracts/Initializable.sol
-contracts/**/*Upgradeable.sol
-contracts/**/*Storage.sol
+/contracts/mocks
+/contracts/Initializable.sol
+/contracts/**/*Upgradeable.sol
+/contracts/**/*Storage.sol

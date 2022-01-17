@@ -6,8 +6,9 @@ import { hasConstructorOverride, hasOverride } from '../utils/upgrades-overrides
 import { Transformation } from './type';
 import { TransformerTools } from '../transform';
 import {prevNodeBounds} from "./utils/prev-contract-node";
+import {newFunctionPosition} from "./utils/new-function-position";
 
-export function* removeStateVariables(sourceUnit: SourceUnit): Generator<Transformation> {
+export function* removeStateVariables(sourceUnit: SourceUnit, tools: TransformerTools): Generator<Transformation> {
   for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
     if (hasConstructorOverride(contractNode)) {
       continue;
@@ -20,21 +21,13 @@ export function* removeStateVariables(sourceUnit: SourceUnit): Generator<Transfo
         }
 
         const vBounds = getNodeBounds(varDecl);
-        const pBounds = prevNodeBounds(contractNode, varDecl.id);
-
-        if (pBounds !== undefined) {
-          const pBoundsEnd = pBounds.start + pBounds.length + 1;
-          // yield {
-          //   start: pBoundsEnd,
-          //   length: vBounds.start - pBoundsEnd,
-          //   kind: 'remove-var-states-comments',
-          //   transform: () => '',
-          // };
-        }
+        const vCodeStart = tools.originalSource.substring(vBounds.start);
+        const vCode = vCodeStart.match(/.*?;\n?/s);
+        const vLength = vCode === null ? vBounds.length + 1 : vCode[0].length;
 
         yield {
           start: vBounds.start,
-          length: vBounds.length + 1,
+          length: vLength,
           kind: 'remove-var-states',
           transform: source => source.replace(/.*/s, ''),
         };

@@ -1,9 +1,8 @@
 import {SourceUnit, ContractDefinition, VariableDeclaration, UserDefinedTypeName, IdentifierPath} from 'solidity-ast';
 import { findAll } from 'solidity-ast/utils';
 
-import { formatLines } from './utils/format-lines';
 import { getNodeBounds } from '../solc/ast-utils';
-import { Transformation } from './type';
+import {Transformation, TransformHelper} from './type';
 import { TransformerTools } from '../transform';
 import path from 'path';
 import {hasOverride} from "../utils/upgrades-overrides";
@@ -11,7 +10,6 @@ import {OutputFile} from "../index";
 import {renameContract, renamePath} from "../rename";
 import {newFunctionPosition} from "./utils/new-function-position";
 import {Node} from "solidity-ast/node";
-import {CONNREFUSED} from "dns";
 
 function* findAllContractIdentifiers(node: Node) {
   const seen = new Set();
@@ -51,9 +49,33 @@ export function addDiamondStorage(newFiles: OutputFile[]) {
       if ((contract.contractKind === 'contract') && (variableNodes.length > 0)) {
 
         contractNeedsStorage = true;
-        const start = newFunctionPosition(contract, tools, true);
 
-        const text = '\n' + formatLines(1, [`using ${contract.name}Storage for ${contract.name}Storage.Layout;`]);
+        // move comments for each variable to this map
+        const commentMap = new Map();
+        for (const varNode of variableNodes) {
+          const vBounds = getNodeBounds(varNode);
+          // grab first line of contract.
+          const cStart = newFunctionPosition(contract, tools, true);
+
+          const contractCode = tools.originalSource;
+          const subContractCode = contractCode.substring(cStart, vBounds.start);
+          const commentSplit = extractComments(subContractCode);
+
+          let newSource = commentSplit[1].replace('@dev', '@devnotice');
+          newSource = newSource.replace(/^(\t|\n|\r| )+/s, '');
+          commentMap.set(varNode.id, newSource);
+
+          yield {
+            start: vBounds.start - newSource.length,
+            length: newSource.length,
+            kind: 'remove-var-states-comments',
+            text: '',
+          };
+        }
+
+        const start = newFunctionPosition(contract, tools, true)-1;
+
+        const text = `{\n    using ${contract.name}Storage for ${contract.name}Storage.Layout;\n`;
 
         yield {
           kind: 'add-diamond-storage',
@@ -62,7 +84,7 @@ export function addDiamondStorage(newFiles: OutputFile[]) {
           text,
         };
 
-        buffer = makeStorageFile(contract.name, variableNodes, buffer);
+        buffer = makeStorageLib(contract.name, variableNodes, commentMap, buffer);
       }
     }
 
@@ -79,17 +101,61 @@ ${ [...importsNeeded].join('')}` + buffer;
   }
 }
 
-function makeStorageFile(name: string, variables: VariableDeclaration[], buffer: string) {
+function extractComments(source: string) : string[] {
+  enum CommentType {
+    none,
+    doubleSlash,
+    slashAsterisk
+  }
+  const whiteSpace : string = '\t\r\n ';
+
+  let lastNonCommentIndex = 0;
+  let commentType = CommentType.none;
+  let sLen = source.length;
+  for (let i=0; i<sLen; i++) {
+    // not currently processing comment
+    if (commentType === CommentType.none) {
+      // need to look ahead for comment start
+      if (i < sLen-1) {
+        if ((source[i] === '/') && (source[i + 1] === '/')) {
+          commentType = CommentType.doubleSlash;
+        } else if ((source[i] === '/') && (source[i + 1] === '*')) {
+          commentType = CommentType.slashAsterisk;
+        }
+      }
+    } else {
+      if ((commentType === CommentType.slashAsterisk)) {
+        if ((source[i-1] === '*') && (source[i] === '/')) {
+          commentType = CommentType.none;
+          continue;
+        }
+      } else if (commentType === CommentType.doubleSlash) {
+        if (source[i] === '\n') {
+          commentType = CommentType.none;
+          continue;
+        }
+      }
+    }
+
+    if ((commentType === CommentType.none) && !whiteSpace.includes(source[i])) {
+      lastNonCommentIndex = i + 1;
+    }
+  }
+
+  return [source.substring(0, lastNonCommentIndex), source.substring(lastNonCommentIndex)];
+}
+
+function makeStorageLib(name: string, variables: VariableDeclaration[], comments: Map<number, string>, buffer: string) {
 
   buffer += `
 
 library ${name}Storage {
 
   struct Layout {
-  
-${ variables.map(v => formatLines(1, [ v.documentation?.text || '' + 
-    (v.typeDescriptions.typeString?.startsWith('contract ') ? renameContract(v.typeDescriptions.typeString.substring(9)) 
-          : v.typeDescriptions.typeString) + ' ' + v.name + ';' ])).join('') }
+${ variables.map(v =>  '    ' + comments.get(v.id)  +
+    (v.typeDescriptions.typeString?.startsWith('contract ') ? 
+      renameContract(v.typeDescriptions.typeString.substring(9)) 
+          : v.typeDescriptions.typeString) + ' ' + v.name + ';' ).join('\n') }
   }
   
   bytes32 internal constant STORAGE_SLOT = keccak256('openzepplin.contracts.storage.${name}');
