@@ -81,7 +81,7 @@ export function* transformConstructor(
       helper: TransformHelper,
       argsList = '',
       unchainedArgsList = '',
-      unchainedCall : string[] = [],
+      unchainedCall: string[] = [],
     ) => [
       `function __${name}_init(${argsList}) internal onlyInitializing {`,
       buildSuperCallsForChain2(contractNode, tools, helper),
