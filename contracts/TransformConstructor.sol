@@ -79,3 +79,19 @@ contract Foo10 is Foo7(123){
 
     uint bar = 1;
 }
+
+contract Foo11 is Foo7{
+
+    modifier hasModifier(){
+        _;
+    }
+
+    constructor(uint a) Foo7(a) public hasModifier {
+    }
+}
+
+contract Foo12 is Foo7{
+
+    constructor(uint a) Foo7(a) public {
+    }
+}

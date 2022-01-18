@@ -96,21 +96,32 @@ export function* transformConstructor(
     if (constructorNode) {
       const { start: bodyStart } = getNodeBounds(constructorNode.body!);
       const argNames = constructorNode.parameters.parameters.map(p => p.name);
+      const parents = contractNode.linearizedBaseContracts;
+      const modifiers = [];
+      // we only include modifiers that don't reference base contracts
+      for (const call of constructorNode.modifiers) {
+        const { referencedDeclaration } = call.modifierName;
+        if (referencedDeclaration != null && !parents.includes(referencedDeclaration)) {//is not inheritance
+          modifiers.push({ call });
+        }
+      }
       const hasStatements =
         (constructorNode.body?.statements?.length ?? 0) > 0 ||
-        constructorNode.modifiers.length > 0 ||
+        modifiers.length > 0 ||
         varInitNodes.length > 0;
 
       const unchainedCall = hasStatements
         ? [`__${name}_init_unchained(${argNames.join(', ')});`]
         : [];
 
+
+
       yield {
         start: bodyStart + 1,
         length: 0,
         kind: 'transform-constructor',
         transform: (_, helper) => {
-          const argsList = getArgsList(constructorNode, helper);
+          const argsList = getArgsList(constructorNode, helper);//TODO this needs to get if the parameter is going to be used too
           const unchainedArgsList = getUnchainedArguments(constructorNode, helper);
 
           return formatLines(

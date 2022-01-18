@@ -90,8 +90,7 @@ export function buildSuperCallsForChain2(
     }
 
     let args = ctorCalls[parentNode.id]?.call?.arguments;
-
-    if (args == undefined && isImplicitlyConstructed(parentNode)) {
+    if (args == undefined && isImplicitlyConstructed(parentNode) && !isEmpty(parentNode)) {
       args = [];
     }
 
@@ -107,16 +106,35 @@ export function buildSuperCallsForChain2(
 
 function isImplicitlyConstructed(contract: ContractDefinition): boolean {
   const ctor = getConstructor(contract);
-  const varInitNodes = [...findAll('VariableDeclaration', contract)].filter(
-    v => v.stateVariable && v.value && !v.constant && !hasOverride(v, 'state-variable-assignment'),
-  );
 
   return (
     contract.contractKind === 'contract' &&
     (ctor == undefined ||
-      ctor.parameters.parameters.length === 0 ||
-      (ctor.body?.statements?.length == undefined &&
-        ctor.modifiers.length == 0 &&
-        varInitNodes.length == 0))
+      ctor.parameters.parameters.length === 0 )
   );
 }
+
+function isEmpty(contract: ContractDefinition): boolean {
+  const ctor = getConstructor(contract);
+  const varInitNodes = [...findAll('VariableDeclaration', contract)].filter(
+    v => v.stateVariable && v.value && !v.constant && !hasOverride(v, 'state-variable-assignment'),
+  );
+  const modifiers = [];
+  if(ctor){
+    // we only include modifiers that don't reference base contracts
+    for (const call of ctor.modifiers) {
+      const { referencedDeclaration } = call.modifierName;
+      if (referencedDeclaration != null && !ctor.linearizedBaseContracts.includes(referencedDeclaration)) {//is not inheritance
+        modifiers.push({ call });
+      }
+    }
+  }
+
+  return (
+    contract.contractKind === 'contract' &&
+    (ctor?.body?.statements?.length == undefined &&
+        modifiers.length == 0 &&
+        varInitNodes.length == 0)
+  );
+}
+
