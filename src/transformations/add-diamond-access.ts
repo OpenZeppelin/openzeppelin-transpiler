@@ -73,6 +73,7 @@ export function* addDiamondAccess(sourceUnit: SourceUnit,
 
 
     const contractNames = new Map<number, string>();
+
     for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
 
         if (!contractNames.has(contractNode.id)) {
