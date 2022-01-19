@@ -18,7 +18,7 @@ function getArgsList(constructor: FunctionDefinition, helper: TransformHelper): 
 function getUsedArguments(
   constructor: FunctionDefinition,
   helper: TransformHelper,
-  superCalls?: string[],
+  initCalls?: string[],
 ): string {
   // Get declared parameters information
   const parameters = constructor.parameters.parameters;
@@ -33,12 +33,12 @@ function getUsedArguments(
     for (const p of parameters) {
       found = false;
       // Check if parameter is used
-      if (superCalls) {
+      if (initCalls) {
         // Gets all variables used by unchained calls without including the delimiters
-        const usedVariables = superCalls.join().match(/(?<=[(,\s])(_*)[A-Za-z0-9](_*)(?=[),])+/gi);
+        const usedVariables = initCalls.join().match(/(?<=[(,\s])(.*?)(?=[),])+/gi);
 
         // If the init method is empty none of the parameters will be used
-        if (superCalls.length > 0 && usedVariables) {
+        if (initCalls.length > 0 && usedVariables) {
           found = usedVariables.includes(p.name);
         }
       } else {
@@ -140,7 +140,8 @@ export function* transformConstructor(
         kind: 'transform-constructor',
         transform: (_, helper) => {
           const superCalls = buildSuperCallsForChain2(contractNode, tools, helper);
-          const argsList = getUsedArguments(constructorNode, helper, superCalls);
+          const initCalls = superCalls.concat(unchainedCall);
+          const argsList = getUsedArguments(constructorNode, helper, initCalls);
           const unchainedArgsList = getUsedArguments(constructorNode, helper);
 
           return formatLines(
