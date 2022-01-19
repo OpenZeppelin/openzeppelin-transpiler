@@ -55,34 +55,23 @@ export function addDiamondStorage(newFiles: OutputFile[]) {
         for (const varNode of variableNodes) {
           const vBounds = getNodeBounds(varNode);
           // grab first line of contract.
-          const cStart = newFunctionPosition(contract, tools, true);
+          const cStart = newFunctionPosition(contract, tools);
 
           const contractCode = tools.originalSource;
           const subContractCode = contractCode.substring(cStart, vBounds.start);
           const commentSplit = extractComments(subContractCode);
 
-          let newSource = commentSplit[1].replace('@dev', '@devnotice');
-          newSource = newSource.replace(/^(\t|\n|\r| )+/s, '');
+          let newSource = commentSplit[1].replace('/**', '/*')
+          newSource = newSource.replace(/[\t ]+$/, '');
           commentMap.set(varNode.id, newSource);
 
           yield {
-            start: vBounds.start - newSource.length,
-            length: newSource.length,
+            start: vBounds.start - commentSplit[1].length,
+            length: commentSplit[1].length,
             kind: 'remove-var-states-comments',
             text: '',
           };
         }
-
-        const start = newFunctionPosition(contract, tools, true)-1;
-
-        const text = `{\n    using ${contract.name}Storage for ${contract.name}Storage.Layout;\n`;
-
-        yield {
-          kind: 'add-diamond-storage',
-          start,
-          length: 0,
-          text,
-        };
 
         buffer = makeStorageLib(contract.name, variableNodes, commentMap, buffer);
       }
@@ -107,16 +96,17 @@ function extractComments(source: string) : string[] {
     doubleSlash,
     slashAsterisk
   }
-  const whiteSpace : string = '\t\r\n ';
 
-  let lastNonCommentIndex = 0;
+  const whiteSpace: string = '\t \n';
+
+  let lastNonCommentIndex = -1;
   let commentType = CommentType.none;
   let sLen = source.length;
-  for (let i=0; i<sLen; i++) {
+  for (let i = 0; i < sLen; i++) {
     // not currently processing comment
     if (commentType === CommentType.none) {
       // need to look ahead for comment start
-      if (i < sLen-1) {
+      if (i < sLen - 1) {
         if ((source[i] === '/') && (source[i + 1] === '/')) {
           commentType = CommentType.doubleSlash;
         } else if ((source[i] === '/') && (source[i + 1] === '*')) {
@@ -125,7 +115,7 @@ function extractComments(source: string) : string[] {
       }
     } else {
       if ((commentType === CommentType.slashAsterisk)) {
-        if ((source[i-1] === '*') && (source[i] === '/')) {
+        if ((source[i - 1] === '*') && (source[i] === '/')) {
           commentType = CommentType.none;
           continue;
         }
@@ -138,11 +128,15 @@ function extractComments(source: string) : string[] {
     }
 
     if ((commentType === CommentType.none) && !whiteSpace.includes(source[i])) {
-      lastNonCommentIndex = i + 1;
+      lastNonCommentIndex = i;
     }
   }
 
-  return [source.substring(0, lastNonCommentIndex), source.substring(lastNonCommentIndex)];
+  // keep line ending of non-comment character with it
+  if ((lastNonCommentIndex < sLen-1) && (source[lastNonCommentIndex + 1] === '\n')) {
+    lastNonCommentIndex++;
+  }
+  return [source.substring(0, lastNonCommentIndex+1), source.substring(lastNonCommentIndex+1)];
 }
 
 function makeStorageLib(name: string, variables: VariableDeclaration[], comments: Map<number, string>, buffer: string) {
@@ -152,8 +146,8 @@ function makeStorageLib(name: string, variables: VariableDeclaration[], comments
 library ${name}Storage {
 
   struct Layout {
-${ variables.map(v =>  '    ' + comments.get(v.id)  +
-    (v.typeDescriptions.typeString?.startsWith('contract ') ? 
+${ variables.map(v =>  comments.get(v.id) + '    ' +
+      (v.typeDescriptions.typeString?.startsWith('contract ') ? 
       renameContract(v.typeDescriptions.typeString.substring(9)) 
           : v.typeDescriptions.typeString) + ' ' + v.name + ';' ).join('\n') }
   }

@@ -6,18 +6,7 @@ import { Transformation } from './type';
 import { renameContract } from '../rename';
 import { ASTResolver } from '../ast-resolver';
 import { TransformerTools } from '../transform';
-
-function* findAllIdentifiers(node: Node) {
-  const seen = new Set();
-  for (const id of findAll(['UserDefinedTypeName', 'IdentifierPath', 'Identifier'], node)) {
-    if ('pathNode' in id && id.pathNode !== undefined) {
-      seen.add(id.pathNode);
-    }
-    if (!seen.has(id)) {
-      yield id;
-    }
-  }
-}
+import { findAllIdentifiers } from "./utils/find-all-identifiers";
 
 export function* renameIdentifiers(
   sourceUnit: SourceUnit,

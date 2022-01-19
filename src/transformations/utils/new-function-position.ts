@@ -7,7 +7,6 @@ import { matchFrom } from '../../utils/match-from';
 export function newFunctionPosition(
   contract: ContractDefinition,
   { readOriginal }: TransformerTools,
-  start = false,
 ): number {
   const offset = getNodeBounds(contract).start;
   let searchStart = 0;
@@ -18,11 +17,11 @@ export function newFunctionPosition(
     searchStart = pb.start + pb.length - offset;
   }
 
-  const brace = matchFrom(readOriginal(contract), /\{\n?/, searchStart);
+  const brace = matchFrom(readOriginal(contract), /\{[\t ]*\n?/, searchStart);
 
   if (brace === null) {
     throw new Error(`Can't find start of contract ${contract.name}`);
   }
 
-  return offset + brace.index + (start ? 1 : brace[0].length);
+  return offset + brace.index +  brace[0].length;
 }
