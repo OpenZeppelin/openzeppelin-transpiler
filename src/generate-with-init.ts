@@ -8,7 +8,7 @@ import { relativePath } from './utils/relative-path';
 import { hasConstructorOverride } from './utils/upgrades-overrides';
 
 export function generateWithInit(transform: Transform, destPath: string): string {
-  const res: Line[] = [`pragma solidity >=0.6 <0.9;`, `pragma experimental ABIEncoderV2;`, ``];
+  const res: Line[] = ['// SPDX-License-Identifier: MIT',`pragma solidity >=0.6 <0.9;`, `pragma experimental ABIEncoderV2;`, ``];
 
   for (const sourceUnit of transform.asts()) {
     for (const contract of findAll('ContractDefinition', sourceUnit)) {
@@ -45,7 +45,7 @@ export function generateWithInit(transform: Transform, destPath: string): string
         ``,
         `contract ${renamedContract}WithInit is ${renamedContract} {`,
         [
-          `constructor(${argsList}) public payable initializer {`,
+          `constructor(${argsList}) payable initializer {`,
           [`__${contract.name}_init(${argNames});`],
           `}`,
         ],

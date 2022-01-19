@@ -18,4 +18,5 @@ contract CIB is CIA(324) {
     constructor() {
         foo2 = 456;
     }
+
 }

@@ -1,29 +1,37 @@
-import { ContractDefinition, VariableDeclaration } from "solidity-ast";
+import {ContractDefinition, Identifier, VariableDeclaration} from "solidity-ast";
 import { TransformerTools } from "../../transform";
 import { ASTResolverError } from "../../ast-resolver";
 import { findAllIdentifiers } from "./find-all-identifiers";
 import {Node} from "solidity-ast/node";
 import {findAll} from "solidity-ast/utils";
 
-/*
-export function getUniqueIdentifiersUsed(contractNode: ContractDefinition, tools: TransformerTools) : Map<number, VariableDeclaration> {
+export interface IdentifierVariable {
+    identifier: Identifier,
+    varDecl: VariableDeclaration,
+}
+
+export function getUniqueIdentifierVarsUsed(contractNode: ContractDefinition, tools: TransformerTools) : Map<number, IdentifierVariable> {
     const { resolver } = tools;
-    const varDecls:  = new Map<number, VariableDeclaration>();
+    const identifiers  = new Map<number, IdentifierVariable>();
 
-    for (const { referencedDeclaration: id } of findAll('Identifier', contractNode) ) {
-
-        if (id != null) {
+    for (const identifier of findAll('Identifier', contractNode) ) {
+        const { id, referencedDeclaration } = identifier;
+        if (referencedDeclaration && !identifiers.has(id)) {
             try {
-                const varDecl: VariableDeclaration = resolver.resolveNode('VariableDeclaration', id);
-                varDecls.set(varDecl);
+                const varDecl: VariableDeclaration = resolver.resolveNode('VariableDeclaration', referencedDeclaration);
+                if (!varDecl.constant && varDecl.stateVariable) {
+                    identifiers.set(id, { identifier, varDecl});
+                }
             } catch (e) {
-                console.log('Shouldn\'t be here that\'s for sure!');
+                if (!(e instanceof ASTResolverError)) {
+                    throw e;
+                }
             }
         }
     }
 
-    return varDecls;
-} */
+    return identifiers;
+}
 
 /**
  * Get a set/map of unique state variables that are being used in the contract
@@ -40,7 +48,9 @@ export function getUniqueVariablesUsed(contractNode: ContractDefinition, tools: 
             try {
                 if (id && !varDecls.has(id)) {
                     const varDecl = resolver.resolveNode('VariableDeclaration', id);
-                    varDecls.set(id, varDecl);
+                    if (!varDecl.constant && varDecl.stateVariable && !varDecls.has(id)) {
+                        varDecls.set(id, varDecl);
+                    }
                 }
             } catch (e) {
                 if (!(e instanceof ASTResolverError)) {

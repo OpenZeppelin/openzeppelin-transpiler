@@ -8,7 +8,7 @@ import { hasConstructorOverride, hasOverride } from "../utils/upgrades-overrides
 import { Node } from "solidity-ast/node";
 import { relativePath } from "../utils/relative-path";
 import path from "path";
-import { getScopedContractsForVariables } from './utils/get-identifiers-used';
+import { getScopedContractsForVariables, getUniqueIdentifierVarsUsed } from './utils/get-identifiers-used';
 import {ContractsIdentifier} from "hardhat/internal/hardhat-network/stack-traces/contracts-identifier";
 
 export function* addDiamondAccess(sourceUnit: SourceUnit,
@@ -72,23 +72,38 @@ export function* addDiamondAccess(sourceUnit: SourceUnit,
     };
 
 
-/*    const {resolver, getData} = tools;
+    const contractNames = new Map<number, string>();
     for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
 
-      for (const expressions of findAll('ExpressionStatement', contractNode)) {
-        if (expressions..stateVariable && !varDecl.constant) {
-          if (hasOverride(varDecl, 'state-variable-assignment')) {
-            continue;
-          }
-
-          yield {
-            ...getNodeBounds(varDecl),
-            kind: 'purge-var-inits',
-            transform: source => source.replace(/\s*=.*//*s, ''),
-          };
+        if (!contractNames.has(contractNode.id)) {
+            contractNames.set(contractNode.id, contractNode.name);
         }
-      }
+
+        const identifierVars = getUniqueIdentifierVarsUsed(contractNode, tools);
+        for (const [_, identifierVar] of identifierVars) {
+            const { identifier, varDecl } = identifierVar;
+            let scopedContractName;
+            if (varDecl.scope === contractNode.id) {
+                scopedContractName = contractNode.name;
+            } else {
+                scopedContractName = contractNames.get(varDecl.scope);
+                if (!scopedContractName) {
+                    const scopedContractNode = resolver.resolveContract(varDecl.scope)!;
+                    contractNames.set(scopedContractNode.id, scopedContractNode.name);
+                    scopedContractName = scopedContractNode.name;
+                }
+            }
+
+            const storageLayoutAccess = scopedContractName + 'Storage.layout().';
+            const idBounds = getNodeBounds(identifier);
+
+            yield {
+                start: idBounds.start,
+                length: idBounds.length,
+                kind: 'set-storage-access-var-inits',
+                transform: source => storageLayoutAccess + source,
+            };
+        }
     }
-    */
- }
+}
 
