@@ -14,29 +14,47 @@ function getArgsList(constructor: FunctionDefinition, helper: TransformHelper): 
   return helper.read(constructor.parameters).replace(/^\((.*)\)$/s, '$1');
 }
 
-// Removes parameters unused by the constructor's body
-function getUnchainedArguments(constructor: FunctionDefinition, helper: TransformHelper): string {
+// Removes parameters unused by the functions's body
+function getUsedArguments(
+  constructor: FunctionDefinition,
+  helper: TransformHelper,
+  superCalls?: string[],
+): string {
+  //Get declared parameters information
   const parameters = constructor.parameters.parameters;
+  let result: string = getArgsList(constructor, helper);
 
   if (parameters?.length) {
-    const identifiersIds = new Set(
+    let found: boolean;
+    const usedIds = new Set(
       [...findAll('Identifier', constructor.body!)].map(i => i.referencedDeclaration),
     );
-    let result: string = getArgsList(constructor, helper);
 
     for (const p of parameters) {
+      found = false;
       // Check if parameter is used
-      const found = identifiersIds.has(p.id);
+      if (superCalls) {
+        // Gets all variables used by unchained calls without including the delimiters
+        const usedVariables = superCalls.join().match(/(?<=[(,\s])(_*)[A-Za-z0-9](_*)(?=[),])+/gi);
+
+        // If the init method is empty none of the parameters will be used
+        if (superCalls.length > 0 && usedVariables) {
+          found = usedVariables.includes(p.name);
+        }
+      } else {
+        found = usedIds.has(p.id);
+      }
+
       if (!found) {
         // Remove unused parameter
         result = result.replace(/\s+[a-z0-9$_]+/gi, m => (m.trim() === p.name ? '' : m));
       }
     }
-
-    return result;
   } else {
     return '';
   }
+
+  return result;
 }
 
 export function* removeLeftoverConstructorHead(sourceUnit: SourceUnit): Generator<Transformation> {
@@ -80,11 +98,12 @@ export function* transformConstructor(
     const initializer = (
       helper: TransformHelper,
       argsList = '',
+      superCalls: string[] = [],
       unchainedArgsList = '',
       unchainedCall: string[] = [],
     ) => [
       `function __${name}_init(${argsList}) internal onlyInitializing {`,
-      buildSuperCallsForChain2(contractNode, tools, helper),
+      superCalls,
       unchainedCall,
       `}`,
       ``,
@@ -101,7 +120,8 @@ export function* transformConstructor(
       // we only include modifiers that don't reference base contracts
       for (const call of constructorNode.modifiers) {
         const { referencedDeclaration } = call.modifierName;
-        if (referencedDeclaration != null && !parents.includes(referencedDeclaration)) {//is not inheritance
+        if (referencedDeclaration != null && !parents.includes(referencedDeclaration)) {
+          //is a modifier and not a parent contract call
           modifiers.push({ call });
         }
       }
@@ -114,19 +134,21 @@ export function* transformConstructor(
         ? [`__${name}_init_unchained(${argNames.join(', ')});`]
         : [];
 
-
-
       yield {
         start: bodyStart + 1,
         length: 0,
         kind: 'transform-constructor',
         transform: (_, helper) => {
-          const argsList = getArgsList(constructorNode, helper);//TODO this needs to get if the parameter is going to be used too
-          const unchainedArgsList = getUnchainedArguments(constructorNode, helper);
+          const superCalls = buildSuperCallsForChain2(contractNode, tools, helper);
+          const argsList = getUsedArguments(constructorNode, helper, superCalls);
+          const unchainedArgsList = getUsedArguments(constructorNode, helper);
 
           return formatLines(
             1,
-            initializer(helper, argsList, unchainedArgsList, unchainedCall).slice(0, -1),
+            initializer(helper, argsList, superCalls, unchainedArgsList, unchainedCall).slice(
+              0,
+              -1,
+            ),
           ).trim();
         },
       };
@@ -140,7 +162,8 @@ export function* transformConstructor(
         start,
         length: 0,
         kind: 'transform-constructor',
-        transform: (source, helper) => formatLines(1, initializer(helper, '', '', unchainedCall)),
+        transform: (source, helper) =>
+          formatLines(1, initializer(helper, '', [], '', unchainedCall)),
       };
     }
   }
