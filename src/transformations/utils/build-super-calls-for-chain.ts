@@ -117,29 +117,25 @@ function isImplicitlyConstructed(contract: ContractDefinition): boolean {
 }
 
 function isEmpty(contract: ContractDefinition): boolean {
+  if (contract.contractKind !== 'contract') {
+    return false;
+  }
+
   const ctor = getConstructor(contract);
+
   if (ctor) {
     const varInitNodes = [...findAll('VariableDeclaration', contract)].filter(
       v =>
         v.stateVariable && v.value && !v.constant && !hasOverride(v, 'state-variable-assignment'),
     );
-    const modifiers = [];
-    if (ctor) {
-      // We only include modifiers that don't reference base contracts
-      for (const call of ctor.modifiers) {
-        const { referencedDeclaration } = call.modifierName;
-        if (
-          referencedDeclaration != null &&
-          !ctor.linearizedBaseContracts?.includes(referencedDeclaration)
-        ) {
-          // Is not inheritance call
-          modifiers.push({ call });
-        }
-      }
-    }
+
+    const modifiers = ctor.modifiers.filter(
+      call =>
+        call.modifierName.referencedDeclaration != null &&
+        !ctor.linearizedBaseContracts?.includes(call.modifierName.referencedDeclaration),
+    );
 
     return (
-      contract.contractKind === 'contract' &&
       (ctor?.body?.statements?.length == undefined || ctor?.body?.statements?.length == 0) &&
       modifiers.length == 0 &&
       varInitNodes.length == 0
