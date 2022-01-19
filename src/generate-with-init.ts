@@ -15,6 +15,7 @@ export function generateWithInit(
 ): string {
   const pragmaVersion = satisfies(solcVersion, '>=0.7') ? '0.7' : '0.6';
   const res: Line[] = [
+    `// SPDX-License-Identifier: MIT`,
     `pragma solidity >=${pragmaVersion} <0.9;`,
     `pragma experimental ABIEncoderV2;`,
     ``,
