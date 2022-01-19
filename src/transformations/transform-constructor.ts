@@ -20,7 +20,7 @@ function getUsedArguments(
   helper: TransformHelper,
   superCalls?: string[],
 ): string {
-  //Get declared parameters information
+  // Get declared parameters information
   const parameters = constructor.parameters.parameters;
   let result: string = getArgsList(constructor, helper);
 

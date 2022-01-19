@@ -58,7 +58,7 @@ contract Foo7 {
 
 contract Foo8 {
 
-    modifier hasModifier(){
+    modifier hasModifier() {
         _;
     }
 
@@ -90,7 +90,7 @@ contract Foo11 is Foo7 {
     }
 }
 
-contract Foo12 is Foo7{
+contract Foo12 is Foo7 {
 
     constructor(uint a) Foo7(a) public {
     }
