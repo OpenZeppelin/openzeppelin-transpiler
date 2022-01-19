@@ -2,11 +2,12 @@ import { flatten, keyBy } from 'lodash';
 
 import { getConstructor } from '../../solc/ast-utils';
 import { findAll } from 'solidity-ast/utils';
-import { ContractDefinition } from 'solidity-ast';
+import { ContractDefinition, ModifierInvocation } from 'solidity-ast';
 import { Node } from 'solidity-ast/node';
 import { TransformHelper } from '../type';
 import { TransformerTools } from '../../transform';
 import { hasConstructorOverride, hasOverride } from '../../utils/upgrades-overrides';
+import { FunctionDefinition } from 'solidity-ast';
 
 // builds an __init call with given arguments, for example
 // ERC20DetailedUpgradeable.__init(false, "Gold", "GLD", 18)
@@ -121,7 +122,7 @@ function isEmpty(contract: ContractDefinition): boolean {
     return false;
   }
 
-  const ctor = getConstructor(contract);
+  const ctor: FunctionDefinition | undefined = getConstructor(contract);
 
   if (ctor) {
     const varInitNodes = [...findAll('VariableDeclaration', contract)].filter(
@@ -130,9 +131,9 @@ function isEmpty(contract: ContractDefinition): boolean {
     );
 
     const modifiers = ctor.modifiers.filter(
-      call =>
+      (call: ModifierInvocation) =>
         call.modifierName.referencedDeclaration != null &&
-        !ctor.linearizedBaseContracts?.includes(call.modifierName.referencedDeclaration),
+        !contract.linearizedBaseContracts?.includes(call.modifierName.referencedDeclaration),
     );
 
     return (
