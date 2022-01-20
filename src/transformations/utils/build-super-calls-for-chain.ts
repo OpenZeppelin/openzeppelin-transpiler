@@ -92,13 +92,11 @@ export function buildSuperCallsForChain2(
 
     let args = ctorCalls[parentNode.id]?.call?.arguments;
 
-    if (args == undefined && isImplicitlyConstructed(parentNode) && !isEmpty(parentNode)) {
+    if (args == undefined && isImplicitlyConstructed(parentNode)) {
       args = [];
-    } else if (isEmpty(parentNode)) {
-      args = undefined;
     }
 
-    if (args) {
+    if (args && !isConstructorEmpty(parentNode)) {
       // TODO: we have to use the name in the lexical context and not necessarily
       // the original contract name
       linearizedCtorCalls.push(buildSuperCall2(args, parentNode.name, helper));
@@ -117,7 +115,7 @@ function isImplicitlyConstructed(contract: ContractDefinition): boolean {
   );
 }
 
-function isEmpty(contract: ContractDefinition): boolean {
+function isConstructorEmpty(contract: ContractDefinition): boolean {
   if (contract.contractKind !== 'contract') {
     return false;
   }

@@ -17,44 +17,30 @@ function getArgsList(constructor: FunctionDefinition, helper: TransformHelper): 
 // Removes parameters unused by the functions's body
 function getUsedArguments(
   constructor: FunctionDefinition,
+  where: 'body' | 'body+modifiers',
   helper: TransformHelper,
-  initCalls?: string[],
 ): string {
   // Get declared parameters information
   const parameters = constructor.parameters.parameters;
-  let result: string = getArgsList(constructor, helper);
 
-  if (parameters?.length) {
-    let found: boolean;
+  if (!parameters?.length) {
+    return '';
+  } else {
+    let result: string = getArgsList(constructor, helper);
     const usedIds = new Set(
-      [...findAll('Identifier', constructor.body!)].map(i => i.referencedDeclaration),
+      [...findAll('Identifier', where === 'body' ? constructor.body : constructor)]
+      .map(i => i.referencedDeclaration),
     );
 
     for (const p of parameters) {
-      found = false;
       // Check if parameter is used
-      if (initCalls) {
-        // Gets all variables used by unchained calls without including the delimiters
-        const usedVariables = initCalls.join().match(/(?<=[(,\s])(.*?)(?=[),])+/gi);
-
-        // If the init method is empty none of the parameters will be used
-        if (initCalls.length > 0 && usedVariables) {
-          found = usedVariables.includes(p.name);
-        }
-      } else {
-        found = usedIds.has(p.id);
-      }
-
-      if (!found) {
+      if (!usedIds.has(p.id)) {
         // Remove unused parameter
         result = result.replace(/\s+[a-z0-9$_]+/gi, m => (m.trim() === p.name ? '' : m));
       }
     }
-  } else {
-    return '';
+    return result;
   }
-
-  return result;
 }
 
 export function* removeLeftoverConstructorHead(sourceUnit: SourceUnit): Generator<Transformation> {
@@ -87,7 +73,7 @@ export function* transformConstructor(
     }
 
     const { name } = contractNode;
-
+    console.log('contract', name);
     const constructorNode = getConstructor(contractNode);
 
     const varInitNodes = [...findAll('VariableDeclaration', contractNode)].filter(
@@ -125,12 +111,12 @@ export function* transformConstructor(
           modifiers.push({ call });
         }
       }
-      const hasStatements =
+      const nonEmptyConstructor =
         (constructorNode.body?.statements?.length ?? 0) > 0 ||
         modifiers.length > 0 ||
         varInitNodes.length > 0;
 
-      const unchainedCall = hasStatements
+      const unchainedCall = nonEmptyConstructor
         ? [`__${name}_init_unchained(${argNames.join(', ')});`]
         : [];
 
@@ -140,9 +126,8 @@ export function* transformConstructor(
         kind: 'transform-constructor',
         transform: (_, helper) => {
           const superCalls = buildSuperCallsForChain2(contractNode, tools, helper);
-          const initCalls = superCalls.concat(unchainedCall);
-          const argsList = getUsedArguments(constructorNode, helper, initCalls);
-          const unchainedArgsList = getUsedArguments(constructorNode, helper);
+          const argsList = getUsedArguments(constructorNode, 'body+modifiers', helper);
+          const unchainedArgsList = getUsedArguments(constructorNode, 'body', helper);
 
           return formatLines(
             1,
@@ -155,9 +140,9 @@ export function* transformConstructor(
       };
     } else {
       const start = newFunctionPosition(contractNode, tools);
-      const hasStatements = varInitNodes.length > 0;
+      const nonEmptyConstructor = varInitNodes.length > 0;
 
-      const unchainedCall = hasStatements ? [`__${name}_init_unchained();`] : [];
+      const unchainedCall = nonEmptyConstructor ? [`__${name}_init_unchained();`] : [];
 
       yield {
         start,
