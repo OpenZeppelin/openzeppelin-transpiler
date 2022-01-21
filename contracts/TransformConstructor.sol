@@ -55,3 +55,13 @@ contract Foo7 {
         a = _a;
     }
 }
+
+contract Foo14 is Foo7 {
+
+    modifier hasModifier(uint b) {
+        _;
+    }
+
+    constructor(uint a, uint b) Foo7(a) public hasModifier(b) {
+    }
+}

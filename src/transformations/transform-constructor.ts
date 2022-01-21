@@ -82,13 +82,14 @@ export function* transformConstructor(
       argsList = '',
       unchainedArgsList = '',
       argNames: string[] = [],
+	  modifiers = '',
     ) => [
       `function __${name}_init(${argsList}) internal onlyInitializing {`,
       buildSuperCallsForChain2(contractNode, tools, helper),
       [`__${name}_init_unchained(${argNames.join(', ')});`],
       `}`,
       ``,
-      `function __${name}_init_unchained(${unchainedArgsList}) internal onlyInitializing {`,
+      `function __${name}_init_unchained(${unchainedArgsList}) internal onlyInitializing ${modifiers}{`,
       varInitNodes.map(v => `${v.name} = ${helper.read(v.value!)};`),
       `}`,
     ];
@@ -96,6 +97,11 @@ export function* transformConstructor(
     if (constructorNode) {
       const { start: bodyStart } = getNodeBounds(constructorNode.body!);
       const argNames = constructorNode.parameters.parameters.map(p => p.name);
+	  const modifiers = constructorNode.modifiers.filter(
+      (call: ModifierInvocation) =>
+        call.modifierName.referencedDeclaration != null &&
+        !contractNode.linearizedBaseContracts?.includes(call.modifierName.referencedDeclaration),
+    );
 
       yield {
         start: bodyStart + 1,
@@ -104,10 +110,11 @@ export function* transformConstructor(
         transform: (_, helper) => {
           const argsList = getArgsList(constructorNode, helper);
           const unchainedArgsList = getUnchainedArguments(constructorNode, helper);
-
+     	  const modifierStrings = (modifiers && modifiers.length)? modifiers.map(m => m = helper.read(m)).join(' '):'';
+		  
           return formatLines(
             1,
-            initializer(helper, argsList, unchainedArgsList, argNames).slice(0, -1),
+            initializer(helper, argsList, unchainedArgsList, argNames, modifierStrings).slice(0, -1),
           ).trim();
         },
       };
