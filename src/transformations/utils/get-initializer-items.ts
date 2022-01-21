@@ -10,11 +10,13 @@ export function getInitializerItems(contract: ContractDefinition) {
     v => v.stateVariable && v.value && !v.constant && !hasOverride(v, 'state-variable-assignment'),
   );
 
-  const modifiers = constructorNode?.modifiers.filter(
-    call => !contract.linearizedBaseContracts?.includes(call.modifierName.referencedDeclaration!),
-  ) ?? [];
+  const modifiers =
+    constructorNode?.modifiers.filter(
+      call => !contract.linearizedBaseContracts?.includes(call.modifierName.referencedDeclaration!),
+    ) ?? [];
 
-  const empty = !constructorNode?.body?.statements?.length && varInitNodes.length == 0 && modifiers.length == 0;
+  const empty =
+    !constructorNode?.body?.statements?.length && varInitNodes.length == 0 && modifiers.length == 0;
 
   return {
     constructorNode,

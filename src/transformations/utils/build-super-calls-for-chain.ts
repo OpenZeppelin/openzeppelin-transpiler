@@ -1,13 +1,11 @@
 import { flatten, keyBy } from 'lodash';
 
 import { getConstructor } from '../../solc/ast-utils';
-import { findAll } from 'solidity-ast/utils';
-import { ContractDefinition, ModifierInvocation } from 'solidity-ast';
+import { ContractDefinition } from 'solidity-ast';
 import { Node } from 'solidity-ast/node';
 import { TransformHelper } from '../type';
 import { TransformerTools } from '../../transform';
-import { hasConstructorOverride, hasOverride } from '../../utils/upgrades-overrides';
-import { FunctionDefinition } from 'solidity-ast';
+import { hasConstructorOverride } from '../../utils/upgrades-overrides';
 import { getInitializerItems } from './get-initializer-items';
 
 // builds an __init call with given arguments, for example

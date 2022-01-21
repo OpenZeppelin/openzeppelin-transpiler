@@ -8,7 +8,7 @@ import { FunctionDefinition } from 'solidity-ast';
 import { TransformerTools } from '../transform';
 import { newFunctionPosition } from './utils/new-function-position';
 import { formatLines } from './utils/format-lines';
-import { hasConstructorOverride, hasOverride } from '../utils/upgrades-overrides';
+import { hasConstructorOverride } from '../utils/upgrades-overrides';
 import { getInitializerItems } from './utils/get-initializer-items';
 
 function getArgsList(constructor: FunctionDefinition, helper: TransformHelper): string {
@@ -69,7 +69,11 @@ export function* transformConstructor(
     }
 
     const { name } = contractNode;
-    const { constructorNode, modifiers, varInitNodes, empty: emptyConstructor } = getInitializerItems(contractNode);
+    const {
+      constructorNode,
+      varInitNodes,
+      empty: emptyConstructor,
+    } = getInitializerItems(contractNode);
 
     const initializer = (
       helper: TransformHelper,
@@ -101,10 +105,7 @@ export function* transformConstructor(
 
           return formatLines(
             1,
-            initializer(helper, argsList, unchainedArgsList, argNames).slice(
-              0,
-              -1,
-            ),
+            initializer(helper, argsList, unchainedArgsList, argNames).slice(0, -1),
           ).trim();
         },
       };
