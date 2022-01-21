@@ -9,6 +9,7 @@ import { TransformerTools } from '../transform';
 import { newFunctionPosition } from './utils/new-function-position';
 import { formatLines } from './utils/format-lines';
 import { hasConstructorOverride, hasOverride } from '../utils/upgrades-overrides';
+import { getInitializerItems } from './utils/get-initializer-items';
 
 function getArgsList(constructor: FunctionDefinition, helper: TransformHelper): string {
   return helper.read(constructor.parameters).replace(/^\((.*)\)$/s, '$1');
@@ -68,24 +69,17 @@ export function* transformConstructor(
     }
 
     const { name } = contractNode;
-
-    const constructorNode = getConstructor(contractNode);
-
-    const varInitNodes = [...findAll('VariableDeclaration', contractNode)].filter(
-      v =>
-        v.stateVariable && v.value && !v.constant && !hasOverride(v, 'state-variable-assignment'),
-    );
+    const { constructorNode, modifiers, varInitNodes, empty: emptyConstructor } = getInitializerItems(contractNode);
 
     const initializer = (
       helper: TransformHelper,
       argsList = '',
       unchainedArgsList = '',
       argNames: string[] = [],
-      nonEmptyConstructor: boolean,
     ) => [
       `function __${name}_init(${argsList}) internal onlyInitializing {`,
       buildSuperCallsForChain2(contractNode, tools, helper),
-      ...(nonEmptyConstructor ? [`__${name}_init_unchained(${argNames.join(', ')});`] : []),
+      emptyConstructor ? [] : [`__${name}_init_unchained(${argNames.join(', ')});`],
       `}`,
       ``,
       `function __${name}_init_unchained(${unchainedArgsList}) internal onlyInitializing {`,
@@ -96,20 +90,6 @@ export function* transformConstructor(
     if (constructorNode) {
       const { start: bodyStart } = getNodeBounds(constructorNode.body!);
       const argNames = constructorNode.parameters.parameters.map(p => p.name);
-      const parents = contractNode.linearizedBaseContracts;
-      const modifiers = [];
-      // we only include modifiers that don't reference base contracts
-      for (const call of constructorNode.modifiers) {
-        const { referencedDeclaration } = call.modifierName;
-        if (referencedDeclaration != null && !parents.includes(referencedDeclaration)) {
-          //is a modifier and not a parent contract call
-          modifiers.push({ call });
-        }
-      }
-      const nonEmptyConstructor =
-        (constructorNode.body?.statements?.length ?? 0) > 0 ||
-        modifiers.length > 0 ||
-        varInitNodes.length > 0;
 
       yield {
         start: bodyStart + 1,
@@ -121,7 +101,7 @@ export function* transformConstructor(
 
           return formatLines(
             1,
-            initializer(helper, argsList, unchainedArgsList, argNames, nonEmptyConstructor).slice(
+            initializer(helper, argsList, unchainedArgsList, argNames).slice(
               0,
               -1,
             ),
@@ -130,14 +110,12 @@ export function* transformConstructor(
       };
     } else {
       const start = newFunctionPosition(contractNode, tools);
-      const nonEmptyConstructor = varInitNodes.length > 0;
 
       yield {
         start,
         length: 0,
         kind: 'transform-constructor',
-        transform: (source, helper) =>
-          formatLines(1, initializer(helper, '', '', [], nonEmptyConstructor)),
+        transform: (source, helper) => formatLines(1, initializer(helper)),
       };
     }
   }

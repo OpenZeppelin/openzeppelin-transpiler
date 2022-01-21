@@ -8,6 +8,7 @@ import { TransformHelper } from '../type';
 import { TransformerTools } from '../../transform';
 import { hasConstructorOverride, hasOverride } from '../../utils/upgrades-overrides';
 import { FunctionDefinition } from 'solidity-ast';
+import { getInitializerItems } from './get-initializer-items';
 
 // builds an __init call with given arguments, for example
 // ERC20DetailedUpgradeable.__init(false, "Gold", "GLD", 18)
@@ -92,7 +93,7 @@ export function buildSuperCallsForChain2(
 
     const args = ctorCalls[parentNode.id]?.call?.arguments ?? [];
 
-    if (args.length || !isConstructorEmpty(parentNode)) {
+    if (args.length || !getInitializerItems(parentNode).empty) {
       // TODO: we have to use the name in the lexical context and not necessarily
       // the original contract name
       linearizedCtorCalls.push(buildSuperCall2(args, parentNode.name, helper));
@@ -100,30 +101,4 @@ export function buildSuperCallsForChain2(
   }
 
   return linearizedCtorCalls;
-}
-
-function isConstructorEmpty(contract: ContractDefinition): boolean {
-  if (contract.contractKind !== 'contract') {
-    return false;
-  }
-
-  const ctor: FunctionDefinition | undefined = getConstructor(contract);
-
-  if (!ctor) {
-    return true;
-  } else {
-    // TODO Add helper to reuse the check if empty logic
-    const varInitNodes = [...findAll('VariableDeclaration', contract)].filter(
-      v =>
-        v.stateVariable && v.value && !v.constant && !hasOverride(v, 'state-variable-assignment'),
-    );
-
-    const modifiers = ctor.modifiers.filter(
-      (call: ModifierInvocation) =>
-        call.modifierName.referencedDeclaration != null &&
-        !contract.linearizedBaseContracts?.includes(call.modifierName.referencedDeclaration),
-    );
-
-    return !ctor?.body?.statements?.length && modifiers.length == 0 && varInitNodes.length == 0;
-  }
 }
