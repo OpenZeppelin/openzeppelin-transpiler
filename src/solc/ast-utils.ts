@@ -13,6 +13,12 @@ nodeSchemaValidator.addMetaSchema(require('ajv/lib/refs/json-schema-draft-06.jso
 
 const isASTNode = nodeSchemaValidator.compile(astNodeSchema);
 
+interface WithScope {
+  id: number;
+  nodeType: string;
+  scope?: number;
+}
+
 export function throwIfInvalidNode(node: unknown): asserts node is Node {
   if (!isASTNode(node)) {
     throw new Error(util.inspect(node) + ' is not a valid AST node.');
@@ -31,3 +37,4 @@ export function getConstructor(node: ContractDefinition): FunctionDefinition | u
     }
   }
 }
+

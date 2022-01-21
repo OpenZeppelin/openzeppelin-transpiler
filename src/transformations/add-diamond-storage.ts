@@ -11,9 +11,9 @@ import {renameContract, renamePath} from "../rename";
 import {newFunctionPosition} from "./utils/new-function-position";
 import {Node} from "solidity-ast/node";
 
-function* findAllContractIdentifiers(node: Node) {
+function* findUserDefinedTypes(node: Node): Generator<UserDefinedTypeName> {
   const seen = new Set();
-  for (const id of findAll(['UserDefinedTypeName', 'IdentifierPath', 'Identifier'], node)) {
+  for (const id of findAll(['UserDefinedTypeName'], node)) {
     if ('pathNode' in id && id.pathNode !== undefined && !seen.has(id)) {
       seen.add(id.pathNode);
       yield id;
@@ -23,6 +23,8 @@ function* findAllContractIdentifiers(node: Node) {
 
 export function addDiamondStorage(newFiles: OutputFile[]) {
   return function* (sourceUnit: SourceUnit, tools: TransformerTools): Generator<Transformation> {
+    const { resolver } = tools;
+
     const contracts = [...findAll('ContractDefinition', sourceUnit)];
     if (!contracts.some(c => c.contractKind === 'contract')) {
       return;
@@ -30,7 +32,7 @@ export function addDiamondStorage(newFiles: OutputFile[]) {
 
     let buffer = '';
     let contractNeedsStorage = false;
-    const importsNeeded = new Set();
+    const importsNeeded = new Map<string, Set<string>>();
     for (const contract of contracts) {
 
       const varDecls = [...findAll('VariableDeclaration', contract)];
@@ -38,11 +40,25 @@ export function addDiamondStorage(newFiles: OutputFile[]) {
         v => v.stateVariable && !v.constant && !hasOverride(v, 'state-variable-assignment'),
       );
 
-      for (const contractVariable of findAllContractIdentifiers(contract)) {
-        const contractPath = tools.resolver.resolveContractPath(contractVariable.referencedDeclaration);
-        if (contractPath !== undefined) {
-          const newPathName = renamePath(contractPath);
-          importsNeeded.add(`\nimport "${newPathName}";`)
+      for (const varDecl of varDecls) {
+        const { typeName } = varDecl;
+        if (typeName && (typeName.nodeType === 'UserDefinedTypeName')) {
+          const scopeContract = resolver.resolveContract(varDecl.scope, true)!;
+          let scopedSourceUnit = sourceUnit;
+          if (scopeContract.scope !== sourceUnit.id) {
+            scopedSourceUnit = resolver.resolveNode('SourceUnit', scopeContract.scope);
+          }
+
+          const newPathName = renamePath(scopedSourceUnit.absolutePath);
+          if (!importsNeeded.has(newPathName)) {
+            importsNeeded.set(newPathName, new Set<string>());
+          }
+          // referring to contract reference
+          if (typeName.referencedDeclaration === scopeContract.id) {
+            const depContractsSet = importsNeeded.get(newPathName)!;
+            depContractsSet.add(renameContract(scopeContract.name));
+
+          }
         }
       }
 
@@ -77,11 +93,16 @@ export function addDiamondStorage(newFiles: OutputFile[]) {
       }
     }
 
+    let importsText = '';
+    importsNeeded.forEach( (contractNames, sourcePath) => {
+      importsText += '\nimport '  + (contractNames.size ? '{ ' + [...contractNames].join(',') + ' } from ' : '') + '"' + sourcePath + '";';
+    });
+
     if (contractNeedsStorage) {
       const newBuffer = `// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.0;
-${ [...importsNeeded].join('')}` + buffer;
+` + importsText + buffer;
 
       const {dir, name, ext} = path.parse(sourceUnit.absolutePath);
       const newpath = path.format({dir, ext, name: name + 'Storage'});
@@ -146,10 +167,19 @@ function makeStorageLib(name: string, variables: VariableDeclaration[], comments
 library ${name}Storage {
 
   struct Layout {
-${ variables.map(v =>  comments.get(v.id) + '    ' +
-      (v.typeDescriptions.typeString?.startsWith('contract ') ? 
-      renameContract(v.typeDescriptions.typeString.substring(9)) 
-          : v.typeDescriptions.typeString) + ' ' + v.name + ';' ).join('\n') }
+${ variables.map(v =>  {
+    let { typeString } = v.typeDescriptions!;
+    if (v.typeName?.nodeType === 'UserDefinedTypeName') {
+      if (typeString) {
+        const varTypeStrings = typeString.split(' ', 2);
+        if (varTypeStrings.length == 2) {
+          typeString = renamePath(varTypeStrings[1]);
+        }
+      }
+    }
+    
+    return comments.get(v.id) + '    ' + typeString + ' ' + v.name + ';'  }).join('\n')
+  }
   }
   
   bytes32 internal constant STORAGE_SLOT = keccak256('openzepplin.contracts.storage.${name}');

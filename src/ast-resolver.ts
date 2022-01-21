@@ -1,36 +1,44 @@
-import { ContractDefinition } from 'solidity-ast';
+import {ContractDefinition, SourceUnit} from 'solidity-ast';
 import { findAll } from 'solidity-ast/utils';
-import { NodeType, NodeTypeMap } from 'solidity-ast/node';
+import { Node, NodeType, NodeTypeMap } from 'solidity-ast/node';
 
 import { SolcOutput } from './solc/input-output';
+import {WithSrc} from "./transformations/type";
+
+const scopedTypes: NodeType[] = ['ContractDefinition', 'StructDefinition', 'FunctionDefinition', 'VariableDeclaration' ];
 
 export class ASTResolver {
-  constructor(readonly output: SolcOutput, readonly exclude?: (source: string) => boolean) {}
+  constructor(readonly output: SolcOutput, readonly exclude?: (source: string) => boolean) {
+  }
 
-  resolveContract(id: number): ContractDefinition | undefined {
-    try {
-      return this.resolveNode('ContractDefinition', id);
-    } catch (e) {
-      if (e instanceof ASTResolverError) {
+  resolveContract(id: number, recurse: boolean = false): ContractDefinition | undefined {
+    let outOfScope = false;
+    while (1) {
+      let node;
+      try {
+        node = this.resolveNode(scopedTypes, id);
+      } catch (e) {
+        if (!(e instanceof ASTResolverError)) {
+          throw e;
+        }
+        return undefined;
+      }
+      if (node.nodeType == 'ContractDefinition') {
+        return node;
+      } else if (!recurse || !("scope" in node)) {
         return undefined;
       } else {
-        throw e;
+        id = node.scope;
       }
     }
   }
 
-  resolveContractPath(id: number): string | undefined {
-    for (const source in this.output.sources) {
-      for (const c of findAll('ContractDefinition', this.output.sources[source].ast)) {
-        if (c.id === id) {
-            return this.output.sources[source].ast.absolutePath;
-        }
-      }
+  resolveNode<T extends NodeType>(nodeType: T | T[], id: number): NodeTypeMap[T] {
+
+    if (!Array.isArray(nodeType)) {
+     nodeType = [nodeType];
     }
 
-    throw new ASTResolverError('ContractDefinition');
-  }
-  resolveNode<T extends NodeType>(nodeType: T, id: number): NodeTypeMap[T] {
     for (const source in this.output.sources) {
       for (const c of findAll(nodeType, this.output.sources[source].ast)) {
         if (c.id === id) {
@@ -48,7 +56,10 @@ export class ASTResolver {
 }
 
 export class ASTResolverError extends Error {
-  constructor(nodeType: NodeType) {
-    super(`Can't find required ${nodeType}`);
+  constructor(nodeType: NodeType | NodeType[]) {
+    if (!Array.isArray(nodeType)) {
+      nodeType = [nodeType];
+    }
+    super(`Can't find required ${nodeType.join(',')}`);
   }
 }
