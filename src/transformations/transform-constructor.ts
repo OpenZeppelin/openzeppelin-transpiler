@@ -1,8 +1,8 @@
-import { SourceUnit } from 'solidity-ast';
+import { ModifierInvocation, SourceUnit } from 'solidity-ast';
 
 import { getConstructor, getNodeBounds } from '../solc/ast-utils';
 import { Transformation, TransformHelper } from './type';
-import { buildSuperCallsForChain2 } from './utils/build-super-calls-for-chain';
+import { buildSuperCallsForChain } from './utils/build-super-calls-for-chain';
 import { findAll } from 'solidity-ast/utils';
 import { FunctionDefinition } from 'solidity-ast';
 import { TransformerTools } from '../transform';
@@ -15,8 +15,10 @@ function getArgsList(constructor: FunctionDefinition, helper: TransformHelper): 
 }
 
 // Removes parameters unused by the constructor's body
-function getUnchainedArguments(constructor: FunctionDefinition, helper: TransformHelper): string {
+function getUnchainedArguments(constructor: FunctionDefinition, helper: TransformHelper, modifiers: ModifierInvocation[]): string {
   const parameters = constructor.parameters.parameters;
+  // Gets all arguments arrays and concat them into one array
+  const usedOnModifiers = modifiers.map(m => m.arguments!).reduce((a, b) => a.concat(b), []);
 
   if (parameters?.length) {
     const identifiersIds = new Set(
@@ -25,9 +27,8 @@ function getUnchainedArguments(constructor: FunctionDefinition, helper: Transfor
     let result: string = getArgsList(constructor, helper);
 
     for (const p of parameters) {
-      // Check if parameter is used
-      const found = identifiersIds.has(p.id);
-      if (!found) {
+      // Check if parameter is used on the body or the modifiers
+      if (!identifiersIds.has(p.id) && !usedOnModifiers.some(m => m?.name! === p.name)) {
         // Remove unused parameter
         result = result.replace(/\s+[a-z0-9$_]+/gi, m => (m.trim() === p.name ? '' : m));
       }
@@ -69,7 +70,7 @@ export function* transformConstructor(
     }
 
     const { name } = contractNode;
-
+    console.log('contracts:', name);
     const constructorNode = getConstructor(contractNode);
 
     const varInitNodes = [...findAll('VariableDeclaration', contractNode)].filter(
@@ -85,7 +86,7 @@ export function* transformConstructor(
 	  modifiers = '',
     ) => [
       `function __${name}_init(${argsList}) internal onlyInitializing {`,
-      buildSuperCallsForChain2(contractNode, tools, helper),
+      buildSuperCallsForChain(contractNode, tools, helper),
       [`__${name}_init_unchained(${argNames.join(', ')});`],
       `}`,
       ``,
@@ -97,7 +98,7 @@ export function* transformConstructor(
     if (constructorNode) {
       const { start: bodyStart } = getNodeBounds(constructorNode.body!);
       const argNames = constructorNode.parameters.parameters.map(p => p.name);
-	  const modifiers = constructorNode.modifiers.filter(
+	    const modifiers = constructorNode.modifiers.filter(
       (call: ModifierInvocation) =>
         call.modifierName.referencedDeclaration != null &&
         !contractNode.linearizedBaseContracts?.includes(call.modifierName.referencedDeclaration),
@@ -109,9 +110,9 @@ export function* transformConstructor(
         kind: 'transform-constructor',
         transform: (_, helper) => {
           const argsList = getArgsList(constructorNode, helper);
-          const unchainedArgsList = getUnchainedArguments(constructorNode, helper);
-     	  const modifierStrings = (modifiers && modifiers.length)? modifiers.map(m => m = helper.read(m)).join(' '):'';
-		  
+          const unchainedArgsList = getUnchainedArguments(constructorNode, helper, modifiers);
+     	    const modifierStrings = (modifiers && modifiers.length)? modifiers.map(m => m = helper.read(m)).join(' '):'';
+
           return formatLines(
             1,
             initializer(helper, argsList, unchainedArgsList, argNames, modifierStrings).slice(0, -1),
