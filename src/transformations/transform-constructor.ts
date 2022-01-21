@@ -15,11 +15,7 @@ function getArgsList(constructor: FunctionDefinition, helper: TransformHelper): 
 }
 
 // Removes parameters unused by the functions's body
-function getUsedArguments(
-  constructor: FunctionDefinition,
-  where: 'body' | 'body+modifiers',
-  helper: TransformHelper,
-): string {
+function getUsedArguments(constructor: FunctionDefinition, helper: TransformHelper): string {
   // Get declared parameters information
   const parameters = constructor.parameters.parameters;
 
@@ -28,8 +24,7 @@ function getUsedArguments(
   } else {
     let result: string = getArgsList(constructor, helper);
     const usedIds = new Set(
-      [...findAll('Identifier', where === 'body' ? constructor.body : constructor)]
-      .map(i => i.referencedDeclaration),
+      [...findAll('Identifier', constructor.body!)].map(i => i.referencedDeclaration),
     );
 
     for (const p of parameters) {
@@ -73,7 +68,7 @@ export function* transformConstructor(
     }
 
     const { name } = contractNode;
-    console.log('contract', name);
+
     const constructorNode = getConstructor(contractNode);
 
     const varInitNodes = [...findAll('VariableDeclaration', contractNode)].filter(
@@ -84,13 +79,13 @@ export function* transformConstructor(
     const initializer = (
       helper: TransformHelper,
       argsList = '',
-      superCalls: string[] = [],
       unchainedArgsList = '',
-      unchainedCall: string[] = [],
+      argNames: string[] = [],
+      nonEmptyConstructor: boolean,
     ) => [
       `function __${name}_init(${argsList}) internal onlyInitializing {`,
-      superCalls,
-      unchainedCall,
+      buildSuperCallsForChain2(contractNode, tools, helper),
+      ...(nonEmptyConstructor ? [`__${name}_init_unchained(${argNames.join(', ')});`] : []),
       `}`,
       ``,
       `function __${name}_init_unchained(${unchainedArgsList}) internal onlyInitializing {`,
@@ -116,22 +111,17 @@ export function* transformConstructor(
         modifiers.length > 0 ||
         varInitNodes.length > 0;
 
-      const unchainedCall = nonEmptyConstructor
-        ? [`__${name}_init_unchained(${argNames.join(', ')});`]
-        : [];
-
       yield {
         start: bodyStart + 1,
         length: 0,
         kind: 'transform-constructor',
         transform: (_, helper) => {
-          const superCalls = buildSuperCallsForChain2(contractNode, tools, helper);
-          const argsList = getUsedArguments(constructorNode, 'body+modifiers', helper);
-          const unchainedArgsList = getUsedArguments(constructorNode, 'body', helper);
+          const argsList = getArgsList(constructorNode, helper);
+          const unchainedArgsList = getUsedArguments(constructorNode, helper);
 
           return formatLines(
             1,
-            initializer(helper, argsList, superCalls, unchainedArgsList, unchainedCall).slice(
+            initializer(helper, argsList, unchainedArgsList, argNames, nonEmptyConstructor).slice(
               0,
               -1,
             ),
@@ -142,14 +132,12 @@ export function* transformConstructor(
       const start = newFunctionPosition(contractNode, tools);
       const nonEmptyConstructor = varInitNodes.length > 0;
 
-      const unchainedCall = nonEmptyConstructor ? [`__${name}_init_unchained();`] : [];
-
       yield {
         start,
         length: 0,
         kind: 'transform-constructor',
         transform: (source, helper) =>
-          formatLines(1, initializer(helper, '', [], '', unchainedCall)),
+          formatLines(1, initializer(helper, '', '', [], nonEmptyConstructor)),
       };
     }
   }

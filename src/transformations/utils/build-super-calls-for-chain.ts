@@ -90,13 +90,9 @@ export function buildSuperCallsForChain2(
       continue;
     }
 
-    let args = ctorCalls[parentNode.id]?.call?.arguments;
+    const args = ctorCalls[parentNode.id]?.call?.arguments ?? [];
 
-    if (args == undefined && isImplicitlyConstructed(parentNode)) {
-      args = [];
-    }
-
-    if (args && !isConstructorEmpty(parentNode)) {
+    if (args.length || !isConstructorEmpty(parentNode)) {
       // TODO: we have to use the name in the lexical context and not necessarily
       // the original contract name
       linearizedCtorCalls.push(buildSuperCall2(args, parentNode.name, helper));
@@ -106,15 +102,6 @@ export function buildSuperCallsForChain2(
   return linearizedCtorCalls;
 }
 
-function isImplicitlyConstructed(contract: ContractDefinition): boolean {
-  const ctor = getConstructor(contract);
-
-  return (
-    contract.contractKind === 'contract' &&
-    (ctor == undefined || ctor.parameters.parameters.length === 0)
-  );
-}
-
 function isConstructorEmpty(contract: ContractDefinition): boolean {
   if (contract.contractKind !== 'contract') {
     return false;
@@ -122,7 +109,10 @@ function isConstructorEmpty(contract: ContractDefinition): boolean {
 
   const ctor: FunctionDefinition | undefined = getConstructor(contract);
 
-  if (ctor) {
+  if (!ctor) {
+    return true;
+  } else {
+    // TODO Add helper to reuse the check if empty logic
     const varInitNodes = [...findAll('VariableDeclaration', contract)].filter(
       v =>
         v.stateVariable && v.value && !v.constant && !hasOverride(v, 'state-variable-assignment'),
@@ -134,12 +124,6 @@ function isConstructorEmpty(contract: ContractDefinition): boolean {
         !contract.linearizedBaseContracts?.includes(call.modifierName.referencedDeclaration),
     );
 
-    return (
-      (ctor?.body?.statements?.length == undefined || ctor?.body?.statements?.length == 0) &&
-      modifiers.length == 0 &&
-      varInitNodes.length == 0
-    );
-  } else {
-    return true;
+    return !ctor?.body?.statements?.length && modifiers.length == 0 && varInitNodes.length == 0;
   }
 }

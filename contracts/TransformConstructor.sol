@@ -37,14 +37,18 @@ contract Bar3 is Bar2 {
 }
 
 contract Foo5 {
-    constructor(function () external f) public {}
+    constructor(function () external f) public {
+        f();
+    }
 }
 
 contract Foo6 {
     constructor(
         uint a,
         uint b
-    ) public {}
+    ) public {
+        a = a + b;
+    }
 }
 
 contract Foo7 {
@@ -71,6 +75,7 @@ contract Foo9 {
         uint a,
         uint b
     ) public {
+        a = 0;
         b = 0;
     }
 }
@@ -97,9 +102,7 @@ contract Foo12 is Foo7 {
 }
 
 contract Foo13 is Foo4 {
-    constructor(uint a) public {
-
-    }
+    constructor() public { }
 }
 
 contract Foo14 is Foo7 {
