@@ -1,16 +1,14 @@
-const test = require('ava');
-const path = require('path');
-const { promises: fs } = require('fs');
+import _test, { TestFn } from 'ava';
+import hre from 'hardhat';
 
-const { transpile } = require('../..');
+import { getBuildInfo } from './test-utils/get-build-info';
 
-process.chdir(__dirname);
-const hre = require('hardhat');
+import { OutputFile, transpile } from '.';
+import { SolcOutput } from './solc/input-output';
 
-test.serial.before('compile', async () => {
-  await hre.run('compile');
-});
+const test = _test as TestFn<Context>;
 
+<<<<<<< HEAD:test/solc-0.8-diamond/test.js
 test.before('transpile', async t => {
   const buildinfo = path.join(hre.config.paths.artifacts, 'build-info');
   const filenames = await fs.readdir(buildinfo);
@@ -20,6 +18,11 @@ test.before('transpile', async t => {
   t.context.files = await transpile(solcInput, solcOutput, hre.config.paths);
   console.log(t.context.files)
 });
+=======
+interface Context {
+  files: OutputFile[];
+}
+>>>>>>> upstream/master:src/index.test.ts
 
 const fileNames = [
   'ClassInheritance.sol',
@@ -37,6 +40,14 @@ const fileNames = [
   'Interface.sol',
   'Rename.sol',
 ];
+
+test.serial.before('compile', async t => {
+  const buildInfo = await getBuildInfo('0.6');
+  const solcInput = buildInfo.input;
+  const solcOutput = buildInfo.output as SolcOutput;
+
+  t.context.files = await transpile(solcInput, solcOutput, hre.config.paths);
+});
 
 for (const fileName of fileNames) {
   test(fileName, t => {
