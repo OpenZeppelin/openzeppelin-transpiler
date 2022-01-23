@@ -3,28 +3,22 @@ import { findAll } from 'solidity-ast/utils';
 import { Node, NodeType, NodeTypeMap } from 'solidity-ast/node';
 
 import { SolcOutput } from './solc/input-output';
-import {WithSrc} from "./transformations/type";
 
-const scopedTypes: NodeType[] = ['ContractDefinition', 'StructDefinition', 'FunctionDefinition', 'VariableDeclaration' ];
+const scopedTypes: NodeType[] = ['ContractDefinition', 'StructDefinition', 'FunctionDefinition', 'VariableDeclaration'];
 
 export class ASTResolver {
   constructor(readonly output: SolcOutput, readonly exclude?: (source: string) => boolean) {
   }
 
   resolveContract(id: number, recurse: boolean = false): ContractDefinition | undefined {
-    let outOfScope = false;
     while (1) {
-      let node;
-      try {
-        node = this.resolveNode(scopedTypes, id);
-      } catch (e) {
-        if (!(e instanceof ASTResolverError)) {
-          throw e;
-        }
+      const node = this.resolveNode(scopedTypes, id, false);
+      if (!node) {
         return undefined;
       }
-      if (node.nodeType == 'ContractDefinition') {
-        return node;
+
+      if (node.nodeType === 'ContractDefinition') {
+          return node;
       } else if (!recurse || !("scope" in node)) {
         return undefined;
       } else {
@@ -33,7 +27,7 @@ export class ASTResolver {
     }
   }
 
-  resolveNode<T extends NodeType>(nodeType: T | T[], id: number): NodeTypeMap[T] {
+  resolveNode<T extends NodeType>(nodeType: T | T[], id: number, doThrows:boolean = true): NodeTypeMap[T] | undefined {
 
     if (!Array.isArray(nodeType)) {
      nodeType = [nodeType];
@@ -42,7 +36,7 @@ export class ASTResolver {
     for (const source in this.output.sources) {
       for (const c of findAll(nodeType, this.output.sources[source].ast)) {
         if (c.id === id) {
-          if (this.exclude?.(source)) {
+          if (this.exclude?.(source) && doThrows) {
             throw new Error(`Symbol was imported from an excluded file (${source})`);
           } else {
             return c;
@@ -51,7 +45,11 @@ export class ASTResolver {
       }
     }
 
-    throw new ASTResolverError(nodeType);
+    if (doThrows) {
+      throw new ASTResolverError(nodeType);
+    } else {
+      return undefined;
+    }
   }
 }
 

@@ -21,7 +21,7 @@ contract ElementaryTypesWithConstructor  {
     ElementaryStructType public esTypeTest;
     mapping(address => mapping(uint => address)) mappingTest;
 
-    constructor() {
+    constructor() public {
         /**
          * @dev just a random setting of the address
         */

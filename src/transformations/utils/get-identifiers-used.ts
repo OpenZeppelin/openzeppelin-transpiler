@@ -17,15 +17,9 @@ export function getUniqueIdentifierVarsUsed(contractNode: ContractDefinition, to
     for (const identifier of findAll('Identifier', contractNode) ) {
         const { id, referencedDeclaration } = identifier;
         if (referencedDeclaration && !identifiers.has(id)) {
-            try {
-                const varDecl: VariableDeclaration = resolver.resolveNode('VariableDeclaration', referencedDeclaration);
-                if (!varDecl.constant && varDecl.stateVariable) {
-                    identifiers.set(id, { identifier, varDecl});
-                }
-            } catch (e) {
-                if (!(e instanceof ASTResolverError)) {
-                    throw e;
-                }
+            const varDecl: VariableDeclaration = resolver.resolveNode('VariableDeclaration', referencedDeclaration, false)!;
+            if (varDecl &&!varDecl.constant && varDecl.stateVariable) {
+                identifiers.set(id, { identifier, varDecl});
             }
         }
     }
@@ -45,16 +39,10 @@ export function getUniqueVariablesUsed(contractNode: ContractDefinition, tools: 
     for (const identifier of findAll(['VariableDeclaration', 'Identifier'], contractNode )) {
         if (identifier.nodeType === 'Identifier') {
             const id = identifier.referencedDeclaration;
-            try {
-                if (id && !varDecls.has(id)) {
-                    const varDecl = resolver.resolveNode('VariableDeclaration', id);
-                    if (!varDecl.constant && varDecl.stateVariable && !varDecls.has(id)) {
-                        varDecls.set(id, varDecl);
-                    }
-                }
-            } catch (e) {
-                if (!(e instanceof ASTResolverError)) {
-                    throw e;
+            if (id && !varDecls.has(id)) {
+                const varDecl = resolver.resolveNode('VariableDeclaration', id, false)!;
+                if (varDecl && !varDecl.constant && varDecl.stateVariable && !varDecls.has(id)) {
+                    varDecls.set(id, varDecl);
                 }
             }
         } else {

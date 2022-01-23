@@ -13,7 +13,7 @@ contract RenameContract {
 contract RenameDeployer {
     RenameContract rc = RenameContract(address(0));
 
-    constructor() {
+    constructor() public {
         new RenameContract();
     }
 

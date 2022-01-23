@@ -43,21 +43,24 @@ export function addDiamondStorage(newFiles: OutputFile[]) {
       for (const varDecl of varDecls) {
         const { typeName } = varDecl;
         if (typeName && (typeName.nodeType === 'UserDefinedTypeName')) {
-          const scopeContract = resolver.resolveContract(varDecl.scope, true)!;
-          let scopedSourceUnit = sourceUnit;
-          if (scopeContract.scope !== sourceUnit.id) {
-            scopedSourceUnit = resolver.resolveNode('SourceUnit', scopeContract.scope);
-          }
+          const scopeContract = resolver.resolveContract(varDecl.scope, true);
+          // type could not have found a scope, i.e. EnumDefinition
+          if (scopeContract) {
+            let scopedSourceUnit = sourceUnit;
+            if (scopeContract.scope !== sourceUnit.id) {
+              scopedSourceUnit = resolver.resolveNode('SourceUnit', scopeContract.scope)!;
+            }
 
-          const newPathName = renamePath(scopedSourceUnit.absolutePath);
-          if (!importsNeeded.has(newPathName)) {
-            importsNeeded.set(newPathName, new Set<string>());
-          }
-          // referring to contract reference
-          if (typeName.referencedDeclaration === scopeContract.id) {
-            const depContractsSet = importsNeeded.get(newPathName)!;
-            depContractsSet.add(renameContract(scopeContract.name));
+            const newPathName = renamePath(scopedSourceUnit.absolutePath);
+            if (!importsNeeded.has(newPathName)) {
+              importsNeeded.set(newPathName, new Set<string>());
+            }
+            // referring to contract reference
+            if (typeName.referencedDeclaration === scopeContract.id) {
+              const depContractsSet = importsNeeded.get(newPathName)!;
+              depContractsSet.add(renameContract(scopeContract.name));
 
+            }
           }
         }
       }

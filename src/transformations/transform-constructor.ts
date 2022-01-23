@@ -41,35 +41,6 @@ function getUnchainedArguments(constructor: FunctionDefinition, helper: Transfor
   }
 }
 
-function getArgsList(constructor: FunctionDefinition, helper: TransformHelper): string {
-  return helper.read(constructor.parameters).replace(/^\((.*)\)$/s, '$1');
-}
-
-// Removes parameters unused by the constructor's body
-function getUnchainedArguments(constructor: FunctionDefinition, helper: TransformHelper): string {
-  const parameters = constructor.parameters.parameters;
-
-  if (parameters?.length) {
-    const identifiersIds = new Set(
-      [...findAll('Identifier', constructor.body!)].map(i => i.referencedDeclaration),
-    );
-    let result: string = getArgsList(constructor, helper);
-
-    for (const p of parameters) {
-      // Check if parameter is used
-      const found = identifiersIds.has(p.id);
-      if (!found) {
-        // Remove unused parameter
-        result = result.replace(/\s+[a-z0-9$_]+/gi, m => (m.trim() === p.name ? '' : m));
-      }
-    }
-
-    return result;
-  } else {
-    return '';
-  }
-}
-
 export function* removeLeftoverConstructorHead(sourceUnit: SourceUnit): Generator<Transformation> {
   for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
     if (hasConstructorOverride(contractNode)) {

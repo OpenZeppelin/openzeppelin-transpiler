@@ -4,13 +4,17 @@ import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
 import { renameContract, renamePath } from '../rename';
 import { TransformerTools } from '../transform';
+import {ASTResolverError} from "../ast-resolver";
 
 export function* fixImportDirectives(
   ast: SourceUnit,
   { resolver }: TransformerTools,
 ): Generator<Transformation> {
   for (const imp of findAll('ImportDirective', ast)) {
-    const referencedSourceUnit = resolver.resolveNode('SourceUnit', imp.sourceUnit);
+    const referencedSourceUnit = resolver.resolveNode('SourceUnit', imp.sourceUnit, false);
+    if (!referencedSourceUnit) {
+      throw new ASTResolverError('SourceUnit');
+    }
 
     const aliases = imp.symbolAliases.map(a => {
       const id = referencedSourceUnit.exportedSymbols[a.foreign.name]?.[0];

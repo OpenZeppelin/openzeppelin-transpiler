@@ -12,7 +12,7 @@ contract Local is Imported2 {
 
     LocalStruct localStruct;
 
-    constructor(uint x, uint y) Imported2(x, y) {
+    constructor(uint x, uint y) Imported2(x, y) public {
         localStruct.testImportedStruct.money = 0xFED;
     }
 

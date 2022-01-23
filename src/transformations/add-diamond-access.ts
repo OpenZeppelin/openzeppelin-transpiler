@@ -46,7 +46,7 @@ export function* addDiamondAccess(sourceUnit: SourceUnit,
     let imports = new Map<string, Array<string>>();
     referencedContracts.forEach(contract => {
         try {
-            const srcFile: SourceUnit = resolver.resolveNode('SourceUnit', contract.scope);
+            const srcFile: SourceUnit = resolver.resolveNode('SourceUnit', contract.scope)!;
             if (!imports.has(srcFile.absolutePath)) {
                 imports.set(srcFile.absolutePath, new Array<string>());
             }

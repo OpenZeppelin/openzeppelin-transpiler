@@ -123,7 +123,7 @@ export async function transpile(
 
   const initializableSource =
     options?.initializablePath !== undefined
-      ? transpileInitializable(solcInput, solcOutput, paths, options?.initializablePath)
+      ? transpileInitializable(solcInput, solcOutput, paths, options?.initializablePath, options?.extractStorage || false, outputFiles)
       : fs.readFileSync(require.resolve(options?.extractStorage ? '../InitializableFacet.sol': '../Initializable.sol'), 'utf8');
 
   outputFiles.push({
@@ -156,6 +156,8 @@ function transpileInitializable(
   solcOutput: SolcOutput,
   paths: Paths,
   initializablePath: string,
+  extractStorage: boolean,
+  outputFiles: OutputFile[],
 ): string {
   const transform = new Transform(solcInput, solcOutput);
 
@@ -163,6 +165,12 @@ function transpileInitializable(
     if (ast.absolutePath === initializablePath) {
       yield* renameIdentifiers(ast, tools);
       yield* fixImportDirectives(ast, tools);
+      if (extractStorage) {
+        yield* addDiamondAccess(ast, tools);
+        yield* addDiamondStorage(outputFiles)(ast, tools);
+        yield* removeStateVariables(ast, tools);
+
+      }
     }
   });
 

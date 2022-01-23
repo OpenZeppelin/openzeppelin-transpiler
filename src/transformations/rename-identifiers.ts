@@ -4,7 +4,7 @@ import { findAll } from 'solidity-ast/utils';
 import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
 import { renameContract } from '../rename';
-import { ASTResolver } from '../ast-resolver';
+import {ASTResolver, ASTResolverError} from '../ast-resolver';
 import { TransformerTools } from '../transform';
 import { findAllIdentifiers } from "./utils/find-all-identifiers";
 
@@ -60,7 +60,10 @@ function getTransitiveRenameCandidates(
   }
 
   for (const imp of findAll('ImportDirective', sourceUnit)) {
-    const referencedSourceUnit = resolver.resolveNode('SourceUnit', imp.sourceUnit);
+    const referencedSourceUnit = resolver.resolveNode('SourceUnit', imp.sourceUnit, false);
+    if (!referencedSourceUnit) {
+      throw new ASTResolverError('SourceUnit');
+    }
     const subexports = getTransitiveRenameCandidates(referencedSourceUnit, resolver);
     if (imp.symbolAliases.length === 0) {
       Object.assign(ex, subexports);
