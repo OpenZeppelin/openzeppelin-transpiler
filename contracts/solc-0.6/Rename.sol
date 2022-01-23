@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.6.0;
 
 library RenameLibrary {
@@ -9,9 +11,9 @@ contract RenameContract {
 }
 
 contract RenameDeployer {
-    RenameContract rc = RenameContract(0);
+    RenameContract rc = RenameContract(address(0));
 
-    constructor() public {
+    constructor() {
         new RenameContract();
     }
 

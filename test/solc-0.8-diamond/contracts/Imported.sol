@@ -3,10 +3,7 @@
 pragma solidity ^0.8.0;
 
 contract Imported1 {
-<<<<<<< HEAD
 
-=======
->>>>>>> 080f60b... wip - adding testing for solc 0.8.0 and diamond storage generation
     constructor(uint256 x, uint256 y) { }
 }
 

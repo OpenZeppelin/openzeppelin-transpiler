@@ -1,9 +1,11 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.6.0;
 
 contract SIA {
     uint256 public foo;
     event log(string);
-    constructor() public {
+    constructor() {
         emit log("SIA");
     }
 }
@@ -14,7 +16,7 @@ contract SIB is SIA {
 
 contract SIC is SIB {
     string public bar = "hello";
-    constructor() public {
+    constructor() {
         bar = "changed";
         emit log("SIC");
     }

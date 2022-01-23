@@ -1,7 +1,19 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.6.0;
 
 import './Imported.sol';
 
 contract Local is Imported2 {
-    constructor(uint x, uint y) Imported2(x, y) public { }
+
+    struct LocalStruct {
+        imported2Struct testImportedStruct;
+    }
+
+    LocalStruct localStruct;
+
+    constructor(uint x, uint y) Imported2(x, y) {
+        localStruct.testImportedStruct.money = 0xFED;
+    }
+
 }

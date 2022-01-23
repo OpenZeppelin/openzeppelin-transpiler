@@ -17,11 +17,8 @@ pragma solidity ^0.8.0;
 import { InitializableStorage } from './InitializableStorage.sol';
 
 abstract contract Initializable {
-<<<<<<< HEAD
   using InitializableStorage for InitializableStorage.Layout;
-=======
-  using InitializableStorage for InitializeableStorage.Layout;
->>>>>>> 080f60b... wip - adding testing for solc 0.8.0 and diamond storage generation
+
   /**
    * @dev Modifier to protect an initializer function from being invoked twice.
    */
@@ -51,11 +48,7 @@ abstract contract Initializable {
     _;
 
     if (isTopLevelCall) {
-<<<<<<< HEAD
       InitializableStorage.layout()._initializing = false;
-=======
-      InitializeableStorage.layout()._initializing = false;
->>>>>>> 080f60b... wip - adding testing for solc 0.8.0 and diamond storage generation
     }
   }
 
