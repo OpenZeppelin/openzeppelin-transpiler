@@ -4,7 +4,7 @@ import { getConstructor, getNodeBounds } from '../solc/ast-utils';
 import { Transformation, TransformHelper } from './type';
 import { buildSuperCallsForChain } from './utils/build-super-calls-for-chain';
 import { findAll } from 'solidity-ast/utils';
-import { FunctionDefinition } from 'solidity-ast';
+import { FunctionDefinition, Identifier } from 'solidity-ast';
 import { TransformerTools } from '../transform';
 import { newFunctionPosition } from './utils/new-function-position';
 import { formatLines } from './utils/format-lines';
@@ -22,7 +22,9 @@ function getUnchainedArguments(
 ): string {
   const parameters = constructor.parameters.parameters;
   // Gets all arguments arrays and concat them into one array
-  const usedOnModifiers = modifiers.flatMap(m => [...findAll('Identifier', m)]);
+  const usedOnModifiers = modifiers.flatMap((m: ModifierInvocation) => [
+    ...findAll('Identifier', m),
+  ]);
 
   if (parameters?.length) {
     const identifiersIds = new Set(
@@ -34,7 +36,7 @@ function getUnchainedArguments(
       // Check if parameter is used on the body or the modifiers
       if (
         !identifiersIds.has(p.id) &&
-        !usedOnModifiers.some(m => m!.referencedDeclaration! === p.id)
+        !usedOnModifiers.some((m: Identifier) => m!.referencedDeclaration! === p.id)
       ) {
         // Remove unused parameter
         result = result.replace(/\s+[a-z0-9$_]+/gi, m => (m.trim() === p.name ? '' : m));
