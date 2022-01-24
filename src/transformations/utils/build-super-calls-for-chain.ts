@@ -1,12 +1,12 @@
 import { flatten, keyBy } from 'lodash';
 
 import { getConstructor } from '../../solc/ast-utils';
-
 import { ContractDefinition } from 'solidity-ast';
 import { Node } from 'solidity-ast/node';
 import { TransformHelper } from '../type';
 import { TransformerTools } from '../../transform';
 import { hasConstructorOverride } from '../../utils/upgrades-overrides';
+import { getInitializerItems } from './get-initializer-items';
 
 // builds an __init call with given arguments, for example
 // ERC20DetailedUpgradeable.__init(false, "Gold", "GLD", 18)
@@ -81,21 +81,21 @@ export function buildSuperCallsForChain(
   );
 
   // once we have gathered all constructor calls for each parent, we linearize
-  // them according to chain. we also fill in the implicit constructor calls
+  // them according to chain.
   const linearizedCtorCalls: string[] = [];
 
   for (const parentNode of chain) {
-    if (parentNode === contractNode || hasConstructorOverride(parentNode)) {
+    if (
+      parentNode === contractNode ||
+      hasConstructorOverride(parentNode) ||
+      parentNode.contractKind === 'interface'
+    ) {
       continue;
     }
 
-    let args = ctorCalls[parentNode.id]?.call?.arguments;
+    const args = ctorCalls[parentNode.id]?.call?.arguments ?? [];
 
-    if (args == undefined && isImplicitlyConstructed(parentNode)) {
-      args = [];
-    }
-
-    if (args) {
+    if (args.length || !getInitializerItems(parentNode).empty) {
       // TODO: we have to use the name in the lexical context and not necessarily
       // the original contract name
       linearizedCtorCalls.push(buildSuperCall(args, parentNode.name, helper));
@@ -103,13 +103,4 @@ export function buildSuperCallsForChain(
   }
 
   return linearizedCtorCalls;
-}
-
-function isImplicitlyConstructed(contract: ContractDefinition): boolean {
-  const ctor = getConstructor(contract);
-
-  return (
-    contract.contractKind === 'contract' &&
-    (ctor == undefined || ctor.parameters.parameters.length === 0)
-  );
 }
