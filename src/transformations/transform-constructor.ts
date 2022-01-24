@@ -100,12 +100,11 @@ export function* transformConstructor(
       ``,
       [
         `function`,
-        ` __${name}_init_unchained(${unchainedArgsList}) `,
+        `__${name}_init_unchained(${unchainedArgsList})`,
         `internal onlyInitializing`,
-        `${
-          modifiers && modifiers.length ? modifiers.map(m => ' ' + helper.read(m)).join(' ') : ''
-        } {`,
-      ].join(''),
+        ...modifiers.map(m => helper.read(m)),
+        `{`,
+      ].join(' '),
       varInitNodes.map(v => `${v.name} = ${helper.read(v.value!)};`),
       `}`,
     ];
