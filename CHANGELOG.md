@@ -2,7 +2,6 @@
 
 ## Unrelease
 
-- Remove unused variables from unchained function declaration.
 - Remove calls to empty self unchained method from init method body, and empty parent unchained methods calls without parameters.
 - Persist modifiers on constructors.
 
