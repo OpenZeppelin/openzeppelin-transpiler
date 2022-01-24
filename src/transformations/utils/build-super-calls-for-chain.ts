@@ -81,11 +81,15 @@ export function buildSuperCallsForChain2(
   );
 
   // once we have gathered all constructor calls for each parent, we linearize
-  // them according to chain. we also fill in the implicit constructor calls
+  // them according to chain.
   const linearizedCtorCalls: string[] = [];
 
   for (const parentNode of chain) {
-    if (parentNode === contractNode || hasConstructorOverride(parentNode)) {
+    if (
+      parentNode === contractNode ||
+      hasConstructorOverride(parentNode) ||
+      parentNode.contractKind !== 'contract'
+    ) {
       continue;
     }
 
