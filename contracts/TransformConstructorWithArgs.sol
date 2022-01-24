@@ -5,8 +5,8 @@ contract FooWithArgs {
 }
 
 contract FooWithArgs2 {
-	modifier hasModifierArguments(uint x) {
-		_;
-	}
-	constructor(uint x, uint y) public hasModifierArguments(x) {}
+    modifier hasModifierArguments(uint x) {
+    	_;
+    }
+    constructor(uint x, uint y) public hasModifierArguments(x) {}
 }
