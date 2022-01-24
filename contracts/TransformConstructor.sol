@@ -107,10 +107,10 @@ contract Foo13 is Foo4 {
 
 contract Foo14 is Foo7 {
 
-    modifier hasModifier() {
+    modifier hasModifier(uint b) {
         _;
     }
 
-    constructor(uint a, uint b) Foo7(a) public hasModifier() {
+    constructor(uint a, uint b) Foo7(a) public hasModifier(b) {
     }
 }
