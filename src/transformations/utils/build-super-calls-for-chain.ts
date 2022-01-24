@@ -88,7 +88,7 @@ export function buildSuperCallsForChain2(
     if (
       parentNode === contractNode ||
       hasConstructorOverride(parentNode) ||
-      parentNode.contractKind !== 'contract'
+      parentNode.contractKind === 'interface'
     ) {
       continue;
     }
