@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Remove calls to empty self unchained method from init method body, and empty parent unchained methods calls without parameters.
+- Persist modifiers on constructors.
+
 ## 0.3.5 (2022-01-13)
 
 - Delete unused parameter names in unchained initializers. Removes compiler warnings.

@@ -10,7 +10,7 @@ import { getInitializerItems } from './get-initializer-items';
 
 // builds an __init call with given arguments, for example
 // ERC20DetailedUpgradeable.__init(false, "Gold", "GLD", 18)
-function buildSuperCall2(args: Node[], name: string, helper: TransformHelper): string {
+function buildSuperCall(args: Node[], name: string, helper: TransformHelper): string {
   let superCall = `__${name}_init_unchained(`;
   if (args && args.length) {
     superCall += args.map(arg => helper.read(arg)).join(', ');
@@ -21,7 +21,7 @@ function buildSuperCall2(args: Node[], name: string, helper: TransformHelper): s
 // builds all the __init calls a given contract, for example
 // ContextUpgradeable.__init(false);
 // ERC20DetailedUpgradeable.__init(false, 'Gold', 'GLD', 18);
-export function buildSuperCallsForChain2(
+export function buildSuperCallsForChain(
   contractNode: ContractDefinition,
   { resolver }: TransformerTools,
   helper: TransformHelper,
@@ -98,7 +98,7 @@ export function buildSuperCallsForChain2(
     if (args.length || !getInitializerItems(parentNode).empty) {
       // TODO: we have to use the name in the lexical context and not necessarily
       // the original contract name
-      linearizedCtorCalls.push(buildSuperCall2(args, parentNode.name, helper));
+      linearizedCtorCalls.push(buildSuperCall(args, parentNode.name, helper));
     }
   }
 
