@@ -8,34 +8,34 @@ import { FunctionDefinition } from 'solidity-ast';
 import { TransformerTools } from '../transform';
 import { newFunctionPosition } from './utils/new-function-position';
 import { formatLines } from './utils/format-lines';
-import { hasConstructorOverride, hasOverride } from '../utils/upgrades-overrides';
+import { hasConstructorOverride } from '../utils/upgrades-overrides';
+import { getInitializerItems } from './utils/get-initializer-items';
 
 function getArgsList(constructor: FunctionDefinition, helper: TransformHelper): string {
   return helper.read(constructor.parameters).replace(/^\((.*)\)$/s, '$1');
 }
 
-// Removes parameters unused by the constructor's body
-function getUnchainedArguments(constructor: FunctionDefinition, helper: TransformHelper): string {
+// Removes parameters unused by the functions's body
+function getUsedArguments(constructor: FunctionDefinition, helper: TransformHelper): string {
+  // Get declared parameters information
   const parameters = constructor.parameters.parameters;
 
-  if (parameters?.length) {
-    const identifiersIds = new Set(
+  if (!parameters?.length) {
+    return '';
+  } else {
+    let result: string = getArgsList(constructor, helper);
+    const usedIds = new Set(
       [...findAll('Identifier', constructor.body!)].map(i => i.referencedDeclaration),
     );
-    let result: string = getArgsList(constructor, helper);
 
     for (const p of parameters) {
       // Check if parameter is used
-      const found = identifiersIds.has(p.id);
-      if (!found) {
+      if (!usedIds.has(p.id)) {
         // Remove unused parameter
         result = result.replace(/\s+[a-z0-9$_]+/gi, m => (m.trim() === p.name ? '' : m));
       }
     }
-
     return result;
-  } else {
-    return '';
   }
 }
 
@@ -69,13 +69,11 @@ export function* transformConstructor(
     }
 
     const { name } = contractNode;
-
-    const constructorNode = getConstructor(contractNode);
-
-    const varInitNodes = [...findAll('VariableDeclaration', contractNode)].filter(
-      v =>
-        v.stateVariable && v.value && !v.constant && !hasOverride(v, 'state-variable-assignment'),
-    );
+    const {
+      constructorNode,
+      varInitNodes,
+      empty: emptyConstructor,
+    } = getInitializerItems(contractNode);
 
     const initializer = (
       helper: TransformHelper,
@@ -85,7 +83,7 @@ export function* transformConstructor(
     ) => [
       `function __${name}_init(${argsList}) internal onlyInitializing {`,
       buildSuperCallsForChain2(contractNode, tools, helper),
-      [`__${name}_init_unchained(${argNames.join(', ')});`],
+      emptyConstructor ? [] : [`__${name}_init_unchained(${argNames.join(', ')});`],
       `}`,
       ``,
       `function __${name}_init_unchained(${unchainedArgsList}) internal onlyInitializing {`,
@@ -103,7 +101,7 @@ export function* transformConstructor(
         kind: 'transform-constructor',
         transform: (_, helper) => {
           const argsList = getArgsList(constructorNode, helper);
-          const unchainedArgsList = getUnchainedArguments(constructorNode, helper);
+          const unchainedArgsList = getUsedArguments(constructorNode, helper);
 
           return formatLines(
             1,
