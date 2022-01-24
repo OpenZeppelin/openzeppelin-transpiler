@@ -1,6 +1,6 @@
 # Changelog
 
-## Unrelease
+## Unreleased
 
 - Remove calls to empty self unchained method from init method body, and empty parent unchained methods calls without parameters.
 - Persist modifiers on constructors.
