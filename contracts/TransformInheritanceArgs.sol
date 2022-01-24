@@ -6,13 +6,13 @@ contract A {
 
 contract B is A(4) {
 
-	modifier hasModifier (){
-	_;
-	}
-	
-	modifier hasModifierArgument(uint b) {
+    modifier hasModifier (){
+        _;
+    }
+    
+    modifier hasModifierArgument(uint b) {
         _;
     }
 
-	constructor (uint b) public hasModifier hasModifierArgument(b) {}
+    constructor (uint b) public hasModifier hasModifierArgument(b) {}
 }
