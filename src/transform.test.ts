@@ -139,7 +139,7 @@ test('append initializable import custom', t => {
 
 test('transform constructor', t => {
   const file = 'contracts/TransformConstructor.sol';
-  t.context.transform.apply(transformConstructor);
+  t.context.transform.apply(transformConstructor());
   t.context.transform.apply(removeLeftoverConstructorHead);
   t.snapshot(t.context.transform.results()[file]);
 });

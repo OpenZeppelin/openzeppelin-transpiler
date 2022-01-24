@@ -61,78 +61,81 @@ export function* removeLeftoverConstructorHead(sourceUnit: SourceUnit): Generato
   }
 }
 
-export function* transformConstructor(
-  sourceUnit: SourceUnit,
-  tools: TransformerTools,
-): Generator<Transformation> {
-  for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
-    if (contractNode.contractKind !== 'contract' || hasConstructorOverride(contractNode)) {
-      continue;
-    }
+export function transformConstructor(extractStorage = false) {
+  return function* (
+      sourceUnit: SourceUnit,
+      tools: TransformerTools,
+  ): Generator<Transformation> {
+    for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
+      if (contractNode.contractKind !== 'contract' || hasConstructorOverride(contractNode)) {
+        continue;
+      }
 
-    const { name } = contractNode;
+      const {name} = contractNode;
 
-    const constructorNode = getConstructor(contractNode);
+      const constructorNode = getConstructor(contractNode);
 
-    const varInitNodes = [...findAll('VariableDeclaration', contractNode)].filter(
-      v =>
-        v.stateVariable && v.value && !v.constant && !hasOverride(v, 'state-variable-assignment'),
-    );
+      const varInitNodes = [...findAll('VariableDeclaration', contractNode)].filter(
+          v =>
+              v.stateVariable && v.value && !v.constant && !hasOverride(v, 'state-variable-assignment'),
+      );
 
-    const initializer = (
-      helper: TransformHelper,
-      argsList = '',
-      unchainedArgsList = '',
-      argNames: string[] = [],
-    ) => [
-      `function __${name}_init(${argsList}) internal onlyInitializing {`,
-      buildSuperCallsForChain2(contractNode, tools, helper),
-      [`__${name}_init_unchained(${argNames.join(', ')});`],
-      `}`,
-      ``,
-      `function __${name}_init_unchained(${unchainedArgsList}) internal onlyInitializing {`,
-      varInitNodes.map(v => `${v.name} = ${helper.read(v.value!)};`),
-      `}`,
-    ];
+      const initializer = (
+          helper: TransformHelper,
+          argsList = '',
+          unchainedArgsList = '',
+          argNames: string[] = [],
+      ) => [
+        `function __${name}_init(${argsList}) internal onlyInitializing {`,
+        buildSuperCallsForChain2(contractNode, tools, helper),
+        [`__${name}_init_unchained(${argNames.join(', ')});`],
+        `}`,
+        ``,
+        `function __${name}_init_unchained(${unchainedArgsList}) internal onlyInitializing {`,
+        varInitNodes.map(v => `${v.name} = ${helper.read(v.value!)};`),
+        `}`,
+      ];
 
-    const usingLines = createUsingLines(contractNode, tools);
-    if (constructorNode) {
-      const { start: bodyStart } = getNodeBounds(constructorNode.body!);
-      const argNames = constructorNode.parameters.parameters.map(p => p.name);
+      const usingLines = extractStorage ? createUsingLines(contractNode, tools) : '';
+      if (constructorNode) {
+        const {start: bodyStart} = getNodeBounds(constructorNode.body!);
+        const argNames = constructorNode.parameters.parameters.map(p => p.name);
 
-      yield {
-        start: bodyStart + 1,
-        length: 0,
-        kind: 'transform-constructor',
-        transform: (_, helper) => {
-          const argsList = getArgsList(constructorNode, helper);
-          const unchainedArgsList = getUnchainedArguments(constructorNode, helper);
+        yield {
+          start: bodyStart + 1,
+          length: 0,
+          kind: 'transform-constructor',
+          transform: (_, helper) => {
+            const argsList = getArgsList(constructorNode, helper);
+            const unchainedArgsList = getUnchainedArguments(constructorNode, helper);
 
-          return formatLines(
-            1,
-            initializer(helper, argsList, unchainedArgsList, argNames).slice(0, -1),
-          ).trim();
-        },
-      };
+            return formatLines(
+                1,
+                initializer(helper, argsList, unchainedArgsList, argNames).slice(0, -1),
+            ).trim();
+          },
+        };
 
-      const start = newFunctionPosition(contractNode, tools);
-      yield {
-        start,
-        length: 0,
-        kind: 'add-using-lines',
-        text: usingLines,
-      };
+        const start = newFunctionPosition(contractNode, tools);
+        yield {
+          start,
+          length: 0,
+          kind: 'add-using-lines',
+          text: usingLines,
+        };
 
-    } else {
-      const start = newFunctionPosition(contractNode, tools);
+      } else {
+        const start = newFunctionPosition(contractNode, tools);
 
-      yield {
-        start,
-        length: 0,
-        kind: 'add-initializers',
-        transform: (source, helper) => {
-          return usingLines + formatLines(1, initializer(helper)) }
-      };
+        yield {
+          start,
+          length: 0,
+          kind: 'add-initializers',
+          transform: (source, helper) => {
+            return usingLines + formatLines(1, initializer(helper))
+          }
+        };
+      }
     }
   }
 }

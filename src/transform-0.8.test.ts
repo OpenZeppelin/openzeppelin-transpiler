@@ -48,7 +48,7 @@ test('correctly index when utf8 characters', t => {
 
 test('preserves immutable if allowed', t => {
   const file = 'contracts/TransformAllowedImmutable.sol';
-  t.context.transform.apply(transformConstructor);
+  t.context.transform.apply(transformConstructor());
   t.context.transform.apply(removeLeftoverConstructorHead);
   t.context.transform.apply(removeStateVarInits);
   t.context.transform.apply(removeImmutable);

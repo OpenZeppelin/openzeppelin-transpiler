@@ -96,7 +96,7 @@ export async function transpile(
   transform.apply(appendInitializableImport(outputPaths.initializable));
   transform.apply(fixNewStatement);
   transform.apply(addRequiredPublicInitializer(options?.publicInitializers));
-  transform.apply(transformConstructor);
+  transform.apply(transformConstructor(options?.extractStorage || false));
   transform.apply(removeLeftoverConstructorHead);
   transform.apply(removeInheritanceListArguments);
   transform.apply(removeImmutable);

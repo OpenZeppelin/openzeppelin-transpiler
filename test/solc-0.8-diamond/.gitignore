@@ -1,13 +1,7 @@
 /build
 /contracts/__upgradeable__
-<<<<<<< HEAD
 /contracts/mocks
 /contracts/Initializable.sol
 /contracts/**/*Upgradeable.sol
 /contracts/**/*Storage.sol
-=======
-mocks
-contracts/Initializable.sol
-contracts/**/*Upgradeable.sol
-contracts/**/*Storage.sol
->>>>>>> 080f60b... wip - adding testing for solc 0.8.0 and diamond storage generation
+

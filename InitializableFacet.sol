@@ -26,7 +26,7 @@ abstract contract Initializable {
     // If the contract is initializing we ignore whether _initialized is set in order to support multiple
     // inheritance patterns, but we only do this in the context of a constructor, because in other contexts the
     // contract may have been reentered.
-<<<<<<< HEAD
+
     require(InitializableStorage.layout()._initializing ? _isConstructor() :
         !InitializableStorage.layout()._initialized, "Initializable: contract is already initialized");
 
@@ -34,15 +34,6 @@ abstract contract Initializable {
     if (isTopLevelCall) {
       InitializableStorage.layout()._initializing = true;
       InitializableStorage.layout()._initialized = true;
-=======
-    require(InitializeableStorage.layout()._initializing ? _isConstructor() :
-        !InitializeableStorage.layout()._initialized, "Initializable: contract is already initialized");
-
-    bool isTopLevelCall = !InitializeableStorage.layout()._initializing;
-    if (isTopLevelCall) {
-      InitializeableStorage.layout()._initializing = true;
-      InitializeableStorage.layout()._initialized = true;
->>>>>>> 080f60b... wip - adding testing for solc 0.8.0 and diamond storage generation
     }
 
     _;
@@ -57,11 +48,7 @@ abstract contract Initializable {
    * {initializer} modifier, directly or indirectly.
    */
   modifier onlyInitializing() {
-<<<<<<< HEAD
     require(InitializableStorage.layout()._initializing, "Initializable: contract is not initializing");
-=======
-    require(InitializeableStorage.layout()._initializing, "Initializable: contract is not initializing");
->>>>>>> 080f60b... wip - adding testing for solc 0.8.0 and diamond storage generation
     _;
   }
 

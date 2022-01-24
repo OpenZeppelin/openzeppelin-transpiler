@@ -8,7 +8,6 @@ import { SolcOutput } from './solc/input-output';
 
 const test = _test as TestFn<Context>;
 
-<<<<<<< HEAD:test/solc-0.8-diamond/test.js
 test.before('transpile', async t => {
   const buildinfo = path.join(hre.config.paths.artifacts, 'build-info');
   const filenames = await fs.readdir(buildinfo);
@@ -18,11 +17,6 @@ test.before('transpile', async t => {
   t.context.files = await transpile(solcInput, solcOutput, hre.config.paths);
   console.log(t.context.files)
 });
-=======
-interface Context {
-  files: OutputFile[];
-}
->>>>>>> upstream/master:src/index.test.ts
 
 const fileNames = [
   'ClassInheritance.sol',
