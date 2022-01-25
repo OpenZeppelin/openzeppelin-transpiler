@@ -1,13 +1,15 @@
 {
-  "name": "@openzeppelin/upgrade-safe-transpiler",
-  "version": "0.3.5",
-  "description": "Solidity preprocessor used to generate OpenZeppelin Contracts Upgrade Safe.",
+  "name": "@openzeppelin/upgrade-safe-transpiler-diamond",
+  "version": "0.3.6",
+  "description": "Solidity preprocessor used to generate OpenZeppelin Contracts Upgrade Safe using Diamond Pattern (EIP-2535).",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist",
     "!*.tsbuildinfo",
-    "Initializable.sol"
+    "Initializable.sol",
+    "InitializableFacet.sol",
+    "InitializableFacetStorage.sol"
   ],
   "bin": {
     "upgrade-safe-transpiler": "dist/cli.js"
@@ -20,14 +22,16 @@
     "watch": "tsc -w",
     "lint": "eslint . --ignore-path .gitignore --max-warnings 0"
   },
-  "repository": "github:OpenZeppelin/openzeppelin-transpiler",
+  "repository": "github:GeniusVentures/openzeppelin-transpiler",
   "keywords": [
     "solidity",
     "openzeppelin",
     "smart-contarcts",
     "ethereum",
     "upgradeability",
-    "openzeppelin-sdk"
+    "openzeppelin-sdk",
+    "EIP-2535",
+    "Diamond"
   ],
   "author": "Igor Yalovoy <igor@openzeppelin.com>",
   "license": "MIT",

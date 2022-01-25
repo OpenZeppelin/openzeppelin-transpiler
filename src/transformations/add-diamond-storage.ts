@@ -171,16 +171,16 @@ library ${name}Storage {
 
   struct Layout {
 ${ variables.map(v =>  {
-    let { typeString } = v.typeDescriptions!;
+    let typeString  = v.typeDescriptions.typeString || '';
     if (v.typeName?.nodeType === 'UserDefinedTypeName') {
-      if (typeString) {
         const varTypeStrings = typeString.split(' ', 2);
         if (varTypeStrings.length == 2) {
           typeString = renamePath(varTypeStrings[1]);
         }
-      }
     }
     
+    typeString = filterIdentifierPaths(typeString);
+
     return comments.get(v.id) + '    ' + typeString + ' ' + v.name + ';'  }).join('\n')
   }
   
@@ -198,4 +198,17 @@ ${ variables.map(v =>  {
     `;
   
   return buffer;
+}
+
+// Filter the identifier paths (remove 'struct ', 'enum ' and append
+function filterIdentifierPaths(sourceStr: string) : string {
+  let splitStrings = sourceStr.split(/(enum | struct )/s);
+  let retString = splitStrings[0];
+
+  for (let i=2; i < splitStrings.length; i += 2) {
+    retString += ' ' + renamePath(splitStrings[i]);
+  }
+
+  return retString;
+
 }
