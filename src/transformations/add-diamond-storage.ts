@@ -202,7 +202,7 @@ ${ variables.map(v =>  {
 
 // Filter the identifier paths (remove 'struct ', 'enum ' and append
 function filterIdentifierPaths(sourceStr: string) : string {
-  let splitStrings = sourceStr.split(/(enum | struct )/s);
+  let splitStrings = sourceStr.split(/(enum |struct |contract )/s);
   let retString = splitStrings[0];
 
   for (let i=2; i < splitStrings.length; i += 2) {
