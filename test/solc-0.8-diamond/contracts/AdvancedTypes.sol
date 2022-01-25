@@ -36,6 +36,8 @@ contract AdvancedTypes  {
     mapping (address => bytes32) addrToConstant;
     mapping (address => Imported2.imported2Struct) addressToImported2Struct2;
     mapping (AdvancedEnum => mapping( AdvancedEnum => mapping(address => Imported2.imported2Struct))) public weirdestMapping;
+    AdvancedStruct1[] public testAdvancedStruct1Array;
+    Imported1[] public TestImported1Array;
 
     function setAdvancedStruct1(address payable addr) internal {
         testAdvancedStruct2.addressToImported2Struct[addr].payAddress = addr;
@@ -54,6 +56,11 @@ contract AdvancedTypes  {
         owners.push(owner);
 
         addrToConstant[addr] = addrToConstant[owner];
+
+        testAdvancedStruct1Array.push(AdvancedStruct1({owner: owner}));
+
+        Imported1 temp = new Imported1(0, 0);
+        TestImported1Array.push(temp);
 
     }
 

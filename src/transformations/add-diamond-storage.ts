@@ -200,13 +200,23 @@ ${ variables.map(v =>  {
   return buffer;
 }
 
+function renameIdentifierPath(sourceStr: string) : string {
+  const matchStrings = sourceStr.split(/^[ \t]*([A-Za-z_][A-Za-z0-9_.]*)/, 3);
+  let retString = matchStrings[1];
+  retString = renamePath(retString);
+  if (matchStrings.length > 2) {
+    retString += matchStrings[2];
+  }
+  return retString;
+}
+
 // Filter the identifier paths (remove 'struct ', 'enum ' and append
 function filterIdentifierPaths(sourceStr: string) : string {
   let splitStrings = sourceStr.split(/(enum |struct |contract )/s);
   let retString = splitStrings[0];
 
   for (let i=2; i < splitStrings.length; i += 2) {
-    retString += ' ' + renamePath(splitStrings[i]);
+    retString += renameIdentifierPath(splitStrings[i]);
   }
 
   return retString;
