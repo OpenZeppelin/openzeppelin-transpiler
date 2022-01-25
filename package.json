@@ -12,7 +12,7 @@
     "InitializableFacetStorage.sol"
   ],
   "bin": {
-    "upgrade-safe-transpiler": "dist/cli.js"
+    "upgrade-safe-transpiler-diamond": "dist/cli.js"
   },
   "scripts": {
     "test": "hardhat compile && ava",
