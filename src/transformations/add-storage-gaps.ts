@@ -21,7 +21,8 @@ export function* addStorageGaps(
       const contractBounds = getNodeBounds(contract);
       const start = contractBounds.start + contractBounds.length - 1;
 
-      const text = formatLines(1, [
+      const text = formatLines(0, [
+        [``],
         [`/**`],
         [`* This empty reserved space is put in place to prevent shifting down storage in the`],
         [`* inheritance chain when new variables are added which would make storage layouts`],
