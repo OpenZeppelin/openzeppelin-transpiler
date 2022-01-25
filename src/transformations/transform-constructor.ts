@@ -92,19 +92,11 @@ export function transformConstructor(extractStorage = false) {
         `}`,
         ``,
         `function __${name}_init_unchained(${unchainedArgsList}) internal onlyInitializing {`,
-<<<<<<< HEAD
-        varInitNodes.map(v => `${v.name} = ${helper.read(v.value!)};`),
-        `}`,
-      ];
-
-      const usingLines = extractStorage ? createUsingLines(contractNode, tools) : '';
-=======
         varInitNodes.map(v => `${(extractStorage ? getVarStorageName(v, tools) : '') + v.name} = ${helper.read(v.value!)};`),
         `}`,
       ];
 
       const usingLines = createUsingLines(contractNode, tools);
->>>>>>> 15d7e75... fixes variables identiferPaths to include Upgradable and remove struct or enum prefix
       if (constructorNode) {
         const {start: bodyStart} = getNodeBounds(constructorNode.body!);
         const argNames = constructorNode.parameters.parameters.map(p => p.name);
