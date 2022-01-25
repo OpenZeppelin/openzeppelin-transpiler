@@ -32,38 +32,12 @@ export function addDiamondStorage(newFiles: OutputFile[]) {
 
     let buffer = '';
     let contractNeedsStorage = false;
-    const importsNeeded = new Map<string, Set<string>>();
     for (const contract of contracts) {
 
       const varDecls = [...findAll('VariableDeclaration', contract)];
       const variableNodes = varDecls.filter(
         v => v.stateVariable && !v.constant && !hasOverride(v, 'state-variable-assignment'),
       );
-
-      for (const varDecl of varDecls) {
-        const { typeName } = varDecl;
-        if (typeName && (typeName.nodeType === 'UserDefinedTypeName')) {
-          const scopeContract = resolver.resolveContract(varDecl.scope, true);
-          // type could not have found a scope, i.e. EnumDefinition
-          if (scopeContract) {
-            let scopedSourceUnit = sourceUnit;
-            if (scopeContract.scope !== sourceUnit.id) {
-              scopedSourceUnit = resolver.resolveNode('SourceUnit', scopeContract.scope)!;
-            }
-
-            const newPathName = renamePath(scopedSourceUnit.absolutePath);
-            if (!importsNeeded.has(newPathName)) {
-              importsNeeded.set(newPathName, new Set<string>());
-            }
-            // referring to contract reference
-            if (typeName.referencedDeclaration === scopeContract.id) {
-              const depContractsSet = importsNeeded.get(newPathName)!;
-              depContractsSet.add(renameContract(scopeContract.name));
-
-            }
-          }
-        }
-      }
 
       if ((contract.contractKind === 'contract') && (variableNodes.length > 0)) {
 
@@ -96,22 +70,21 @@ export function addDiamondStorage(newFiles: OutputFile[]) {
       }
     }
 
-    let importsText = '';
-    importsNeeded.forEach( (contractNames, sourcePath) => {
-      importsText += '\nimport '  + (contractNames.size ? '{ ' + [...contractNames].join(',') + ' } from ' : '') + '"' + sourcePath + '";';
-    });
+    const importText = `\nimport ""`;
 
     if (contractNeedsStorage) {
       const newBuffer = `// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.0;
-` + importsText + buffer;
+
+import "${renamePath(sourceUnit.absolutePath)}";
+` + buffer;
 
       const {dir, name, ext} = path.parse(sourceUnit.absolutePath);
       const newpath = path.format({dir, ext, name: name + 'Storage'});
       newFiles.push({source: newBuffer, fileName: name + 'Storage', path: newpath});
     }
-  }
+  };
 }
 
 function extractComments(source: string) : string[] {
@@ -166,7 +139,6 @@ function extractComments(source: string) : string[] {
 function makeStorageLib(name: string, variables: VariableDeclaration[], comments: Map<number, string>, buffer: string) {
 
   buffer += `
-
 library ${name}Storage {
 
   struct Layout {
