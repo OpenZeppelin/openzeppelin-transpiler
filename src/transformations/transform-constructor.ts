@@ -50,6 +50,9 @@ function getUnchainedArguments(
   }
 }
 
+// Runs after transformConstructor to remove the constructor keyword and parameters until the first `{`. For example
+// This: constructor(uint a) /* modifiers */ public { function __Name_init(uint a) /* modifiers */
+// Results in: function __Name_init(uint a) /* modifiers */
 export function* removeLeftoverConstructorHead(sourceUnit: SourceUnit): Generator<Transformation> {
   for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
     if (hasConstructorOverride(contractNode)) {
@@ -70,6 +73,10 @@ export function* removeLeftoverConstructorHead(sourceUnit: SourceUnit): Generato
   }
 }
 
+// Inserts the init and unchained function declarations before the constructor first`{`,
+// and must run removeLeftoverConstructorHead after. For example
+// This: constructor(uint a) /* modifiers */ public
+// Results in: constructor(uint a) /* modifiers */ public { function __Name_init(uint a) /* modifiers */
 export function* transformConstructor(
   sourceUnit: SourceUnit,
   tools: TransformerTools,
