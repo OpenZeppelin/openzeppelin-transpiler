@@ -38,7 +38,7 @@ export function buildSuperCallsForChain(
     })
     .reverse();
   //TODO REMOVE UN INITIALIZED PARENT PARENTS FROM LINEARIZATION
-  chain.map(m => console.log(m));
+
   // we will need their ast ids for quick lookup
   const chainIds = new Set(chain.map(c => c.id));
 
@@ -94,9 +94,17 @@ export function buildSuperCallsForChain(
       continue;
     }
 
-    const args = ctorCalls[parentNode.id]?.call?.arguments ?? [];
+    let args = ctorCalls[parentNode.id]?.call?.arguments;
 
-    if (args.length || !getInitializerItems(parentNode).empty) {
+    if (
+      args == undefined &&
+      isImplicitlyConstructed(parentNode) &&
+      !getInitializerItems(parentNode).empty
+    ) {
+      args = [];
+    }
+
+    if (args) {
       // TODO: we have to use the name in the lexical context and not necessarily
       // the original contract name
       linearizedCtorCalls.push(buildSuperCall(args, parentNode.name, helper));
@@ -104,4 +112,13 @@ export function buildSuperCallsForChain(
   }
 
   return linearizedCtorCalls;
+}
+
+function isImplicitlyConstructed(contract: ContractDefinition): boolean {
+  const ctor = getConstructor(contract);
+
+  return (
+    contract.contractKind === 'contract' &&
+    (ctor == undefined || ctor.parameters.parameters.length === 0)
+  );
 }

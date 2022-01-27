@@ -116,13 +116,12 @@ contract Foo14 is Foo7 {
 }
 
 contract Foo15 is Foo7{
-    uint a = 1;
-
-    constructor() Foo7(a) public {
-
+    uint x;
+    constructor(uint _x) Foo7(_x) public {
+        x = _x;
     }
 }
 
-contract Foo16 is Foo15 {
+abstract contract Foo16 is Foo15 {
 
 }
