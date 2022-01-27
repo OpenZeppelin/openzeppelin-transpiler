@@ -87,6 +87,7 @@ export function* transformConstructor(
     }
 
     const { name } = contractNode;
+    console.log(name);//TODO Remove new line
     const {
       constructorNode,
       varInitNodes,

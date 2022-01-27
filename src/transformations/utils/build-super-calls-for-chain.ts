@@ -37,7 +37,8 @@ export function buildSuperCallsForChain(
       return base;
     })
     .reverse();
-
+  //TODO REMOVE UN INITIALIZED PARENT PARENTS FROM LINEARIZATION
+  chain.map(m => console.log(m));
   // we will need their ast ids for quick lookup
   const chainIds = new Set(chain.map(c => c.id));
 

@@ -114,3 +114,15 @@ contract Foo14 is Foo7 {
     constructor(uint a, uint b) Foo7(a) public hasModifier(b) {
     }
 }
+
+contract Foo15 is Foo7{
+    uint a = 1;
+
+    constructor() Foo7(a) public {
+
+    }
+}
+
+contract Foo16 is Foo15 {
+
+}
