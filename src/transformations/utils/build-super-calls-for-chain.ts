@@ -28,15 +28,13 @@ export function buildSuperCallsForChain(
 ): string[] {
   // first we get the linearized inheritance chain of contracts, excluding the
   // contract we're currently looking at
-  const chain = contractNode.linearizedBaseContracts
-    .map(baseId => {
-      const base = resolver.resolveContract(baseId);
-      if (base === undefined) {
-        throw new Error(`Could not resolve ast id ${baseId}`);
-      }
-      return base;
-    })
-    .reverse();
+  const chain = contractNode.linearizedBaseContracts.map(baseId => {
+    const base = resolver.resolveContract(baseId);
+    if (base === undefined) {
+      throw new Error(`Could not resolve ast id ${baseId}`);
+    }
+    return base;
+  });
 
   // we will need their ast ids for quick lookup
   const chainIds = new Set(chain.map(c => c.id));
@@ -83,13 +81,34 @@ export function buildSuperCallsForChain(
   // once we have gathered all constructor calls for each parent, we linearize
   // them according to chain.
   const linearizedCtorCalls: string[] = [];
-  // the parents id already linearized are saved to check if they need to be removed
-  // for being the parent of a parent that wont be initialized
-  const linearizedIds: number[] = [];
   // this is where we store the parents of uninitialized parents if any
   const invalidParents: number[] = [];
+  // Remove uninitialized parents's parents from linearization, and erase if they already are linearized
+  chain.map(parentNode => {
+    if (parentNode !== contractNode) {
+      // step 1 check if initializable
+      const args = ctorCalls[parentNode.id]?.call?.arguments;
 
-  for (const parentNode of chain) {
+      if (
+        args === undefined &&
+        (getInitializerItems(parentNode).empty || !isImplicitlyConstructed(parentNode))
+      ) {
+        // step 2 get the parent parents
+        const parents = parentNode.linearizedBaseContracts;
+
+        // step 3 add them to the list
+        parents.map(id => {
+          if (!invalidParents.includes(id)) {
+            invalidParents.push(id);
+          }
+        });
+      }
+    }
+  });
+
+  const initializableChain = chain.reverse();
+
+  for (const parentNode of initializableChain) {
     if (
       parentNode === contractNode ||
       hasConstructorOverride(parentNode) ||
@@ -99,37 +118,12 @@ export function buildSuperCallsForChain(
       continue;
     }
 
-    let args = ctorCalls[parentNode.id]?.call?.arguments;
-
-    if (
-      args == undefined &&
-      isImplicitlyConstructed(parentNode) &&
-      !getInitializerItems(parentNode).empty
-    ) {
-      args = [];
-    }
+    const args = ctorCalls[parentNode.id]?.call?.arguments ?? [];
 
     if (args) {
       // TODO: we have to use the name in the lexical context and not necessarily
       // the original contract name
       linearizedCtorCalls.push(buildSuperCall(args, parentNode.name, helper));
-      linearizedIds.push(parentNode.id);
-    } else {
-      // Remove uninitialized parents's parents from linearization, and erase if they already are linearized
-      // step 1 get its parents
-      const parents = parentNode.linearizedBaseContracts;
-      // step 2 add them to the list and remove it from already linearized results if existed
-      parents.map(id => {
-        if (!invalidParents.includes(id)) {
-          invalidParents.push(id);
-        }
-
-        if (linearizedIds.includes(id)) {
-          const idx = linearizedIds.indexOf(id);
-          linearizedCtorCalls.splice(idx, 1);
-          linearizedIds.splice(idx, 1);
-        }
-      });
     }
   }
 
