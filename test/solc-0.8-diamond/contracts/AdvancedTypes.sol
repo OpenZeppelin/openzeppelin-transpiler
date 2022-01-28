@@ -3,10 +3,11 @@
 pragma solidity ^0.8.0;
 
 import './Imported.sol';
+import './AbstractContract.sol';
 
 bytes32 constant constant1 = keccak256('openzepplin.contracts.AdvancedTypes.constant1');
 
-contract AdvancedTypes  {
+abstract contract AdvancedTypes is AbstractContractWithParentConstructor {
 
     bytes32 constant constant2 = keccak256('openzepplin.contracts.AdvancedTypes.constant12');
 

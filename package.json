@@ -1,5 +1,5 @@
 {
-  "name": "@openzeppelin/upgrade-safe-transpiler-diamond",
+  "name": "@gnus.ai/upgrade-safe-transpiler-diamond",
   "version": "0.3.6",
   "description": "Solidity preprocessor used to generate OpenZeppelin Contracts Upgrade Safe using Diamond Pattern (EIP-2535).",
   "main": "dist/index.js",

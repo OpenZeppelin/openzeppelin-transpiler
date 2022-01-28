@@ -20,3 +20,7 @@ contract CIB is CIA(324) {
     }
 
 }
+
+abstract contract CIC is CIA {
+
+}
