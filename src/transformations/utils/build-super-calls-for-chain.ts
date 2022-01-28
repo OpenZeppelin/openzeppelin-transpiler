@@ -84,7 +84,7 @@ export function buildSuperCallsForChain(
   // this is where we store the parents of uninitialized parents if any
   const invalidParents: number[] = [];
   // Remove uninitialized parents's parents from linearization, and erase if they already are linearized
-  chain.map(parentNode => {
+  chain.forEach(parentNode => {
     if (parentNode !== contractNode) {
       // step 1 check if initializable
       const args = ctorCalls[parentNode.id]?.call?.arguments;
