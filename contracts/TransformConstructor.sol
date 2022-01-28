@@ -115,7 +115,7 @@ contract Foo14 is Foo7 {
     }
 }
 
-contract Foo15 is Foo7{
+contract Foo15 is Foo7 {
     uint x;
     constructor(uint _x) Foo7(_x) public {
         x = _x;

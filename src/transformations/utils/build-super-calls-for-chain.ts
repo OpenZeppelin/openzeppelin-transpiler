@@ -37,7 +37,6 @@ export function buildSuperCallsForChain(
       return base;
     })
     .reverse();
-  //TODO REMOVE UN INITIALIZED PARENT PARENTS FROM LINEARIZATION
 
   // we will need their ast ids for quick lookup
   const chainIds = new Set(chain.map(c => c.id));
@@ -84,12 +83,18 @@ export function buildSuperCallsForChain(
   // once we have gathered all constructor calls for each parent, we linearize
   // them according to chain.
   const linearizedCtorCalls: string[] = [];
+  // the parents id already linearized are saved to check if they need to be removed
+  // for being the parent of a parent that wont be initialized
+  const linearizedIds: number[] = [];
+  // this is where we store the parents of uninitialized parents if any
+  const invalidParents: number[] = [];
 
   for (const parentNode of chain) {
     if (
       parentNode === contractNode ||
       hasConstructorOverride(parentNode) ||
-      parentNode.contractKind === 'interface'
+      parentNode.contractKind === 'interface' ||
+      invalidParents.includes(parentNode.id)
     ) {
       continue;
     }
@@ -104,10 +109,27 @@ export function buildSuperCallsForChain(
       args = [];
     }
 
-    if (args) {
+    if (args && !invalidParents.includes(parentNode.id)) {
       // TODO: we have to use the name in the lexical context and not necessarily
       // the original contract name
       linearizedCtorCalls.push(buildSuperCall(args, parentNode.name, helper));
+      linearizedIds.push(parentNode.id);
+    } else {
+      // Remove uninitialized parents's parents from linearization, and erase if they already are linearized
+      // step 1 get its parents
+      const parents = parentNode.linearizedBaseContracts;
+      // step 2 add them to the list and remove it from already linearized results if existed
+      parents.map(id => {
+        if (!invalidParents.includes(id)) {
+          invalidParents.push(id);
+        }
+
+        if (linearizedIds.includes(id)) {
+          const idx = linearizedIds.indexOf(id);
+          linearizedCtorCalls.splice(idx, 1);
+          linearizedIds.splice(idx, 1);
+        }
+      });
     }
   }
 
