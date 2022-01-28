@@ -109,7 +109,7 @@ export function buildSuperCallsForChain(
       args = [];
     }
 
-    if (args && !invalidParents.includes(parentNode.id)) {
+    if (args) {
       // TODO: we have to use the name in the lexical context and not necessarily
       // the original contract name
       linearizedCtorCalls.push(buildSuperCall(args, parentNode.name, helper));
