@@ -13,10 +13,9 @@ export function* removeStateVariables(sourceUnit: SourceUnit, tools: Transformer
     }
 
     for (const varDecl of findAll('VariableDeclaration', contractNode)) {
-      if (varDecl.stateVariable && !varDecl.constant) {
-        if (hasOverride(varDecl, 'state-variable-assignment')) {
-          continue;
-        }
+      if ((varDecl.stateVariable && !varDecl.constant) &&
+        !hasOverride(varDecl, 'state-variable-assignment') &&
+        !hasOverride(varDecl, 'state-variable-immutable')) {
 
         const vBounds = getNodeBounds(varDecl);
         const vCodeStart = tools.originalSource.substring(vBounds.start);

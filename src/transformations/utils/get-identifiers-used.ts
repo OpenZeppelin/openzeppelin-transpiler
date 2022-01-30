@@ -4,6 +4,7 @@ import { ASTResolverError } from "../../ast-resolver";
 import { findAllIdentifiers } from "./find-all-identifiers";
 import {Node} from "solidity-ast/node";
 import {findAll} from "solidity-ast/utils";
+import {hasOverride} from "../../utils/upgrades-overrides";
 
 export interface IdentifierVariable {
     identifier: Identifier,
@@ -57,7 +58,7 @@ export function getUniqueVariablesUsed(contractNode: ContractDefinition, tools: 
 }
 
 /**
- * get the contracts definitions for state variables that are being used/refereenced
+ * get the contracts definitions for state variables that are being used/referenced in storage
  * @param contractNode - the contractNode you want to evaluate
  * @param tools
  */
@@ -66,9 +67,13 @@ export function getScopedContractsForVariables(contractNode: ContractDefinition,
     const varDecls = getUniqueVariablesUsed(contractNode, tools);
     const contractDefinitions = new Map<number, ContractDefinition>();
     varDecls.forEach( (varDecl, id) => {
-        const varContractNode = resolver.resolveContract(varDecl.scope);
-        if ((varContractNode !== undefined) && (!contractDefinitions.has(varContractNode.id))){
-            contractDefinitions.set(varContractNode.id, varContractNode);
+        if (varDecl.stateVariable && !varDecl.constant &&
+            !hasOverride(varDecl, 'state-variable-assignment') &&
+            !hasOverride(varDecl, 'state-variable-immutable')) {
+            const varContractNode = resolver.resolveContract(varDecl.scope);
+            if ((varContractNode !== undefined) && (!contractDefinitions.has(varContractNode.id))) {
+                contractDefinitions.set(varContractNode.id, varContractNode);
+            }
         }
     });
 

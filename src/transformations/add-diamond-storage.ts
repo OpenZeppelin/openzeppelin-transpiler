@@ -32,11 +32,18 @@ export function addDiamondStorage(newFiles: OutputFile[]) {
 
     let buffer = '';
     let contractNeedsStorage = false;
+    let isInitializableContract = false;
     for (const contract of contracts) {
+
+      if (contract.name === 'Initializable') {
+        isInitializableContract = true
+      }
 
       const varDecls = [...findAll('VariableDeclaration', contract)];
       const variableNodes = varDecls.filter(
-        v => v.stateVariable && !v.constant && !hasOverride(v, 'state-variable-assignment'),
+        v => v.stateVariable && !v.constant &&
+            !hasOverride(v, 'state-variable-assignment') &&
+            !hasOverride(v, 'state-variable-immutable'),
       );
 
       if ((contract.contractKind === 'contract') && (variableNodes.length > 0)) {
@@ -77,7 +84,7 @@ export function addDiamondStorage(newFiles: OutputFile[]) {
 
 pragma solidity ^0.8.0;
 
-import "${renamePath(sourceUnit.absolutePath)}";
+import "${isInitializableContract ? sourceUnit.absolutePath : renamePath(sourceUnit.absolutePath)}";
 ` + buffer;
 
       const {dir, name, ext} = path.parse(sourceUnit.absolutePath);

@@ -82,27 +82,32 @@ export function* addDiamondAccess(sourceUnit: SourceUnit,
         const identifierVars = getUniqueIdentifierVarsUsed(contractNode, tools);
         for (const [_, identifierVar] of identifierVars) {
             const { identifier, varDecl } = identifierVar;
-            let scopedContractName;
-            if (varDecl.scope === contractNode.id) {
-                scopedContractName = contractNode.name;
-            } else {
-                scopedContractName = contractNames.get(varDecl.scope);
-                if (!scopedContractName) {
-                    const scopedContractNode = resolver.resolveContract(varDecl.scope)!;
-                    contractNames.set(scopedContractNode.id, scopedContractNode.name);
-                    scopedContractName = scopedContractNode.name;
+            if (varDecl.stateVariable &&
+                !varDecl.constant &&
+                !hasOverride(varDecl, 'state-variable-assignment') &&
+                !hasOverride(varDecl, 'state-variable-immutable')) {
+                let scopedContractName;
+                if (varDecl.scope === contractNode.id) {
+                    scopedContractName = contractNode.name;
+                } else {
+                    scopedContractName = contractNames.get(varDecl.scope);
+                    if (!scopedContractName) {
+                        const scopedContractNode = resolver.resolveContract(varDecl.scope)!;
+                        contractNames.set(scopedContractNode.id, scopedContractNode.name);
+                        scopedContractName = scopedContractNode.name;
+                    }
                 }
+
+                const storageLayoutAccess = scopedContractName + 'Storage.layout().';
+                const idBounds = getNodeBounds(identifier);
+
+                yield {
+                    start: idBounds.start,
+                    length: idBounds.length,
+                    kind: 'set-storage-access-var-inits',
+                    transform: source => storageLayoutAccess + source,
+                };
             }
-
-            const storageLayoutAccess = scopedContractName + 'Storage.layout().';
-            const idBounds = getNodeBounds(identifier);
-
-            yield {
-                start: idBounds.start,
-                length: idBounds.length,
-                kind: 'set-storage-access-var-inits',
-                transform: source => storageLayoutAccess + source,
-            };
         }
     }
 }
