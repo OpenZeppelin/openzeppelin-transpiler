@@ -15,13 +15,13 @@ export function getInitializerItems(contract: ContractDefinition) {
       call => !contract.linearizedBaseContracts?.includes(call.modifierName.referencedDeclaration!),
     ) ?? [];
 
-  const empty =
+  const emptyUnchained =
     !constructorNode?.body?.statements?.length && varInitNodes.length == 0 && modifiers.length == 0;
 
   return {
     constructorNode,
     varInitNodes,
     modifiers,
-    empty,
+    emptyUnchained,
   };
 }
