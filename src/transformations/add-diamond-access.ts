@@ -10,6 +10,7 @@ import { relativePath } from "../utils/relative-path";
 import path from "path";
 import { getScopedContractsForVariables, getUniqueIdentifierVarsUsed } from './utils/get-identifiers-used';
 import {ContractsIdentifier} from "hardhat/internal/hardhat-network/stack-traces/contracts-identifier";
+import {getReferencedImports} from "./utils/get-referenced-imports";
 
 export function* addDiamondAccess(sourceUnit: SourceUnit,
                    tools: TransformerTools,
@@ -18,9 +19,6 @@ export function* addDiamondAccess(sourceUnit: SourceUnit,
     const { resolver } = tools;
 
     const contracts = [...findAll('ContractDefinition', sourceUnit)];
-    if (!contracts.some(c => c.contractKind === 'contract')) {
-        return;
-    }
 
     let last: Node | undefined;
     for (const node of findAll('PragmaDirective', sourceUnit)) {
@@ -35,33 +33,13 @@ export function* addDiamondAccess(sourceUnit: SourceUnit,
     const {dir, name, ext} = path.parse(sourceUnit.absolutePath);
     const storageFileName = dir + path.sep + name + 'Storage.sol'
 
-    // get the unique referenced contract definitions
-    let referencedContracts = new Map<number, ContractDefinition>();
-    for (const contract of contracts) {
-        // merge into one map for this SourceUnit
-        referencedContracts = new Map<number, ContractDefinition>(
-            [...referencedContracts, ...getScopedContractsForVariables(contract, tools)]);
-    }
 
-    let imports = new Map<string, Array<string>>();
-    referencedContracts.forEach(contract => {
-        try {
-            const srcFile: SourceUnit = resolver.resolveNode('SourceUnit', contract.scope)!;
-            if (!imports.has(srcFile.absolutePath)) {
-                imports.set(srcFile.absolutePath, new Array<string>());
-            }
-            const contractDefs = imports.get(srcFile.absolutePath)!;
-            contractDefs.push(contract.name + 'Storage');
-        } catch (e) {
-
-        }
-    });
+    // make sure Initializable gets 'Storage' suffix
+    const imports = getReferencedImports(contracts, tools, 'Storage', '');
 
     let importText = '';
     imports.forEach( (contractNames, filePath ) => {
-        const { dir, name, ext } = path.parse(filePath);
-        const storageFileName = dir + path.sep + name + 'Storage' + ext;
-        importText += '\nimport { ' + contractNames.join(', ') + ' } from "' + storageFileName + '";'
+        importText += '\nimport { ' + contractNames.join(', ') + ' } from "' + filePath + '";'
     });
 
     yield {

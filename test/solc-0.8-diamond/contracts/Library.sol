@@ -3,4 +3,8 @@
 pragma solidity ^0.8.0;
 
 library Library {
+
+    struct libStruct {
+        uint256 _justALibStructVariable;
+    }
 }

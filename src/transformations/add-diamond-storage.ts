@@ -10,6 +10,8 @@ import {OutputFile} from "../index";
 import {renameContract, renamePath} from "../rename";
 import {newFunctionPosition} from "./utils/new-function-position";
 import {Node} from "solidity-ast/node";
+import {getScopedContractsForVariables} from "./utils/get-identifiers-used";
+import {getReferencedImports} from "./utils/get-referenced-imports";
 
 function* findUserDefinedTypes(node: Node): Generator<UserDefinedTypeName> {
   const seen = new Set();
@@ -32,12 +34,7 @@ export function addDiamondStorage(newFiles: OutputFile[]) {
 
     let buffer = '';
     let contractNeedsStorage = false;
-    let isInitializableContract = false;
     for (const contract of contracts) {
-
-      if (contract.name === 'Initializable') {
-        isInitializableContract = true
-      }
 
       const varDecls = [...findAll('VariableDeclaration', contract)];
       const variableNodes = varDecls.filter(
@@ -77,15 +74,20 @@ export function addDiamondStorage(newFiles: OutputFile[]) {
       }
     }
 
-    const importText = `\nimport ""`;
+    const imports = getReferencedImports(contracts, tools, 'Upgradeable', 'Initializable');
+    let importsText = '';
+    imports.forEach( (contractNames, filePath ) => {
+      importsText += '\nimport { ' + contractNames.join(', ') + ' } from "' + filePath + '";'
+    });
 
     if (contractNeedsStorage) {
       const newBuffer = `// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.0;
 
-import "${isInitializableContract ? sourceUnit.absolutePath : renamePath(sourceUnit.absolutePath)}";
-` + buffer;
+${ importsText }
+${ buffer }
+`;
 
       const {dir, name, ext} = path.parse(sourceUnit.absolutePath);
       const newpath = path.format({dir, ext, name: name + 'Storage'});

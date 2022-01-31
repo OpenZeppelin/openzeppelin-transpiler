@@ -1,4 +1,4 @@
-import {ContractDefinition, Identifier, VariableDeclaration} from "solidity-ast";
+import {ContractDefinition, Identifier, UserDefinedTypeName, VariableDeclaration} from "solidity-ast";
 import { TransformerTools } from "../../transform";
 import { ASTResolverError } from "../../ast-resolver";
 import { findAllIdentifiers } from "./find-all-identifiers";
@@ -38,20 +38,27 @@ export function getUniqueVariablesUsed(contractNode: ContractDefinition, tools: 
     const varDecls = new Map<number, VariableDeclaration>();
 
     for (const identifier of findAll(['VariableDeclaration', 'Identifier'], contractNode )) {
+        let varDecl: VariableDeclaration | undefined = undefined;
         if (identifier.nodeType === 'Identifier') {
             const id = identifier.referencedDeclaration;
             if (id && !varDecls.has(id)) {
-                const varDecl = resolver.resolveNode('VariableDeclaration', id, false)!;
+                varDecl = resolver.resolveNode('VariableDeclaration', id, false)!;
                 if (varDecl && !varDecl.constant && varDecl.stateVariable && !varDecls.has(id)) {
                     varDecls.set(id, varDecl);
                 }
             }
         } else {
             const id = identifier.id;
+            varDecl = identifier;
             if (!identifier.constant && identifier.stateVariable && !varDecls.has(id)) {
                 varDecls.set(id, identifier);
             }
         }
+
+        if (varDecl && varDecl.typeName?.nodeType === 'UserDefinedTypeName') {
+            findChildReferences(varDecl, varDecls, tools);
+        }
+
     }
 
     return varDecls;
@@ -80,16 +87,20 @@ export function getScopedContractsForVariables(contractNode: ContractDefinition,
     return contractDefinitions;
 }
 
-function* findAllIdentifiersAndVariableDeclaration(node: Node) {
-    const seen = new Set();
-    for (const id of findAll(['VariableDeclaration', 'Identifier'], node)) {
-        if (id.nodeType === 'Identifier') {
-        }
-        if (!seen.has(id.id)) {
-            seen.add(id.id)
-        }
-        if (!seen.has(id)) {
-            yield id;
+function findChildReferences(varDecl: VariableDeclaration, varDecls:  Map<number, VariableDeclaration>, tools: TransformerTools) {
+    const { resolver } = tools;
+    const userType = varDecl.typeName as UserDefinedTypeName;
+    if (userType.pathNode) {
+        const childDecl = resolver.resolveNode('VariableDeclaration', userType.pathNode.id, false)!;
+        if (childDecl !== undefined) {
+            if (childDecl && childDecl.typeName?.nodeType === 'UserDefinedTypeName') {
+                findChildReferences(childDecl, varDecls, tools);
+            }
+
+            if (!varDecls.has(childDecl.id)) {
+                varDecls.set(childDecl.id, childDecl);
+            }
         }
     }
 }
+

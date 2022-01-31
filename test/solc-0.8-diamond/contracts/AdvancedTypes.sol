@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 
 import './Imported.sol';
 import './AbstractContract.sol';
+import './Library.sol';
 
 bytes32 constant constant1 = keccak256('openzepplin.contracts.AdvancedTypes.constant1');
 
@@ -26,6 +27,7 @@ abstract contract AdvancedTypes is AbstractContractWithParentConstructor {
         mapping (address => AdvancedEnum) addrToEnum;
         mapping (uint256 => mapping(address => AdvancedStruct1)) indexAddressOwner;
         mapping (address => Imported2.imported2Struct) addressToImported2Struct;
+        mapping (address => Library.libStruct) _testLibStructMapping;
     }
 
     AdvancedStruct2 testAdvancedStruct2;
