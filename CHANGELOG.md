@@ -1,9 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.3.6 (2022-01-31)
 
 - Remove calls to empty self unchained method from init method body, and empty parent unchained methods calls without parameters.
 - Persist modifiers on constructors.
+- Add docstring to gap variable.
 
 ## 0.3.5 (2022-01-13)
 
