@@ -88,7 +88,7 @@ export function buildSuperCallsForChain(
     if (parentNode !== contractNode) {
       // step 1 check if initializable
       const args = ctorCalls[parentNode.id]?.call?.arguments;
-      // To be initializable means that said parent has all the variables needed to compile
+      // To be initializable means that said parent has all the variables needed for the constuctor
       const initializable = args !== undefined || isImplicitlyConstructed(parentNode);
       if (!initializable) {
         // step 2 get the parent parents and add them to the list
