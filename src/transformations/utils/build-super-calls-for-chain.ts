@@ -104,9 +104,9 @@ export function buildSuperCallsForChain(
     }
   }
 
-  const initializableChain = chain.reverse();
+  chain.reverse();
 
-  for (const parentNode of initializableChain) {
+  for (const parentNode of chain) {
     if (
       parentNode === contractNode ||
       hasConstructorOverride(parentNode) ||
