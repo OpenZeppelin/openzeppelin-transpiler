@@ -91,7 +91,10 @@ export function buildSuperCallsForChain(
       // To be initializable means that said parent has all the variables needed for the constuctor
       const initializable = args !== undefined || isImplicitlyConstructed(parentNode);
       if (!initializable) {
-        // step 2 get the parent parents and add them to the list
+        // If a parent is not initializable, we assume its parents aren't initializable either,
+        // because we may not have their constructor arguments.
+        // The user will invoke them anyway in the chained initializer of this parent, which
+        // will have to be manually called.
         for (const parent of parentNode.linearizedBaseContracts) {
           notInitializable.add(parent);
         }
