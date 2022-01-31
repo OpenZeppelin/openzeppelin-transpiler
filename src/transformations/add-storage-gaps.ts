@@ -24,10 +24,9 @@ export function* addStorageGaps(
       const text = formatLines(0, [
         [``],
         [`/**`],
-        [`* This empty reserved space is put in place to prevent shifting down storage in the`],
-        [`* inheritance chain when new variables are added which would make storage layouts`],
-        [`* incompatible. The size is dynamically calculated so the amount of storage used by`],
-        [`* the contract always adds up to the same number`],
+        [`* This empty reserved space is put in place to allow future versions to add new`],
+        [`* variables without shifting down storage in the inheritance chain.`],
+        [`* See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps`],
         [`*/`],
         [`uint256[${gapSize}] private __gap;`],
       ]);
