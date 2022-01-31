@@ -82,7 +82,7 @@ export function buildSuperCallsForChain(
   // them according to chain.
   const linearizedCtorCalls: string[] = [];
   // this is where we store the parents of uninitialized parents if any
-  const invalidParents: number[] = [];
+  const invalidParents = new Set<number>();
   // Remove uninitialized parents's parents from linearization, and erase if they already are linearized
   for (const parentNode of chain) {
     if (parentNode !== contractNode) {
@@ -98,9 +98,7 @@ export function buildSuperCallsForChain(
 
         // step 3 add them to the list
         parents.map(id => {
-          if (!invalidParents.includes(id)) {
-            invalidParents.push(id);
-          }
+          invalidParents.add(id);
         });
       }
     }
@@ -113,7 +111,7 @@ export function buildSuperCallsForChain(
       parentNode === contractNode ||
       hasConstructorOverride(parentNode) ||
       parentNode.contractKind === 'interface' ||
-      invalidParents.includes(parentNode.id)
+      invalidParents.has(parentNode.id)
     ) {
       continue;
     }
