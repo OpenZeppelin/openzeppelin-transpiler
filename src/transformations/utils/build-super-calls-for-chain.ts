@@ -88,11 +88,8 @@ export function buildSuperCallsForChain(
     if (parentNode !== contractNode) {
       // step 1 check if initializable
       const args = ctorCalls[parentNode.id]?.call?.arguments;
-
-      if (
-        args === undefined &&
-        (getInitializerItems(parentNode).emptyUnchained || !isImplicitlyConstructed(parentNode))
-      ) {
+      const initializable = args !== undefined || isImplicitlyConstructed(parentNode);
+      if (!initializable) {
         // step 2 get the parent parents
         const parents = parentNode.linearizedBaseContracts;
 
@@ -118,7 +115,7 @@ export function buildSuperCallsForChain(
 
     const args = ctorCalls[parentNode.id]?.call?.arguments ?? [];
 
-    if (args) {
+    if (args.length || !getInitializerItems(parentNode).emptyUnchained) {
       // TODO: we have to use the name in the lexical context and not necessarily
       // the original contract name
       linearizedCtorCalls.push(buildSuperCall(args, parentNode.name, helper));

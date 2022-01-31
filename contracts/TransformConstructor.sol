@@ -125,3 +125,11 @@ contract Foo15 is Foo7 {
 abstract contract Foo16 is Foo15 {
 
 }
+
+contract Foo17 is Foo4 {
+    constructor() public {}
+}
+
+abstract contract Foo18 is Foo17 {
+
+}
