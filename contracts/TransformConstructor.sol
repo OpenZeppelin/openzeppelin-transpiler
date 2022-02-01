@@ -133,3 +133,19 @@ contract Foo17 is Foo4 {
 abstract contract Foo18 is Foo17 {
 
 }
+
+contract Foo19 {
+  constructor(uint x) public {}
+}
+
+contract Foo20 is Foo19 {
+	constructor(uint x) Foo19(x) public {}
+}
+
+contract Foo21 is Foo20 {
+  constructor() Foo20(4) public {}
+}
+
+contract Foo22 is Foo19 {
+  constructor(uint y) Foo19(y + 1) public {}
+}
