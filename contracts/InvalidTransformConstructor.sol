@@ -8,14 +8,6 @@ contract B is A {
 	constructor(uint x) A(x) public {}
 }
 
-contract C is B {
-  constructor() B(4) public {}
-}
-
-contract D is B {
-	constructor(uint y) B(y) public {}
-}
-
 interface IFoo {
     function mint() external returns (uint);
 }

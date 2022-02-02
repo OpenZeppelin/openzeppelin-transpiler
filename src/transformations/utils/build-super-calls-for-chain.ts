@@ -1,7 +1,7 @@
 import { flatten, keyBy } from 'lodash';
 
 import { getConstructor } from '../../solc/ast-utils';
-import { ContractDefinition } from 'solidity-ast';
+import { ContractDefinition, Expression } from 'solidity-ast';
 import { Node } from 'solidity-ast/node';
 import { TransformHelper } from '../type';
 import { TransformerTools } from '../../transform';
@@ -83,20 +83,46 @@ export function buildSuperCallsForChain(
   const linearizedCtorCalls: string[] = [];
   // this is where we store the parents of uninitialized parents if any
   const notInitializable = new Set<number>();
+  let literalArgsValues: Record<number, Expression> = {};
+  let argsValues: Record<number, Expression[]> = {};
   // Remove uninitialized parents's parents from linearization, and erase if they already are linearized
   for (const parentNode of chain) {
     if (parentNode !== contractNode) {
       // step 1 check if initializable
       const args = ctorCalls[parentNode.id]?.call?.arguments;
-      // To be initializable means that said parent has all the variables needed for the constuctor
-      const initializable = args !== undefined || isImplicitlyConstructed(parentNode);
-      if (!initializable) {
-        // If a parent is not initializable, we assume its parents aren't initializable either,
-        // because we may not have their constructor arguments.
-        // The user will invoke them anyway in the chained initializer of this parent, which
-        // will have to be manually called.
-        for (const parent of parentNode.linearizedBaseContracts) {
-          notInitializable.add(parent);
+      // Check if any argument is literal
+      if (args) {
+        argsValues[parentNode.id] = [];
+        const parameters = getConstructor(parentNode)?.parameters.parameters;//TODO see if I can do this with findall identifiers and looks cleaner
+        for (let arg of args) {
+          if (arg.nodeType === "Literal" && parameters) {
+            // Need to use index since the arg does not contain a referenceDeclaration if literal to match with the parameter id.
+            // Parameters and arguments are in the same order so the index works for both.
+            const index = args.indexOf(arg);
+            const literalId = parameters[index].id;
+            //save it in case other parent argument uses the id of the literal value as referencedDeclaration
+            literalArgsValues[literalId] = arg;
+          } else if(arg.nodeType === "Identifier" && arg.referencedDeclaration) {
+            if(literalArgsValues[arg.referencedDeclaration]){
+              //if a reference is found to a literal value the identifier gets replace by the literal value
+              arg = literalArgsValues[arg.referencedDeclaration];
+            }
+          }
+          argsValues[parentNode.id].push(arg);
+        }
+      } else {
+        // To be initializable means that said parent has all the variables needed for the constuctor
+        const initializable = isImplicitlyConstructed(parentNode);
+        if (!initializable) {
+          // If a parent is not initializable, we assume its parents aren't initializable either,
+          // because we may not have their constructor arguments.
+          // The user will invoke them anyway in the chained initializer of this parent, which
+          // will have to be manually called.
+          for (const parent of parentNode.linearizedBaseContracts) {
+            notInitializable.add(parent);
+          }
+        } else {
+          argsValues[parentNode.id] = [];
         }
       }
     }
@@ -114,7 +140,7 @@ export function buildSuperCallsForChain(
       continue;
     }
 
-    const args = ctorCalls[parentNode.id]?.call?.arguments ?? [];
+    const args = argsValues[parentNode.id];
 
     if (args.length || !getInitializerItems(parentNode).emptyUnchained) {
       // TODO: we have to use the name in the lexical context and not necessarily
