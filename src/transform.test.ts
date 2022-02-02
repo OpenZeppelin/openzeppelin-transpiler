@@ -146,9 +146,8 @@ test('transform constructor', t => {
 
 test('invalid constructors', t => {
   const file = 'contracts/InvalidTransformConstructor.sol';
-  t.context.transform.apply(transformConstructor);
-  t.context.transform.apply(removeLeftoverConstructorHead);
-  t.snapshot(t.context.transform.results()[file]);
+  t.throws(() => t.context.transform.apply(transformConstructor));
+  //t.snapshot(t.context.transform.results()[file]);
 });
 
 test('fix new statement', t => {

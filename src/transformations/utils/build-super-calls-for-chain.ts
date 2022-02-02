@@ -7,6 +7,7 @@ import { TransformHelper } from '../type';
 import { TransformerTools } from '../../transform';
 import { hasConstructorOverride } from '../../utils/upgrades-overrides';
 import { getInitializerItems } from './get-initializer-items';
+import { findAll } from 'solidity-ast/utils';
 
 // builds an __init call with given arguments, for example
 // ERC20DetailedUpgradeable.__init(false, "Gold", "GLD", 18)
@@ -106,6 +107,14 @@ export function buildSuperCallsForChain(
             if(literalArgsValues[arg.referencedDeclaration]){
               //if a reference is found to a literal value the identifier gets replace by the literal value
               arg = literalArgsValues[arg.referencedDeclaration];
+            }
+          } else if (arg.nodeType === "BinaryOperation") {
+            const identifiers = [...findAll('Identifier', arg)];
+            for (const id of identifiers) {
+                if (id.referencedDeclaration &&
+                    literalArgsValues[id.referencedDeclaration]) {
+                      throw new Error(`This operations is not valid ${parentNode.name}`);
+                }
             }
           }
           argsValues[parentNode.id].push(arg);
