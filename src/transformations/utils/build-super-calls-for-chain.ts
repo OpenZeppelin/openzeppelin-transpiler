@@ -84,8 +84,8 @@ export function buildSuperCallsForChain(
   const linearizedCtorCalls: string[] = [];
   // this is where we store the parents of uninitialized parents if any
   const notInitializable = new Set<number>();
-  const argsValues = new Map<VariableDeclaration, Expression>();
-  const parentArgsValues = new Map<ContractDefinition, Expression[]>();
+  const argsValues = new Map<VariableDeclaration, Expression | undefined>();
+  const parentArgsValues = new Map<ContractDefinition, Expression[] | undefined>();
   // Remove uninitialized parents's parents from linearization, and erase if they already are linearized
   for (const parentNode of chain) {
     if (parentNode !== contractNode) {
@@ -94,28 +94,32 @@ export function buildSuperCallsForChain(
       // Check if any argument is literal
       if (args && parameters) {
         parentArgsValues.set(parentNode, []);
-        for (let arg of args) {
+        for (let [index, arg] of args.entries()) {
           // Need to use index since the arg does not contain a referenceDeclaration id to match with the parameter id.
           // Parameters and arguments are in the same order so the index works for both.
-          const index = args.indexOf(arg);
-          let param = parameters[index];
+          const param = parameters[index];
           if (arg.nodeType === 'Literal') {
             //save it in case other parent argument uses the id of the literal value as referencedDeclaration
             argsValues.set(param, arg);
           } else if (arg.nodeType === 'Identifier') {
-            const sourceParam = resolver.resolveNode('VariableDeclaration', arg.referencedDeclaration!);
+            const sourceParam = resolver.resolveNode(
+              'VariableDeclaration',
+              arg.referencedDeclaration!,
+            );
             if (argsValues.has(sourceParam)) {
               //if a reference is found to a literal value the identifier gets replace by the literal value
               arg = argsValues.get(sourceParam)!;
               argsValues.set(param, arg);
-
             } else {
               argsValues.set(param, arg);
             }
           } else if (arg.nodeType === 'BinaryOperation') {
             const identifiers = [...findAll('Identifier', arg)];
             for (const id of identifiers) {
-              const sourceParam = resolver.resolveNode('VariableDeclaration', id.referencedDeclaration!);
+              const sourceParam = resolver.resolveNode(
+                'VariableDeclaration',
+                id.referencedDeclaration!,
+              );
               if (argsValues.has(sourceParam)) {
                 throw new Error(`This operations is not valid ${parentNode.name}`);
               }
