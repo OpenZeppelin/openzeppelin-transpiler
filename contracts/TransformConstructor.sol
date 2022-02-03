@@ -149,3 +149,11 @@ contract Foo21 is Foo20 {
 contract Foo22 is Foo19 {
   constructor(uint y) Foo19(y + 1) public {}
 }
+
+contract Foo23 is Foo9, Foo20 {
+  constructor(uint x, uint y) Foo9(x, y) Foo20(y) public {}
+}
+
+contract Foo24 is Foo23 {
+    constructor() Foo23(1, 2) public {}
+}

@@ -44,7 +44,7 @@ export interface TranspileOptions {
   solcVersion?: string;
 }
 
-export function getExtraOutputPaths(
+function getExtraOutputPaths(
   paths: Paths,
   options?: TranspileOptions,
 ): Record<'initializable' | 'withInit', string> {

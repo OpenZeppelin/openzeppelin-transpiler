@@ -94,7 +94,7 @@ export function buildSuperCallsForChain(
       // Check if any argument is literal
       if (args) {
         argsValues[parentNode.id] = [];
-        const parameters = getConstructor(parentNode)?.parameters.parameters; //TODO see if I can do this with findall identifiers and looks cleaner
+        const parameters = getConstructor(parentNode)?.parameters.parameters;
         for (let arg of args) {
           if (arg.nodeType === 'Literal' && parameters) {
             // Need to use index since the arg does not contain a referenceDeclaration if literal to match with the parameter id.

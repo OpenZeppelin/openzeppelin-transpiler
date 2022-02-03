@@ -1,5 +1,4 @@
 import _test, { TestFn } from 'ava';
-import hre from 'hardhat';
 import { getBuildInfo } from './test-utils/get-build-info';
 
 import { findAll } from 'solidity-ast/utils';
@@ -22,7 +21,6 @@ import {
   transformConstructor,
   removeLeftoverConstructorHead,
 } from './transformations/transform-constructor';
-import { getExtraOutputPaths } from './index';
 
 const test = _test as TestFn<Context>;
 
@@ -140,9 +138,7 @@ test('append initializable import custom', t => {
 
 test('transform constructor', t => {
   const file = 'contracts/TransformConstructor.sol';
-  // Exclude contracts expected to throw an error
-  const outputPaths = getExtraOutputPaths(hre.config.paths);
-  const excludeSet = new Set([...Object.values(outputPaths)]);
+  const excludeSet = new Set(['contracts/InvalidTransformConstructor.sol', 'contracts/InvalidTransformConstructorFunction.sol']);
   t.context.transform = new Transform(t.context.solcInput, t.context.solcOutput, {
     exclude: source => excludeSet.has(source),
   });
@@ -153,13 +149,19 @@ test('transform constructor', t => {
 });
 
 test('invalid constructors', t => {
-  // Only include contracts expected to throw an error
-  const outputPaths = getExtraOutputPaths(hre.config.paths);
-  const excludeSet = new Set([...Object.values(outputPaths)]);
-  t.context.transform = new Transform(t.context.solcInput, t.context.solcOutput, {
-    exclude: source => !excludeSet.has(source),
+  // InvalidTransformConstructor
+  const localContext = t.context;
+  let includeSet = new Set(['contracts/InvalidTransformConstructor.sol']);
+  t.context.transform = new Transform(localContext.solcInput, localContext.solcOutput, {
+    exclude: source => !includeSet.has(source),
   });
-  //const file = 'contracts/InvalidTransformConstructor.sol';
+
+  t.throws(() => t.context.transform.apply(transformConstructor));
+  // InvalidTransformConstructorFunction
+  includeSet = new Set(['contracts/InvalidTransformConstructorFunction.sol']);
+  t.context.transform = new Transform(localContext.solcInput, localContext.solcOutput, {
+    exclude: source => !includeSet.has(source),
+  });
   t.throws(() => t.context.transform.apply(transformConstructor));
 });
 
