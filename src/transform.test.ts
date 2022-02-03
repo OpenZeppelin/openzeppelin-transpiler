@@ -38,13 +38,8 @@ test.serial.before('compile', async t => {
 });
 
 test.beforeEach('transform', async t => {
-  const excludeSet = new Set([
-    'contracts/invalid/InvalidTransformConstructor.sol',
-    'contracts/invalid/InvalidTransformConstructorFunction.sol',
-  ]);
-
   t.context.transform = new Transform(t.context.solcInput, t.context.solcOutput, {
-    exclude: source => excludeSet.has(source),
+    exclude: source => source.startsWith("contracts/invalid/"),
   });
 });
 
