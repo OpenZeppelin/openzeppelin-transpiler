@@ -37,7 +37,7 @@ export interface OutputFile {
   path: string;
 }
 
-export interface TranspileOptions {
+interface TranspileOptions {
   initializablePath?: string;
   exclude?: string[];
   publicInitializers?: string[];
