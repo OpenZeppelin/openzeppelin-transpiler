@@ -139,7 +139,7 @@ contract Foo19 {
 }
 
 contract Foo20 is Foo19 {
-	constructor(uint x) Foo19(x) public {}
+  constructor(uint x) Foo19(x) public {}
 }
 
 contract Foo21 is Foo20 {

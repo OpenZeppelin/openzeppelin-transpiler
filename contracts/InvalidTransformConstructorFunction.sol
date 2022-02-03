@@ -5,7 +5,7 @@ contract A {
 }
 
 contract B is A {
-	constructor(uint x) A(x) public {}
+  constructor(uint x) A(x) public {}
 }
 
 interface IFoo {
@@ -13,5 +13,5 @@ interface IFoo {
 }
 
 contract E is B {
-	constructor(IFoo t) B(t.mint()) public {}
+  constructor(IFoo t) B(t.mint()) public {}
 }

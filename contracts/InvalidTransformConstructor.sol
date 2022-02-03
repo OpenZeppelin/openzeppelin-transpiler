@@ -5,7 +5,7 @@ contract A {
 }
 
 contract B is A {
-	constructor(uint x) A(x) public {}
+  constructor(uint x) A(x) public {}
 }
 
 contract F is A {
