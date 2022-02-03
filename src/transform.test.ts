@@ -39,8 +39,8 @@ test.serial.before('compile', async t => {
 
 test.beforeEach('transform', async t => {
   const excludeSet = new Set([
-    'contracts/InvalidTransformConstructor.sol',
-    'contracts/InvalidTransformConstructorFunction.sol',
+    'contracts/invalid/InvalidTransformConstructor.sol',
+    'contracts/invalid/InvalidTransformConstructorFunction.sol',
   ]);
 
   t.context.transform = new Transform(t.context.solcInput, t.context.solcOutput, {
@@ -153,14 +153,14 @@ test('transform constructor', t => {
 test('invalid constructors', t => {
   // InvalidTransformConstructor
   const localContext = t.context;
-  let includeSet = new Set(['contracts/InvalidTransformConstructor.sol']);
+  let includeSet = new Set(['contracts/invalid/InvalidTransformConstructor.sol']);
   t.context.transform = new Transform(localContext.solcInput, localContext.solcOutput, {
     exclude: source => !includeSet.has(source),
   });
 
   t.throws(() => t.context.transform.apply(transformConstructor));
   // InvalidTransformConstructorFunction
-  includeSet = new Set(['contracts/InvalidTransformConstructorFunction.sol']);
+  includeSet = new Set(['contracts/invalid/InvalidTransformConstructorFunction.sol']);
   t.context.transform = new Transform(localContext.solcInput, localContext.solcOutput, {
     exclude: source => !includeSet.has(source),
   });

@@ -37,7 +37,7 @@ export interface OutputFile {
   path: string;
 }
 
-interface TranspileOptions {
+export interface TranspileOptions {
   initializablePath?: string;
   exclude?: string[];
   publicInitializers?: string[];
@@ -52,8 +52,6 @@ function getExtraOutputPaths(
     {
       initializable: 'Initializable.sol',
       withInit: 'mocks/WithInit.sol',
-      invalidOperation: 'InvalidTransformConstructor.sol',
-      invalid: 'InvalidTransformConstructorFunction.sol',
     },
     s => path.relative(paths.root, path.join(paths.sources, s)),
   );
