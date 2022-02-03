@@ -84,34 +84,36 @@ export function buildSuperCallsForChain(
   const linearizedCtorCalls: string[] = [];
   // this is where we store the parents of uninitialized parents if any
   const notInitializable = new Set<number>();
-  const literalArgsValues: Record<number, Expression> = {};
-  const argsValues: Record<number, Expression[]> = {};
+  const argsValues: Record<number, Expression> = {};
+  const parentArgsValues: Record<number, Expression[]> = {};
   // Remove uninitialized parents's parents from linearization, and erase if they already are linearized
   for (const parentNode of chain) {
     if (parentNode !== contractNode) {
-      // step 1 check if initializable
       const args = ctorCalls[parentNode.id]?.call?.arguments;
+      const parameters = getConstructor(parentNode)?.parameters.parameters;
       // Check if any argument is literal
-      if (args) {
-        argsValues[parentNode.id] = [];
-        const parameters = getConstructor(parentNode)?.parameters.parameters;
+      if (args && parameters) {
+        parentArgsValues[parentNode.id] = [];
         for (let arg of args) {
-          if (arg.nodeType === 'Literal' && parameters) {
-            // Need to use index since the arg does not contain a referenceDeclaration if literal to match with the parameter id.
-            // Parameters and arguments are in the same order so the index works for both.
-            const index = args.indexOf(arg);
-            const literalId = parameters[index].id;
+          // Need to use index since the arg does not contain a referenceDeclaration id to match with the parameter id.
+          // Parameters and arguments are in the same order so the index works for both.
+          const index = args.indexOf(arg);
+          const argId = parameters[index].id;
+          if (arg.nodeType === 'Literal') {
             //save it in case other parent argument uses the id of the literal value as referencedDeclaration
-            literalArgsValues[literalId] = arg;
-          } else if (arg.nodeType === 'Identifier' && arg.referencedDeclaration) {
-            if (literalArgsValues[arg.referencedDeclaration]) {
+            argsValues[argId] = arg;
+          } else if (arg.nodeType === 'Identifier') {
+            if (arg.referencedDeclaration && argsValues[arg.referencedDeclaration]) {
               //if a reference is found to a literal value the identifier gets replace by the literal value
-              arg = literalArgsValues[arg.referencedDeclaration];
+              arg = argsValues[arg.referencedDeclaration];
+              argsValues[argId] = arg;
+            } else {
+              argsValues[argId] = arg;
             }
           } else if (arg.nodeType === 'BinaryOperation') {
             const identifiers = [...findAll('Identifier', arg)];
             for (const id of identifiers) {
-              if (id.referencedDeclaration && literalArgsValues[id.referencedDeclaration]) {
+              if (id.referencedDeclaration && argsValues[id.referencedDeclaration]) {
                 throw new Error(`This operations is not valid ${parentNode.name}`);
               }
             }
@@ -120,7 +122,7 @@ export function buildSuperCallsForChain(
             throw new Error(`This operations is not valid ${parentNode.name}`);
           }
 
-          argsValues[parentNode.id].push(arg);
+          parentArgsValues[parentNode.id].push(arg);
         }
       } else {
         // To be initializable means that said parent has all the variables needed for the constuctor
@@ -134,7 +136,7 @@ export function buildSuperCallsForChain(
             notInitializable.add(parent);
           }
         } else {
-          argsValues[parentNode.id] = [];
+          parentArgsValues[parentNode.id] = [];
         }
       }
     }
@@ -152,7 +154,7 @@ export function buildSuperCallsForChain(
       continue;
     }
 
-    const args = argsValues[parentNode.id];
+    const args = parentArgsValues[parentNode.id];
 
     if (args.length || !getInitializerItems(parentNode).emptyUnchained) {
       // TODO: we have to use the name in the lexical context and not necessarily
