@@ -1,4 +1,5 @@
 import _test, { TestFn } from 'ava';
+import { promises as fs } from 'fs';
 import hre from 'hardhat';
 
 import { getBuildInfo } from './test-utils/get-build-info';
@@ -29,18 +30,15 @@ const fileNames = [
   'Rename.sol',
 ];
 
-const excludeSet = [
-  'contracts/invalid/InvalidTransformConstructor.sol',
-  'contracts/invalid/InvalidTransformConstructorFunction.sol',
-];
+const excludeDir = 'contracts/invalid/';
 
 test.serial.before('compile', async t => {
   const buildInfo = await getBuildInfo('0.6');
   const solcInput = buildInfo.input;
   const solcOutput = buildInfo.output as SolcOutput;
-  const options: TranspileOptions = { exclude: excludeSet };
+  const exclude = (await fs.readdir(excludeDir)).map(f => excludeDir + f);
 
-  t.context.files = await transpile(solcInput, solcOutput, hre.config.paths, options);
+  t.context.files = await transpile(solcInput, solcOutput, hre.config.paths, { exclude });
 });
 
 for (const fileName of fileNames) {
