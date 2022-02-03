@@ -1,7 +1,7 @@
 import { flatten, keyBy } from 'lodash';
 
 import { getConstructor } from '../../solc/ast-utils';
-import { ContractDefinition, Expression } from 'solidity-ast';
+import { ContractDefinition, Expression, VariableDeclaration } from 'solidity-ast';
 import { Node } from 'solidity-ast/node';
 import { TransformHelper } from '../type';
 import { TransformerTools } from '../../transform';
@@ -84,8 +84,8 @@ export function buildSuperCallsForChain(
   const linearizedCtorCalls: string[] = [];
   // this is where we store the parents of uninitialized parents if any
   const notInitializable = new Set<number>();
-  const argsValues: Record<number, Expression> = {};
-  const parentArgsValues: Record<number, Expression[]> = {};
+  const argsValues = new Map<VariableDeclaration, Expression>();
+  const parentArgsValues = new Map<ContractDefinition, Expression[]>();
   // Remove uninitialized parents's parents from linearization, and erase if they already are linearized
   for (const parentNode of chain) {
     if (parentNode !== contractNode) {
@@ -93,27 +93,30 @@ export function buildSuperCallsForChain(
       const parameters = getConstructor(parentNode)?.parameters.parameters;
       // Check if any argument is literal
       if (args && parameters) {
-        parentArgsValues[parentNode.id] = [];
+        parentArgsValues.set(parentNode, []);
         for (let arg of args) {
           // Need to use index since the arg does not contain a referenceDeclaration id to match with the parameter id.
           // Parameters and arguments are in the same order so the index works for both.
           const index = args.indexOf(arg);
-          const argId = parameters[index].id;
+          let param = parameters[index];
           if (arg.nodeType === 'Literal') {
             //save it in case other parent argument uses the id of the literal value as referencedDeclaration
-            argsValues[argId] = arg;
+            argsValues.set(param, arg);
           } else if (arg.nodeType === 'Identifier') {
-            if (arg.referencedDeclaration && argsValues[arg.referencedDeclaration]) {
+            const sourceParam = resolver.resolveNode('VariableDeclaration', arg.referencedDeclaration!);
+            if (argsValues.has(sourceParam)) {
               //if a reference is found to a literal value the identifier gets replace by the literal value
-              arg = argsValues[arg.referencedDeclaration];
-              argsValues[argId] = arg;
+              arg = argsValues.get(sourceParam)!;
+              argsValues.set(param, arg);
+
             } else {
-              argsValues[argId] = arg;
+              argsValues.set(param, arg);
             }
           } else if (arg.nodeType === 'BinaryOperation') {
             const identifiers = [...findAll('Identifier', arg)];
             for (const id of identifiers) {
-              if (id.referencedDeclaration && argsValues[id.referencedDeclaration]) {
+              const sourceParam = resolver.resolveNode('VariableDeclaration', id.referencedDeclaration!);
+              if (argsValues.has(sourceParam)) {
                 throw new Error(`This operations is not valid ${parentNode.name}`);
               }
             }
@@ -121,8 +124,7 @@ export function buildSuperCallsForChain(
             // Check if uses arguments external to the context to prevent performing multiple operations
             throw new Error(`This operations is not valid ${parentNode.name}`);
           }
-
-          parentArgsValues[parentNode.id].push(arg);
+          parentArgsValues.get(parentNode)?.push(arg);
         }
       } else {
         // To be initializable means that said parent has all the variables needed for the constuctor
@@ -136,7 +138,7 @@ export function buildSuperCallsForChain(
             notInitializable.add(parent);
           }
         } else {
-          parentArgsValues[parentNode.id] = [];
+          parentArgsValues.set(parentNode, []);
         }
       }
     }
@@ -154,7 +156,7 @@ export function buildSuperCallsForChain(
       continue;
     }
 
-    const args = parentArgsValues[parentNode.id];
+    const args = parentArgsValues.get(parentNode) ?? [];
 
     if (args.length || !getInitializerItems(parentNode).emptyUnchained) {
       // TODO: we have to use the name in the lexical context and not necessarily
