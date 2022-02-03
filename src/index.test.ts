@@ -38,7 +38,7 @@ test.serial.before('compile', async t => {
   const buildInfo = await getBuildInfo('0.6');
   const solcInput = buildInfo.input;
   const solcOutput = buildInfo.output as SolcOutput;
-  const options: TranspileOptions = {exclude: excludeSet};
+  const options: TranspileOptions = { exclude: excludeSet };
 
   t.context.files = await transpile(solcInput, solcOutput, hre.config.paths, options);
 });

@@ -125,6 +125,20 @@ export function buildSuperCallsForChain(
           } else if (arg.nodeType === 'FunctionCall') {
             // Check if uses arguments external to the context to prevent performing multiple operations
             throw new Error(`This operations is not valid ${parentNode.name}`);
+          } else {
+            const identifiers = [...findAll('Identifier', arg)];
+            for (const id of identifiers) {
+              const sourceParam = resolver.resolveNode(
+                'VariableDeclaration',
+                id.referencedDeclaration!,
+              );
+              if (argsValues.has(sourceParam)) {
+                index = 0;
+                throw new Error(
+                  `Can't transpile non-trivial expression in parent constructor argument`,
+                );
+              }
+            }
           }
           parentArgsValues.get(parentNode)?.push(arg);
         }
