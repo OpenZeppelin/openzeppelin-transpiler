@@ -148,9 +148,8 @@ test('transform constructor', t => {
 test('invalid constructors', t => {
   // InvalidTransformConstructor
   const localContext = t.context;
-  let includeSet = new Set(['contracts/invalid/InvalidTransformConstructor.sol']);
   t.context.transform = new Transform(localContext.solcInput, localContext.solcOutput, {
-    exclude: source => !includeSet.has(source),
+    exclude: source => source !== 'contracts/invalid/InvalidTransformConstructor.sol',
   });
 
   t.throws(() => t.context.transform.apply(transformConstructor));
