@@ -95,8 +95,6 @@ export function buildSuperCallsForChain(
       if (args && parameters) {
         parentArgsValues.set(parentNode, []);
         for (let [index, arg] of args.entries()) {
-          // Need to use index since the arg does not contain a referenceDeclaration id to match with the parameter id.
-          // Parameters and arguments are in the same order so the index works for both.
           const param = parameters[index];
           if (arg.nodeType === 'Literal') {
             //save it in case other parent argument uses the id of the literal value as referencedDeclaration
