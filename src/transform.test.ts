@@ -138,7 +138,10 @@ test('append initializable import custom', t => {
 
 test('transform constructor', t => {
   const file = 'contracts/TransformConstructor.sol';
-  const excludeSet = new Set(['contracts/InvalidTransformConstructor.sol', 'contracts/InvalidTransformConstructorFunction.sol']);
+  const excludeSet = new Set([
+    'contracts/InvalidTransformConstructor.sol',
+    'contracts/InvalidTransformConstructorFunction.sol',
+  ]);
   t.context.transform = new Transform(t.context.solcInput, t.context.solcOutput, {
     exclude: source => excludeSet.has(source),
   });
