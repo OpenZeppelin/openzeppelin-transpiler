@@ -53,6 +53,7 @@ export class Transform {
     this.decodeSrc = srcDecoder(output);
     this.getLayout = layoutGetter(output);
     this.resolver = new ASTResolver(output, options?.exclude);
+
     for (const source in input.sources) {
       if (options?.exclude?.(source)) {
         continue;
