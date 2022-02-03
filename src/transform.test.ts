@@ -1,5 +1,5 @@
 import _test, { TestFn } from 'ava';
-
+import hre from 'hardhat';
 import { getBuildInfo } from './test-utils/get-build-info';
 
 import { findAll } from 'solidity-ast/utils';
@@ -22,6 +22,7 @@ import {
   transformConstructor,
   removeLeftoverConstructorHead,
 } from './transformations/transform-constructor';
+import { getExtraOutputPaths } from './index';
 
 const test = _test as TestFn<Context>;
 
@@ -139,15 +140,27 @@ test('append initializable import custom', t => {
 
 test('transform constructor', t => {
   const file = 'contracts/TransformConstructor.sol';
+  // Exclude contracts expected to throw an error
+  const outputPaths = getExtraOutputPaths(hre.config.paths);
+  const excludeSet = new Set([...Object.values(outputPaths)]);
+  t.context.transform = new Transform(t.context.solcInput, t.context.solcOutput, {
+    exclude: source => excludeSet.has(source),
+  });
+
   t.context.transform.apply(transformConstructor);
   t.context.transform.apply(removeLeftoverConstructorHead);
   t.snapshot(t.context.transform.results()[file]);
 });
 
 test('invalid constructors', t => {
-  const file = 'contracts/InvalidTransformConstructor.sol';
+  // Only include contracts expected to throw an error
+  const outputPaths = getExtraOutputPaths(hre.config.paths);
+  const excludeSet = new Set([...Object.values(outputPaths)]);
+  t.context.transform = new Transform(t.context.solcInput, t.context.solcOutput, {
+    exclude: source => !excludeSet.has(source),
+  });
+  //const file = 'contracts/InvalidTransformConstructor.sol';
   t.throws(() => t.context.transform.apply(transformConstructor));
-  //t.snapshot(t.context.transform.results()[file]);
 });
 
 test('fix new statement', t => {

@@ -44,7 +44,7 @@ export interface TranspileOptions {
   solcVersion?: string;
 }
 
-function getExtraOutputPaths(
+export function getExtraOutputPaths(
   paths: Paths,
   options?: TranspileOptions,
 ): Record<'initializable' | 'withInit', string> {
@@ -52,7 +52,8 @@ function getExtraOutputPaths(
     {
       initializable: 'Initializable.sol',
       withInit: 'mocks/WithInit.sol',
-      invalid: 'InvalidTransformConstructor.sol',
+      invalidOperation: 'InvalidTransformConstructor.sol',
+      invalid: 'InvalidTransformConstructorFunction.sol',
     },
     s => path.relative(paths.root, path.join(paths.sources, s)),
   );

@@ -84,8 +84,8 @@ export function buildSuperCallsForChain(
   const linearizedCtorCalls: string[] = [];
   // this is where we store the parents of uninitialized parents if any
   const notInitializable = new Set<number>();
-  let literalArgsValues: Record<number, Expression> = {};
-  let argsValues: Record<number, Expression[]> = {};
+  const literalArgsValues: Record<number, Expression> = {};
+  const argsValues: Record<number, Expression[]> = {};
   // Remove uninitialized parents's parents from linearization, and erase if they already are linearized
   for (const parentNode of chain) {
     if (parentNode !== contractNode) {
@@ -94,29 +94,32 @@ export function buildSuperCallsForChain(
       // Check if any argument is literal
       if (args) {
         argsValues[parentNode.id] = [];
-        const parameters = getConstructor(parentNode)?.parameters.parameters;//TODO see if I can do this with findall identifiers and looks cleaner
+        const parameters = getConstructor(parentNode)?.parameters.parameters; //TODO see if I can do this with findall identifiers and looks cleaner
         for (let arg of args) {
-          if (arg.nodeType === "Literal" && parameters) {
+          if (arg.nodeType === 'Literal' && parameters) {
             // Need to use index since the arg does not contain a referenceDeclaration if literal to match with the parameter id.
             // Parameters and arguments are in the same order so the index works for both.
             const index = args.indexOf(arg);
             const literalId = parameters[index].id;
             //save it in case other parent argument uses the id of the literal value as referencedDeclaration
             literalArgsValues[literalId] = arg;
-          } else if(arg.nodeType === "Identifier" && arg.referencedDeclaration) {
-            if(literalArgsValues[arg.referencedDeclaration]){
+          } else if (arg.nodeType === 'Identifier' && arg.referencedDeclaration) {
+            if (literalArgsValues[arg.referencedDeclaration]) {
               //if a reference is found to a literal value the identifier gets replace by the literal value
               arg = literalArgsValues[arg.referencedDeclaration];
             }
-          } else if (arg.nodeType === "BinaryOperation") {
+          } else if (arg.nodeType === 'BinaryOperation') {
             const identifiers = [...findAll('Identifier', arg)];
             for (const id of identifiers) {
-                if (id.referencedDeclaration &&
-                    literalArgsValues[id.referencedDeclaration]) {
-                      throw new Error(`This operations is not valid ${parentNode.name}`);
-                }
+              if (id.referencedDeclaration && literalArgsValues[id.referencedDeclaration]) {
+                throw new Error(`This operations is not valid ${parentNode.name}`);
+              }
             }
+          } else if (arg.nodeType === 'FunctionCall') {
+            // Check if uses arguments external to the context to prevent performing multiple operations
+            throw new Error(`This operations is not valid ${parentNode.name}`);
           }
+
           argsValues[parentNode.id].push(arg);
         }
       } else {
