@@ -3,7 +3,6 @@ import { promises as fs } from 'fs';
 import hre from 'hardhat';
 
 import { getBuildInfo } from './test-utils/get-build-info';
-import { TranspileOptions } from './index';
 import { OutputFile, transpile } from '.';
 import { SolcOutput } from './solc/input-output';
 

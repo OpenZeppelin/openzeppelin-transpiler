@@ -39,7 +39,7 @@ test.serial.before('compile', async t => {
 
 test.beforeEach('transform', async t => {
   t.context.transform = new Transform(t.context.solcInput, t.context.solcOutput, {
-    exclude: source => source.startsWith("contracts/invalid/"),
+    exclude: source => source.startsWith('contracts/invalid/'),
   });
 });
 

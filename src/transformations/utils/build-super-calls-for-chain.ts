@@ -86,8 +86,9 @@ export function buildSuperCallsForChain(
   const parentArgsValues = new Map<ContractDefinition, Expression[]>();
 
   for (const parentNode of chain) {
-    if (parentNode === contractNode) continue;
-
+    if (parentNode === contractNode) {
+      continue;
+    }
     const ctorCallArgs = ctorCalls[parentNode.id]?.call?.arguments;
 
     if (!ctorCallArgs) {
@@ -116,7 +117,10 @@ export function buildSuperCallsForChain(
         } else if (arg.nodeType === 'Identifier') {
           // We have something like `constructor(uint x) Parent(x)`.
           // We have to get the value associated to this "source param" `uint x`, if any.
-          const sourceParam = resolver.resolveNode('VariableDeclaration', arg.referencedDeclaration!);
+          const sourceParam = resolver.resolveNode(
+            'VariableDeclaration',
+            arg.referencedDeclaration!,
+          );
           if (argsValues.has(sourceParam)) {
             //if a reference is found to a literal value the identifier gets replace by the literal value
             arg = argsValues.get(sourceParam)!;
@@ -125,14 +129,18 @@ export function buildSuperCallsForChain(
         } else if (arg.nodeType === 'BinaryOperation') {
           // We have something like `constructor(uint x) Parent(x+1)`.
           const identifiers = [...findAll('Identifier', arg)];
-          for (const id of identifiers) {
-            const sourceParam = resolver.resolveNode(
-              'VariableDeclaration',
-              id.referencedDeclaration!,
-            );
-            if (argsValues.has(sourceParam)) {
-              throw new Error(`This operations is not valid ${parentNode.name}`);
+          if (identifiers.length) {
+            for (const id of identifiers) {
+              const sourceParam = resolver.resolveNode(
+                'VariableDeclaration',
+                id.referencedDeclaration!,
+              );
+              if (argsValues.has(sourceParam)) {
+                throw new Error(`This operations is not valid ${parentNode.name}`);
+              }
             }
+          } else {
+              argsValues.set(param, arg);
           }
         } else if (arg.nodeType === 'FunctionCall') {
           // We have something like `constructor(IMint x) Parent(x.mint())`.
