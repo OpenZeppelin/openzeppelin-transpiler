@@ -85,17 +85,30 @@ export function buildSuperCallsForChain(
   const argsValues = new Map<VariableDeclaration, Expression>();
   const parentArgsValues = new Map<ContractDefinition, Expression[]>();
 
-  // Remove uninitialized parents's parents from linearization, and erase if they already are linearized
   for (const parentNode of chain) {
     if (parentNode === contractNode) continue;
 
-    const args = ctorCalls[parentNode.id]?.call?.arguments;
-    const parameters = getConstructor(parentNode)?.parameters.parameters;
-    // Check if any argument is literal
-    if (args && parameters) {
-      parentArgsValues.set(parentNode, []);
-      for (let [index, arg] of args.entries()) {
+    const ctorCallArgs = ctorCalls[parentNode.id]?.call?.arguments;
+
+    if (!ctorCallArgs) {
+      // We don't have arguments for this parent, but it may be implicitly constructed (has zero args)
+      if (isImplicitlyConstructed(parentNode)) {
+        parentArgsValues.set(parentNode, []);
+      } else {
+        // If a parent is not initializable, we assume its parents aren't initializable either,
+        // because we may not have their constructor arguments.
+        // The user will invoke them anyway in the chained initializer of this parent, which
+        // will have to be manually called.
+        for (const parent of parentNode.linearizedBaseContracts) {
+          notInitializable.add(parent);
+        }
+      }
+    } else {
+      const parameters = getConstructor(parentNode)!.parameters.parameters;
+
+      const parentArgs = ctorCallArgs.map((arg, index) => {
         const param = parameters[index];
+
         if (arg.nodeType === 'Literal') {
           //save it in case other parent argument uses the id of the literal value as referencedDeclaration
           argsValues.set(param, arg);
@@ -140,22 +153,11 @@ export function buildSuperCallsForChain(
             }
           }
         }
-        parentArgsValues.get(parentNode)?.push(arg);
-      }
-    } else {
-      // To be initializable means that said parent has all the variables needed for the constuctor
-      const initializable = isImplicitlyConstructed(parentNode);
-      if (!initializable) {
-        // If a parent is not initializable, we assume its parents aren't initializable either,
-        // because we may not have their constructor arguments.
-        // The user will invoke them anyway in the chained initializer of this parent, which
-        // will have to be manually called.
-        for (const parent of parentNode.linearizedBaseContracts) {
-          notInitializable.add(parent);
-        }
-      } else {
-        parentArgsValues.set(parentNode, []);
-      }
+
+        return arg;
+      });
+
+      parentArgsValues.set(parentNode, parentArgs);
     }
   }
 
