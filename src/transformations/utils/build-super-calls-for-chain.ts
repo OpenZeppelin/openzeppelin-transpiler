@@ -81,8 +81,10 @@ export function buildSuperCallsForChain(
 
   // this is where we store the parents of uninitialized parents if any
   const notInitializable = new Set<number>();
-  const argsValues = new Map<VariableDeclaration, Expression | undefined>();
-  const parentArgsValues = new Map<ContractDefinition, Expression[] | undefined>();
+
+  const argsValues = new Map<VariableDeclaration, Expression>();
+  const parentArgsValues = new Map<ContractDefinition, Expression[]>();
+
   // Remove uninitialized parents's parents from linearization, and erase if they already are linearized
   for (const parentNode of chain) {
     if (parentNode !== contractNode) {
