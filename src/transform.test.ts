@@ -145,7 +145,7 @@ test('transform constructor', t => {
   t.snapshot(t.context.transform.results()[file]);
 });
 
-test.only('invalid constructors', t => {
+test('invalid constructors', t => {
   // InvalidTransformConstructor
   const localContext = t.context;
   t.context.transform = new Transform(localContext.solcInput, localContext.solcOutput, {
