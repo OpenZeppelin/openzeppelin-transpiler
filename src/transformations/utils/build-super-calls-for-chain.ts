@@ -123,6 +123,8 @@ export function buildSuperCallsForChain(
               // If the source value is a literal or another identifier, we use it as the argument.
               arg = argsValues.get(sourceParam)!;
             } else {
+              // If the source value is some other expression, this would be the second time it's used and we
+              // reject this as it may have side effects.
               throw new Error(
                 `Can't transpile non-trivial expression in parent constructor argument (${helper.read(
                   arg,
@@ -131,14 +133,17 @@ export function buildSuperCallsForChain(
             }
           }
         } else {
+          // We have something like `constructor(...) Parent(<expr>)` where the expression is not a simple identifier.
+          // We will only allow this expression if it is correct in the new context without any changes.
           const identifiers = [...findAll('Identifier', arg)];
           for (const id of identifiers) {
             const sourceParam = resolver.resolveNode(
               'VariableDeclaration',
               id.referencedDeclaration!,
             );
-            if (argsValues.has(sourceParam)) {
-              index = 0;
+            const sourceValue = argsValues.get(sourceParam);
+            if (sourceValue && (sourceValue.nodeType !== 'Identifier' || sourceValue.name !== id.name)) {
+              // The variable gets its value from a child constructor, and it's not another variable with the same name.
               throw new Error(
                 `Can't transpile non-trivial expression in parent constructor argument (${helper.read(
                   arg,
