@@ -87,74 +87,74 @@ export function buildSuperCallsForChain(
 
   // Remove uninitialized parents's parents from linearization, and erase if they already are linearized
   for (const parentNode of chain) {
-    if (parentNode !== contractNode) {
-      const args = ctorCalls[parentNode.id]?.call?.arguments;
-      const parameters = getConstructor(parentNode)?.parameters.parameters;
-      // Check if any argument is literal
-      if (args && parameters) {
-        parentArgsValues.set(parentNode, []);
-        for (let [index, arg] of args.entries()) {
-          const param = parameters[index];
-          if (arg.nodeType === 'Literal') {
-            //save it in case other parent argument uses the id of the literal value as referencedDeclaration
+    if (parentNode === contractNode) continue;
+
+    const args = ctorCalls[parentNode.id]?.call?.arguments;
+    const parameters = getConstructor(parentNode)?.parameters.parameters;
+    // Check if any argument is literal
+    if (args && parameters) {
+      parentArgsValues.set(parentNode, []);
+      for (let [index, arg] of args.entries()) {
+        const param = parameters[index];
+        if (arg.nodeType === 'Literal') {
+          //save it in case other parent argument uses the id of the literal value as referencedDeclaration
+          argsValues.set(param, arg);
+        } else if (arg.nodeType === 'Identifier') {
+          const sourceParam = resolver.resolveNode(
+            'VariableDeclaration',
+            arg.referencedDeclaration!,
+          );
+          if (argsValues.has(sourceParam)) {
+            //if a reference is found to a literal value the identifier gets replace by the literal value
+            arg = argsValues.get(sourceParam)!;
             argsValues.set(param, arg);
-          } else if (arg.nodeType === 'Identifier') {
+          } else {
+            argsValues.set(param, arg);
+          }
+        } else if (arg.nodeType === 'BinaryOperation') {
+          const identifiers = [...findAll('Identifier', arg)];
+          for (const id of identifiers) {
             const sourceParam = resolver.resolveNode(
               'VariableDeclaration',
-              arg.referencedDeclaration!,
+              id.referencedDeclaration!,
             );
             if (argsValues.has(sourceParam)) {
-              //if a reference is found to a literal value the identifier gets replace by the literal value
-              arg = argsValues.get(sourceParam)!;
-              argsValues.set(param, arg);
-            } else {
-              argsValues.set(param, arg);
-            }
-          } else if (arg.nodeType === 'BinaryOperation') {
-            const identifiers = [...findAll('Identifier', arg)];
-            for (const id of identifiers) {
-              const sourceParam = resolver.resolveNode(
-                'VariableDeclaration',
-                id.referencedDeclaration!,
-              );
-              if (argsValues.has(sourceParam)) {
-                throw new Error(`This operations is not valid ${parentNode.name}`);
-              }
-            }
-          } else if (arg.nodeType === 'FunctionCall') {
-            // Check if uses arguments external to the context to prevent performing multiple operations
-            throw new Error(`This operations is not valid ${parentNode.name}`);
-          } else {
-            const identifiers = [...findAll('Identifier', arg)];
-            for (const id of identifiers) {
-              const sourceParam = resolver.resolveNode(
-                'VariableDeclaration',
-                id.referencedDeclaration!,
-              );
-              if (argsValues.has(sourceParam)) {
-                index = 0;
-                throw new Error(
-                  `Can't transpile non-trivial expression in parent constructor argument`,
-                );
-              }
+              throw new Error(`This operations is not valid ${parentNode.name}`);
             }
           }
-          parentArgsValues.get(parentNode)?.push(arg);
+        } else if (arg.nodeType === 'FunctionCall') {
+          // Check if uses arguments external to the context to prevent performing multiple operations
+          throw new Error(`This operations is not valid ${parentNode.name}`);
+        } else {
+          const identifiers = [...findAll('Identifier', arg)];
+          for (const id of identifiers) {
+            const sourceParam = resolver.resolveNode(
+              'VariableDeclaration',
+              id.referencedDeclaration!,
+            );
+            if (argsValues.has(sourceParam)) {
+              index = 0;
+              throw new Error(
+                `Can't transpile non-trivial expression in parent constructor argument`,
+              );
+            }
+          }
+        }
+        parentArgsValues.get(parentNode)?.push(arg);
+      }
+    } else {
+      // To be initializable means that said parent has all the variables needed for the constuctor
+      const initializable = isImplicitlyConstructed(parentNode);
+      if (!initializable) {
+        // If a parent is not initializable, we assume its parents aren't initializable either,
+        // because we may not have their constructor arguments.
+        // The user will invoke them anyway in the chained initializer of this parent, which
+        // will have to be manually called.
+        for (const parent of parentNode.linearizedBaseContracts) {
+          notInitializable.add(parent);
         }
       } else {
-        // To be initializable means that said parent has all the variables needed for the constuctor
-        const initializable = isImplicitlyConstructed(parentNode);
-        if (!initializable) {
-          // If a parent is not initializable, we assume its parents aren't initializable either,
-          // because we may not have their constructor arguments.
-          // The user will invoke them anyway in the chained initializer of this parent, which
-          // will have to be manually called.
-          for (const parent of parentNode.linearizedBaseContracts) {
-            notInitializable.add(parent);
-          }
-        } else {
-          parentArgsValues.set(parentNode, []);
-        }
+        parentArgsValues.set(parentNode, []);
       }
     }
   }
