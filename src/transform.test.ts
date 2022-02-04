@@ -28,6 +28,7 @@ interface Context {
   solcInput: SolcInput;
   solcOutput: SolcOutput;
   transform: Transform;
+  transformFile: (file: string) => Transform;
 }
 
 test.serial.before('compile', async t => {
@@ -35,6 +36,11 @@ test.serial.before('compile', async t => {
 
   t.context.solcInput = buildInfo.input;
   t.context.solcOutput = buildInfo.output as SolcOutput;
+
+  t.context.transformFile = (file: string) =>
+    new Transform(t.context.solcInput, t.context.solcOutput, {
+      exclude: source => source !== file,
+    });
 });
 
 test.beforeEach('transform', async t => {
@@ -146,21 +152,14 @@ test('transform constructor', t => {
 });
 
 test('invalid constructors', t => {
-  const localContext = t.context;
-  t.context.transform = new Transform(localContext.solcInput, localContext.solcOutput, {
-    exclude: source => source !== 'contracts/invalid/TransformConstructorVarSubexpr.sol',
-  });
-  t.throws(() => t.context.transform.apply(transformConstructor));
+  const tVarSubexpr = t.context.transformFile('contracts/invalid/TransformConstructorVarSubexpr.sol');
+  t.throws(() => tVarSubexpr.apply(transformConstructor));
 
-  t.context.transform = new Transform(localContext.solcInput, localContext.solcOutput, {
-    exclude: source => source !== 'contracts/invalid/TransformConstructorVarSubexprVar.sol',
-  });
-  t.throws(() => t.context.transform.apply(transformConstructor));
+  const tVarSubexprVar = t.context.transformFile('contracts/invalid/TransformConstructorVarSubexprVar.sol');
+  t.throws(() => tVarSubexprVar.apply(transformConstructor));
 
-  t.context.transform = new Transform(localContext.solcInput, localContext.solcOutput, {
-    exclude: source => source !== 'contracts/invalid/TransformConstructorDupExpr.sol',
-  });
-  t.throws(() => t.context.transform.apply(transformConstructor));
+  const tDupExpr = t.context.transformFile('contracts/invalid/TransformConstructorDupExpr.sol');
+  t.throws(() => tDupExpr.apply(transformConstructor));
 });
 
 test('fix new statement', t => {
