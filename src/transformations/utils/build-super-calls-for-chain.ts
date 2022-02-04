@@ -124,7 +124,9 @@ export function buildSuperCallsForChain(
               arg = argsValues.get(sourceParam)!;
             } else {
               throw new Error(
-                `Can't transpile non-trivial expression in parent constructor argument (${helper.read(arg)})`,
+                `Can't transpile non-trivial expression in parent constructor argument (${helper.read(
+                  arg,
+                )})`,
               );
             }
           }
@@ -138,7 +140,9 @@ export function buildSuperCallsForChain(
             if (argsValues.has(sourceParam)) {
               index = 0;
               throw new Error(
-                `Can't transpile non-trivial expression in parent constructor argument (${helper.read(arg)})`,
+                `Can't transpile non-trivial expression in parent constructor argument (${helper.read(
+                  arg,
+                )})`,
               );
             }
           }
