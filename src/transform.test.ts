@@ -152,14 +152,24 @@ test('transform constructor', t => {
 });
 
 test('invalid constructors', t => {
-  const tVarSubexpr = t.context.transformFile('contracts/invalid/TransformConstructorVarSubexpr.sol');
-  t.throws(() => tVarSubexpr.apply(transformConstructor));
+  const tVarSubexpr = t.context.transformFile(
+    'contracts/invalid/TransformConstructorVarSubexpr.sol',
+  );
+  t.throws(() => tVarSubexpr.apply(transformConstructor), {
+    message: `Can't transpile non-trivial expression in parent constructor argument (y + 1)`,
+  });
 
-  const tVarSubexprVar = t.context.transformFile('contracts/invalid/TransformConstructorVarSubexprVar.sol');
-  t.throws(() => tVarSubexprVar.apply(transformConstructor));
+  const tVarSubexprVar = t.context.transformFile(
+    'contracts/invalid/TransformConstructorVarSubexprVar.sol',
+  );
+  t.throws(() => tVarSubexprVar.apply(transformConstructor), {
+    message: `Can't transpile non-trivial expression in parent constructor argument (y + 1)`,
+  });
 
   const tDupExpr = t.context.transformFile('contracts/invalid/TransformConstructorDupExpr.sol');
-  t.throws(() => tDupExpr.apply(transformConstructor));
+  t.throws(() => tDupExpr.apply(transformConstructor), {
+    message: `Can't transpile non-trivial expression in parent constructor argument (x)`,
+  });
 });
 
 test('fix new statement', t => {
