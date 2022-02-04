@@ -79,9 +79,6 @@ export function buildSuperCallsForChain(
     },
   );
 
-  // once we have gathered all constructor calls for each parent, we linearize
-  // them according to chain.
-  const linearizedCtorCalls: string[] = [];
   // this is where we store the parents of uninitialized parents if any
   const notInitializable = new Set<number>();
   const argsValues = new Map<VariableDeclaration, Expression | undefined>();
@@ -159,6 +156,10 @@ export function buildSuperCallsForChain(
       }
     }
   }
+
+  // once we have gathered all constructor calls for each parent, we linearize
+  // them according to chain.
+  const linearizedCtorCalls: string[] = [];
 
   chain.reverse();
 
