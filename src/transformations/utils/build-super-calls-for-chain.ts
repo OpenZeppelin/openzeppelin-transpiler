@@ -131,7 +131,7 @@ export function buildSuperCallsForChain(
               // reject this as it may have side effects.
               throw new Error(
                 `Can't transpile non-trivial expression in parent constructor argument (${helper.read(
-                  arg,
+                  sourceValue,
                 )})`,
               );
             }

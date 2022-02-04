@@ -168,7 +168,7 @@ test('invalid constructors', t => {
 
   const tDupExpr = t.context.transformFile('contracts/invalid/TransformConstructorDupExpr.sol');
   t.throws(() => tDupExpr.apply(transformConstructor), {
-    message: `Can't transpile non-trivial expression in parent constructor argument (x)`,
+    message: `Can't transpile non-trivial expression in parent constructor argument (t.mint())`,
   });
 });
 
