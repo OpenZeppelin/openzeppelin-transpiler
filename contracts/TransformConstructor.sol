@@ -157,3 +157,7 @@ contract Foo23 is Foo9, Foo20 {
 contract Foo24 is Foo23 {
     constructor() Foo23(1, 2) public {}
 }
+
+contract Foo25 is Foo22 {
+    constructor() public Foo22(1+2) {}
+}
