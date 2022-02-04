@@ -117,19 +117,16 @@ export function buildSuperCallsForChain(
             'VariableDeclaration',
             arg.referencedDeclaration!,
           );
-          if (
-            argsValues.has(sourceParam) &&
-            argsValues.get(sourceParam)?.nodeType !== 'FunctionCall'
-          ) {
-            //if a reference is found to a literal value the identifier gets replace by the literal value
-            arg = argsValues.get(sourceParam)!;
-          } else if (
-            argsValues.has(sourceParam) &&
-            argsValues.get(sourceParam)?.nodeType === 'FunctionCall'
-          ) {
-            throw new Error(
-              `Can't transpile non-trivial expression in parent constructor argument`,
-            );
+          const sourceValue = argsValues.get(sourceParam);
+          if (sourceValue) {
+            if (sourceValue.nodeType === 'Literal' || sourceValue.nodeType === 'Identifier') {
+              // If the source value is a literal or another identifier, we use it as the argument.
+              arg = argsValues.get(sourceParam)!;
+            } else {
+              throw new Error(
+                `Can't transpile non-trivial expression in parent constructor argument (${helper.read(arg)})`,
+              );
+            }
           }
         } else {
           const identifiers = [...findAll('Identifier', arg)];
@@ -141,7 +138,7 @@ export function buildSuperCallsForChain(
             if (argsValues.has(sourceParam)) {
               index = 0;
               throw new Error(
-                `Can't transpile non-trivial expression in parent constructor argument`,
+                `Can't transpile non-trivial expression in parent constructor argument (${helper.read(arg)})`,
               );
             }
           }
