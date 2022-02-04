@@ -110,21 +110,20 @@ export function buildSuperCallsForChain(
         const param = parameters[index];
 
         if (arg.nodeType === 'Literal') {
-          //save it in case other parent argument uses the id of the literal value as referencedDeclaration
+          // We have something like `constructor() Parent(5)`.
+          // We store the expression `5` associated to the `uint x` in Parent's `constructor(uint x)`.
           argsValues.set(param, arg);
         } else if (arg.nodeType === 'Identifier') {
-          const sourceParam = resolver.resolveNode(
-            'VariableDeclaration',
-            arg.referencedDeclaration!,
-          );
+          // We have something like `constructor(uint x) Parent(x)`.
+          // We have to get the value associated to this "source param" `uint x`, if any.
+          const sourceParam = resolver.resolveNode('VariableDeclaration', arg.referencedDeclaration!);
           if (argsValues.has(sourceParam)) {
             //if a reference is found to a literal value the identifier gets replace by the literal value
             arg = argsValues.get(sourceParam)!;
-            argsValues.set(param, arg);
-          } else {
-            argsValues.set(param, arg);
           }
+          argsValues.set(param, arg);
         } else if (arg.nodeType === 'BinaryOperation') {
+          // We have something like `constructor(uint x) Parent(x+1)`.
           const identifiers = [...findAll('Identifier', arg)];
           for (const id of identifiers) {
             const sourceParam = resolver.resolveNode(
@@ -136,6 +135,7 @@ export function buildSuperCallsForChain(
             }
           }
         } else if (arg.nodeType === 'FunctionCall') {
+          // We have something like `constructor(IMint x) Parent(x.mint())`.
           // Check if uses arguments external to the context to prevent performing multiple operations
           throw new Error(`This operations is not valid ${parentNode.name}`);
         } else {
