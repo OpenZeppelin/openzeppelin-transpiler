@@ -105,6 +105,10 @@ export function buildSuperCallsForChain(
         }
       }
     } else {
+      // We have arguments for this parent constructor, but they may include references to the constructor parameters of
+      // "intermediate parents". We check all of these arguments for such references, and make sure they work with the
+      // variables in scope.
+
       const parameters = getConstructor(parentNode)!.parameters.parameters;
 
       const parentArgs = ctorCallArgs.map((arg, index) => {
