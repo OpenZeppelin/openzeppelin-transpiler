@@ -110,42 +110,27 @@ export function buildSuperCallsForChain(
       const parentArgs = ctorCallArgs.map((arg, index) => {
         const param = parameters[index];
 
-        if (arg.nodeType === 'Literal') {
-          // We have something like `constructor() Parent(5)`.
-          // We store the expression `5` associated to the `uint x` in Parent's `constructor(uint x)`.
-          argsValues.set(param, arg);
-        } else if (arg.nodeType === 'Identifier') {
+        if (arg.nodeType === 'Identifier') {
           // We have something like `constructor(uint x) Parent(x)`.
           // We have to get the value associated to this "source param" `uint x`, if any.
           const sourceParam = resolver.resolveNode(
             'VariableDeclaration',
             arg.referencedDeclaration!,
           );
-          if (argsValues.has(sourceParam)) {
+          if (
+            argsValues.has(sourceParam) &&
+            argsValues.get(sourceParam)?.nodeType !== 'FunctionCall'
+          ) {
             //if a reference is found to a literal value the identifier gets replace by the literal value
             arg = argsValues.get(sourceParam)!;
+          } else if (
+            argsValues.has(sourceParam) &&
+            argsValues.get(sourceParam)?.nodeType === 'FunctionCall'
+          ) {
+            throw new Error(
+              `Can't transpile non-trivial expression in parent constructor argument`,
+            );
           }
-          argsValues.set(param, arg);
-        } else if (arg.nodeType === 'BinaryOperation') {
-          // We have something like `constructor(uint x) Parent(x+1)`.
-          const identifiers = [...findAll('Identifier', arg)];
-          if (identifiers.length) {
-            for (const id of identifiers) {
-              const sourceParam = resolver.resolveNode(
-                'VariableDeclaration',
-                id.referencedDeclaration!,
-              );
-              if (argsValues.has(sourceParam)) {
-                throw new Error(`This operations is not valid ${parentNode.name}`);
-              }
-            }
-          } else {
-            argsValues.set(param, arg);
-          }
-        } else if (arg.nodeType === 'FunctionCall') {
-          // We have something like `constructor(IMint x) Parent(x.mint())`.
-          // Check if uses arguments external to the context to prevent performing multiple operations
-          throw new Error(`This operations is not valid ${parentNode.name}`);
         } else {
           const identifiers = [...findAll('Identifier', arg)];
           for (const id of identifiers) {
@@ -161,7 +146,7 @@ export function buildSuperCallsForChain(
             }
           }
         }
-
+        argsValues.set(param, arg);
         return arg;
       });
 
