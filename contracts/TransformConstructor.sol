@@ -158,6 +158,18 @@ contract Foo24 is Foo23 {
     constructor() Foo23(1, 2) public {}
 }
 
-contract Foo25 is Foo20 {
-    constructor() public Foo20(1+2) {}
+contract Foo25 is Foo19 {
+    constructor() public Foo19(1+2) {}
+}
+
+interface IFoo {
+    function mint() external returns (uint);
+}
+
+contract Foo26 is Foo19 {
+    constructor(IFoo t) Foo19(t.mint()) public {}
+}
+
+contract Foo27 is Foo26 {
+    constructor(IFoo t) Foo26(t) public {}
 }
