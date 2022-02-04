@@ -142,7 +142,10 @@ export function buildSuperCallsForChain(
               id.referencedDeclaration!,
             );
             const sourceValue = argsValues.get(sourceParam);
-            if (sourceValue && (sourceValue.nodeType !== 'Identifier' || sourceValue.name !== id.name)) {
+            if (
+              sourceValue &&
+              (sourceValue.nodeType !== 'Identifier' || sourceValue.name !== id.name)
+            ) {
               // The variable gets its value from a child constructor, and it's not another variable with the same name.
               throw new Error(
                 `Can't transpile non-trivial expression in parent constructor argument (${helper.read(
