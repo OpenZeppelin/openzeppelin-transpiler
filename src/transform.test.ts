@@ -149,13 +149,13 @@ test('invalid constructors', t => {
   // InvalidTransformConstructor
   const localContext = t.context;
   t.context.transform = new Transform(localContext.solcInput, localContext.solcOutput, {
-    exclude: source => source !== 'contracts/invalid/InvalidTransformConstructor.sol',
+    exclude: source => source !== 'contracts/invalid/TransformConstructorVarSubexpr.sol',
   });
 
   t.throws(() => t.context.transform.apply(transformConstructor));
   // InvalidTransformConstructorFunction
   t.context.transform = new Transform(localContext.solcInput, localContext.solcOutput, {
-    exclude: source => source !== 'contracts/invalid/InvalidTransformConstructorFunction.sol',
+    exclude: source => source !== 'contracts/invalid/TransformConstructorDupExpr.sol',
   });
   t.throws(() => t.context.transform.apply(transformConstructor));
 });
