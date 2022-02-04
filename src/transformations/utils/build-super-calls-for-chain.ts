@@ -1,12 +1,13 @@
 import { flatten, keyBy } from 'lodash';
 
 import { getConstructor } from '../../solc/ast-utils';
-import { ContractDefinition } from 'solidity-ast';
+import { ContractDefinition, Expression, VariableDeclaration } from 'solidity-ast';
 import { Node } from 'solidity-ast/node';
 import { TransformHelper } from '../type';
 import { TransformerTools } from '../../transform';
 import { hasConstructorOverride } from '../../utils/upgrades-overrides';
 import { getInitializerItems } from './get-initializer-items';
+import { findAll } from 'solidity-ast/utils';
 
 // builds an __init call with given arguments, for example
 // ERC20DetailedUpgradeable.__init(false, "Gold", "GLD", 18)
@@ -78,19 +79,23 @@ export function buildSuperCallsForChain(
     },
   );
 
-  // once we have gathered all constructor calls for each parent, we linearize
-  // them according to chain.
-  const linearizedCtorCalls: string[] = [];
   // this is where we store the parents of uninitialized parents if any
   const notInitializable = new Set<number>();
-  // Remove uninitialized parents's parents from linearization, and erase if they already are linearized
+
+  const argsValues = new Map<VariableDeclaration, Expression>();
+  const parentArgsValues = new Map<ContractDefinition, Expression[]>();
+
   for (const parentNode of chain) {
-    if (parentNode !== contractNode) {
-      // step 1 check if initializable
-      const args = ctorCalls[parentNode.id]?.call?.arguments;
-      // To be initializable means that said parent has all the variables needed for the constuctor
-      const initializable = args !== undefined || isImplicitlyConstructed(parentNode);
-      if (!initializable) {
+    if (parentNode === contractNode) {
+      continue;
+    }
+    const ctorCallArgs = ctorCalls[parentNode.id]?.call?.arguments;
+
+    if (!ctorCallArgs) {
+      // We don't have arguments for this parent, but it may be implicitly constructed (has zero args)
+      if (isImplicitlyConstructed(parentNode)) {
+        parentArgsValues.set(parentNode, []);
+      } else {
         // If a parent is not initializable, we assume its parents aren't initializable either,
         // because we may not have their constructor arguments.
         // The user will invoke them anyway in the chained initializer of this parent, which
@@ -99,8 +104,72 @@ export function buildSuperCallsForChain(
           notInitializable.add(parent);
         }
       }
+    } else {
+      // We have arguments for this parent constructor, but they may include references to the constructor parameters of
+      // "intermediate parents". We check all of these arguments for such references, and make sure they work with the
+      // variables in scope.
+
+      const parameters = getConstructor(parentNode)!.parameters.parameters;
+
+      const parentArgs = ctorCallArgs.map((arg, index) => {
+        const param = parameters[index];
+
+        if (arg.nodeType === 'Identifier') {
+          // We have something like `constructor(uint x) Parent(x)`.
+          // We have to get the value associated to this "source param" `uint x`, if any.
+          const sourceParam = resolver.resolveNode(
+            'VariableDeclaration',
+            arg.referencedDeclaration!,
+          );
+          const sourceValue = argsValues.get(sourceParam);
+          if (sourceValue) {
+            if (sourceValue.nodeType === 'Literal' || sourceValue.nodeType === 'Identifier') {
+              // If the source value is a literal or another identifier, we use it as the argument.
+              arg = argsValues.get(sourceParam)!;
+            } else {
+              // If the source value is some other expression, this would be the second time it's used and we
+              // reject this as it may have side effects.
+              throw new Error(
+                `Can't transpile non-trivial expression in parent constructor argument (${helper.read(
+                  sourceValue,
+                )})`,
+              );
+            }
+          }
+        } else {
+          // We have something like `constructor(...) Parent(<expr>)` where the expression is not a simple identifier.
+          // We will only allow this expression if it is correct in the new context without any changes.
+          const identifiers = [...findAll('Identifier', arg)];
+          for (const id of identifiers) {
+            const sourceParam = resolver.resolveNode(
+              'VariableDeclaration',
+              id.referencedDeclaration!,
+            );
+            const sourceValue = argsValues.get(sourceParam);
+            if (
+              sourceValue &&
+              (sourceValue.nodeType !== 'Identifier' || sourceValue.name !== id.name)
+            ) {
+              // The variable gets its value from a child constructor, and it's not another variable with the same name.
+              throw new Error(
+                `Can't transpile non-trivial expression in parent constructor argument (${helper.read(
+                  arg,
+                )})`,
+              );
+            }
+          }
+        }
+        argsValues.set(param, arg);
+        return arg;
+      });
+
+      parentArgsValues.set(parentNode, parentArgs);
     }
   }
+
+  // once we have gathered all constructor calls for each parent, we linearize
+  // them according to chain.
+  const linearizedCtorCalls: string[] = [];
 
   chain.reverse();
 
@@ -114,7 +183,7 @@ export function buildSuperCallsForChain(
       continue;
     }
 
-    const args = ctorCalls[parentNode.id]?.call?.arguments ?? [];
+    const args = parentArgsValues.get(parentNode) ?? [];
 
     if (args.length || !getInitializerItems(parentNode).emptyUnchained) {
       // TODO: we have to use the name in the lexical context and not necessarily

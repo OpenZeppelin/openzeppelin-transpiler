@@ -1,5 +1,4 @@
 import _test, { TestFn } from 'ava';
-
 import { getBuildInfo } from './test-utils/get-build-info';
 
 import { findAll } from 'solidity-ast/utils';
@@ -29,6 +28,7 @@ interface Context {
   solcInput: SolcInput;
   solcOutput: SolcOutput;
   transform: Transform;
+  transformFile: (file: string) => Transform;
 }
 
 test.serial.before('compile', async t => {
@@ -36,10 +36,17 @@ test.serial.before('compile', async t => {
 
   t.context.solcInput = buildInfo.input;
   t.context.solcOutput = buildInfo.output as SolcOutput;
+
+  t.context.transformFile = (file: string) =>
+    new Transform(t.context.solcInput, t.context.solcOutput, {
+      exclude: source => source !== file,
+    });
 });
 
 test.beforeEach('transform', async t => {
-  t.context.transform = new Transform(t.context.solcInput, t.context.solcOutput);
+  t.context.transform = new Transform(t.context.solcInput, t.context.solcOutput, {
+    exclude: source => source.startsWith('contracts/invalid/'),
+  });
 });
 
 test('read', t => {
@@ -142,6 +149,27 @@ test('transform constructor', t => {
   t.context.transform.apply(transformConstructor);
   t.context.transform.apply(removeLeftoverConstructorHead);
   t.snapshot(t.context.transform.results()[file]);
+});
+
+test('invalid constructors', t => {
+  const tVarSubexpr = t.context.transformFile(
+    'contracts/invalid/TransformConstructorVarSubexpr.sol',
+  );
+  t.throws(() => tVarSubexpr.apply(transformConstructor), {
+    message: `Can't transpile non-trivial expression in parent constructor argument (y + 1)`,
+  });
+
+  const tVarSubexprVar = t.context.transformFile(
+    'contracts/invalid/TransformConstructorVarSubexprVar.sol',
+  );
+  t.throws(() => tVarSubexprVar.apply(transformConstructor), {
+    message: `Can't transpile non-trivial expression in parent constructor argument (y + 1)`,
+  });
+
+  const tDupExpr = t.context.transformFile('contracts/invalid/TransformConstructorDupExpr.sol');
+  t.throws(() => tDupExpr.apply(transformConstructor), {
+    message: `Can't transpile non-trivial expression in parent constructor argument (t.mint())`,
+  });
 });
 
 test('fix new statement', t => {
