@@ -94,7 +94,6 @@ export async function transpile(
   transform.apply(prependInitializableBase(options?.extractStorage));
   transform.apply(fixImportDirectives);
   transform.apply(appendInitializableImport(outputPaths.initializable));
-  transform.apply(fixNewStatement);
   transform.apply(addRequiredPublicInitializer(options?.publicInitializers));
   transform.apply(transformConstructor(options?.extractStorage || false));
   transform.apply(removeLeftoverConstructorHead);
@@ -108,6 +107,8 @@ export async function transpile(
     transform.apply(addDiamondStorage(outputFiles));
     transform.apply(removeStateVariables);
   }
+
+  transform.apply(fixNewStatement);
 
   const results = transform.results();
 

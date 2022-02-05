@@ -1,14 +1,10 @@
-import { ContractDefinition, VariableDeclaration} from 'solidity-ast';
 import { TransformerTools } from "../../transform";
+import {ContractDefinition, VariableDeclaration} from "solidity-ast";
+import assert from "assert";
 
 export function getVarStorageName(varDecl: VariableDeclaration, { resolver }: TransformerTools) : string {
     const contract = resolver.resolveContract(varDecl.scope);
 
-    let storageName = '';
-    if (contract !== undefined) {
-        storageName = contract.name + 'Storage.layout().';
-    }
-
-    return storageName;
-
+    assert(contract, `Could not locate Contract with id ${varDecl.scope}`);
+    return contract.name + 'Storage.layout().';
 }

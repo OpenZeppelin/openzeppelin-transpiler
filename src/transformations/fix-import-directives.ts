@@ -1,4 +1,4 @@
-import { SourceUnit } from 'solidity-ast';
+import {ContractDefinition, SourceUnit} from 'solidity-ast';
 import { findAll } from 'solidity-ast/utils';
 import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';

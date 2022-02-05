@@ -25,5 +25,7 @@ abstract contract AbstractContractWithConstructor is AbstractContract, EIP712 {
 }
 
 abstract contract AbstractContractWithParentConstructor is AbstractContractWithConstructor {
-    uint randomNumber = 255;
+    uint internal randomNumber = 255;
+
+    constructor() AbstractContractWithConstructor("dummy") {}
 }

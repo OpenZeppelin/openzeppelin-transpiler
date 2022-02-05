@@ -5,6 +5,7 @@ pragma solidity ^0.8.0;
 import './Imported.sol';
 import './AbstractContract.sol';
 import './Library.sol';
+import './ElementaryTypes.sol';
 
 bytes32 constant constant1 = keccak256('openzepplin.contracts.AdvancedTypes.constant1');
 
@@ -29,6 +30,8 @@ abstract contract AdvancedTypes is AbstractContractWithParentConstructor {
         mapping (address => Imported2.imported2Struct) addressToImported2Struct;
         mapping (address => Library.libStruct) _testLibStructMapping;
     }
+
+    ElementaryTypes elemContract;
 
     AdvancedStruct2 testAdvancedStruct2;
     mapping (address => AdvancedEnum) addrToEnum2;
@@ -59,12 +62,20 @@ abstract contract AdvancedTypes is AbstractContractWithParentConstructor {
         owners.push(owner);
 
         addrToConstant[addr] = addrToConstant[owner];
+        addrToConstant[addr] = addrToConstant[owner];
 
         testAdvancedStruct1Array.push(AdvancedStruct1({owner: owner}));
 
-        Imported1 temp = new Imported1(0, 0);
+        randomNumber = 123456;
+        Imported1 temp = new Imported1(randomNumber, 0);
         TestImported1Array.push(temp);
 
+
+    }
+
+    function createElemContract() public returns (int256) {
+        elemContract = new ElementaryTypes(randomNumber);
+        return elemContract.count();
     }
 
 }

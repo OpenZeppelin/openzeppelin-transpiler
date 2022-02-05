@@ -24,7 +24,7 @@ export function* renameContractDefinition(
       start: match.index,
       length: match[0].length,
       kind: 'rename-contract-definition',
-      transform: source => source.replace(/[a-zA-Z0-9$_]+$/, renameContract),
+      transform: source => source.replace(/[a-zA-Z0-9$_]+$/, match => renameContract(match)),
     };
   }
 }

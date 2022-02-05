@@ -31,7 +31,7 @@ export function buildSuperCallsForChain2(
   const chain = contractNode.linearizedBaseContracts
     .map(baseId => {
       const base = resolver.resolveContract(baseId);
-      if (base === undefined) {
+      if (!base) {
         throw new Error(`Could not resolve ast id ${baseId}`);
       }
       return base;

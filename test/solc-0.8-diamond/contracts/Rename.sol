@@ -10,11 +10,19 @@ library RenameLibrary {
 contract RenameContract {
 }
 
+contract RenameContractWithConstructor {
+
+    constructor(int randomData) {
+        int temp = randomData;
+    }
+}
+
 contract RenameDeployer {
     RenameContract rc = RenameContract(address(0));
 
     constructor() {
         new RenameContract();
+        new RenameContractWithConstructor(5);
     }
 
     function deploy() external returns (RenameContract) {

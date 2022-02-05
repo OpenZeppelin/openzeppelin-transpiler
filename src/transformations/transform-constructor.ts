@@ -141,12 +141,15 @@ export function transformConstructor(extractStorage = false) {
 }
 
 function createUsingLines(contract: ContractDefinition, tools: TransformerTools): string {
+
   const contractsAccessed = getScopedContractsForVariables(contract, tools);
 
   let usingLines = '';
 
-  contractsAccessed.forEach( contractNode => {
-      usingLines += `    using ${contractNode.name}Storage for ${contractNode.name}Storage.Layout;\n`;
+  contractsAccessed.forEach( (contractAccessed) => {
+    contractAccessed.forEach( (contractName) =>  {
+      usingLines += `    using ${contractName}Storage for ${contractName}Storage.Layout;\n`;
+    });
   });
 
   return usingLines;

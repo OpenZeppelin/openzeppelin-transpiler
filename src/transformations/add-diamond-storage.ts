@@ -7,11 +7,16 @@ import { TransformerTools } from '../transform';
 import path from 'path';
 import {hasOverride} from "../utils/upgrades-overrides";
 import {OutputFile} from "../index";
-import {renameContract, renamePath} from "../rename";
+import {getContractsImportPath, renameContract, renamePath} from "../rename";
 import {newFunctionPosition} from "./utils/new-function-position";
 import {Node} from "solidity-ast/node";
-import {getScopedContractsForVariables} from "./utils/get-identifiers-used";
-import {getReferencedImports} from "./utils/get-referenced-imports";
+import {
+  addVariableScopedContract,
+  getScopedContractName,
+  getScopedContractsForVariables,
+  getUniqueIdentifierVarsUsed,
+  IdentifierVariable,
+} from "./utils/get-identifiers-used";
 
 function* findUserDefinedTypes(node: Node): Generator<UserDefinedTypeName> {
   const seen = new Set();
@@ -34,6 +39,11 @@ export function addDiamondStorage(newFiles: OutputFile[]) {
 
     let buffer = '';
     let contractNeedsStorage = false;
+    const contractScopes = new Map<number, string>();
+    const contractPaths = new Map<string, Set<string>>();
+    const thisContractSet = new Set<string>();
+    contractPaths.set(sourceUnit.absolutePath, thisContractSet);
+
     for (const contract of contracts) {
 
       const varDecls = [...findAll('VariableDeclaration', contract)];
@@ -47,9 +57,16 @@ export function addDiamondStorage(newFiles: OutputFile[]) {
 
         contractNeedsStorage = true;
 
+        if (!thisContractSet.has(contract.name)) {
+          thisContractSet.add(contract.name);
+        }
+
         // move comments for each variable to this map
         const commentMap = new Map();
         for (const varNode of variableNodes) {
+
+          addVariableScopedContract(contractPaths, varNode, tools.resolver);
+
           const vBounds = getNodeBounds(varNode);
           // grab first line of contract.
           const cStart = newFunctionPosition(contract, tools);
@@ -68,24 +85,29 @@ export function addDiamondStorage(newFiles: OutputFile[]) {
             kind: 'remove-var-states-comments',
             text: '',
           };
+
+
+        }
+
+        const referencedTypeDeclarations: Map<number, IdentifierVariable> = getUniqueIdentifierVarsUsed(contract, tools);
+        for (const [_, identifierVar] of referencedTypeDeclarations) {
+          const { varDecl } = identifierVar;
+          addVariableScopedContract(contractPaths, varDecl, tools.resolver);
+          // getScopedContractName(varDecl.scope, contractPaths, contractScopes, tools);
         }
 
         buffer = makeStorageLib(contract.name, variableNodes, commentMap, buffer);
       }
     }
 
-    const imports = getReferencedImports(contracts, tools, 'Upgradeable', 'Initializable');
-    let importsText = '';
-    imports.forEach( (contractNames, filePath ) => {
-      importsText += '\nimport { ' + contractNames.join(', ') + ' } from "' + filePath + '";'
-    });
 
     if (contractNeedsStorage) {
+
       const newBuffer = `// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.0;
 
-${ importsText }
+${ getContractsImportPath(contractPaths) }
 ${ buffer }
 `;
 
