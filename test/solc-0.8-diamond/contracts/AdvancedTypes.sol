@@ -34,7 +34,7 @@ abstract contract AdvancedTypes is AbstractContractWithParentConstructor {
     ElementaryTypes elemContract;
 
     AdvancedStruct2 testAdvancedStruct2;
-    mapping (address => AdvancedEnum) addrToEnum2;
+    mapping (address => AdvancedEnum) public addrToEnum2;
     mapping (uint256 => mapping(address => AdvancedStruct1)) indexAddressOwner2;
     mapping (address => function(address payable)) wowMapAddressToFunction;
     mapping (address => function(uint256, address, address, AdvancedEnum)) wowMapAddressToFunction2;

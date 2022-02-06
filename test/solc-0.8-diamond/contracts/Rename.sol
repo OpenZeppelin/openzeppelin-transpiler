@@ -20,11 +20,6 @@ contract RenameContractWithConstructor {
 contract RenameDeployer {
     RenameContract rc = RenameContract(address(0));
 
-    constructor() {
-        new RenameContract();
-        new RenameContractWithConstructor(5);
-    }
-
     function deploy() external returns (RenameContract) {
         return new RenameContract();
     }

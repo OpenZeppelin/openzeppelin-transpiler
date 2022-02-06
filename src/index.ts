@@ -29,6 +29,7 @@ import {
 import {addDiamondStorage} from "./transformations/add-diamond-storage";
 import {addDiamondAccess} from "./transformations/add-diamond-access";
 import {removeStateVariables} from "./transformations/remove-state-variables";
+import { addPublicGetters } from './transformations/add-public-getters';
 
 interface Paths {
   root: string;
@@ -105,6 +106,7 @@ export async function transpile(
   } else {
     transform.apply(addDiamondAccess)
     transform.apply(addDiamondStorage(outputFiles));
+    transform.apply(addPublicGetters);
     transform.apply(removeStateVariables);
   }
 
@@ -177,3 +179,4 @@ function transpileInitializable(
 
   return transform.results()[initializablePath];
 }
+

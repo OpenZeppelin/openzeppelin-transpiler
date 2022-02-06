@@ -7,21 +7,33 @@ import { matchFrom } from '../../utils/match-from';
 export function newFunctionPosition(
   contract: ContractDefinition,
   { readOriginal }: TransformerTools,
+  atEnd = false,
 ): number {
-  const offset = getNodeBounds(contract).start;
-  let searchStart = 0;
+  if (atEnd) {
+    const contractText = readOriginal(contract);
+    const offset = contractText.lastIndexOf('}');
+    if (offset < 1) {
+      throw new Error(`Can't find ending of contract ${contract.name}`);
+    }
 
-  if (contract.baseContracts.length > 0) {
-    const [lastParent] = contract.baseContracts.slice(-1);
-    const pb = getNodeBounds(lastParent);
-    searchStart = pb.start + pb.length - offset;
-  }
+    return getNodeBounds(contract).start + offset - 1;
 
-  const brace = matchFrom(readOriginal(contract), /\{[\t ]*\n?/, searchStart);
+  } else {
+    const offset = getNodeBounds(contract).start;
+    let searchStart = 0;
 
-  if (brace === null) {
-    throw new Error(`Can't find start of contract ${contract.name}`);
-  }
+    if (contract.baseContracts.length > 0) {
+      const [lastParent] = contract.baseContracts.slice(-1);
+      const pb = getNodeBounds(lastParent);
+      searchStart = pb.start + pb.length - offset;
+    }
 
-  return offset + brace.index +  brace[0].length;
-}
+    const brace = matchFrom(readOriginal(contract), /\{[\t ]*\n?/, searchStart);
+    if (brace === null) {
+      throw new Error(`Can't find start of contract ${contract.name}`);
+    }
+
+    return offset + brace.index +  brace[0].length;
+  }}
+
+
