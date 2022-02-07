@@ -84,9 +84,10 @@ export function buildSuperCallsForChain(
 
   const argsValues = new Map<VariableDeclaration, Expression>();
   const parentArgsValues = new Map<ContractDefinition, Expression[]>();
-
+  let directParents: number[] = [];
   for (const parentNode of chain) {
     if (parentNode === contractNode) {
+      directParents = parentNode.baseContracts.map(c => c.baseName.referencedDeclaration);
       continue;
     }
     const ctorCallArgs = ctorCalls[parentNode.id]?.call?.arguments;
@@ -101,7 +102,11 @@ export function buildSuperCallsForChain(
         // The user will invoke them anyway in the chained initializer of this parent, which
         // will have to be manually called.
         for (const parent of parentNode.linearizedBaseContracts) {
-          notInitializable.add(parent);
+          // Only add if is a direct parent or if the parent's parent is not a direct parent of the contract being transformed
+          const isDirectParent = parent === parentNode.id;
+          if (isDirectParent || !directParents.includes(parent)) {
+            notInitializable.add(parent);
+          }
         }
       }
     } else {
