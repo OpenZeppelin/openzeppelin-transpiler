@@ -133,3 +133,43 @@ contract Foo17 is Foo4 {
 abstract contract Foo18 is Foo17 {
 
 }
+
+contract Foo19 {
+  constructor(uint x) public {}
+}
+
+contract Foo20 is Foo19 {
+  constructor(uint x) Foo19(x) public {}
+}
+
+contract Foo21 is Foo20 {
+  constructor() Foo20(4) public {}
+}
+
+contract Foo22 is Foo19 {
+  constructor(uint y) Foo19(y + 1) public {}
+}
+
+contract Foo23 is Foo9, Foo20 {
+  constructor(uint x, uint y) Foo9(x, y) Foo20(y) public {}
+}
+
+contract Foo24 is Foo23 {
+    constructor() Foo23(1, 2) public {}
+}
+
+contract Foo25 is Foo19 {
+    constructor() public Foo19(1+2) {}
+}
+
+interface IFoo {
+    function mint() external returns (uint);
+}
+
+contract Foo26 is Foo19 {
+    constructor(IFoo t) Foo19(t.mint()) public {}
+}
+
+contract Foo27 is Foo26 {
+    constructor(IFoo t) Foo26(t) public {}
+}
