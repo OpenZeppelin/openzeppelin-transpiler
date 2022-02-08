@@ -54,13 +54,18 @@ export function buildSuperCallsForChain(
           for (const call of constructorNode.modifiers) {
             // we only care about modifiers that reference base contracts
             const { referencedDeclaration } = call.modifierName;
-            if (referencedDeclaration != null && chainIds.has(referencedDeclaration)) {
+            if (
+              referencedDeclaration != null &&
+              chainIds.has(referencedDeclaration) &&
+              call.arguments != null &&
+              call.arguments.length > 0
+            ) {
               res.push({ call });
             }
           }
         }
         for (const call of parentNode.baseContracts) {
-          if (call.arguments != null) {
+          if (call.arguments != null && call.arguments.length > 0) {
             res.push({ call });
           }
         }
@@ -79,8 +84,15 @@ export function buildSuperCallsForChain(
     },
   );
 
-  // this is where we store the parents of uninitialized parents if any
+  const invalidReference = new Set<number>();
   const notInitializable = new Set<number>();
+  const markNotInitializable = (parentNode: ContractDefinition) => {
+    const parameters = getConstructor(parentNode)?.parameters?.parameters ?? [];
+    for (const { id } of parameters) {
+      invalidReference.add(id);
+    }
+    notInitializable.add(parentNode.id);
+  };
 
   const argsValues = new Map<VariableDeclaration, Expression>();
   const parentArgsValues = new Map<ContractDefinition, Expression[]>();
@@ -89,6 +101,7 @@ export function buildSuperCallsForChain(
     if (parentNode === contractNode) {
       continue;
     }
+
     const ctorCallArgs = ctorCalls[parentNode.id]?.call?.arguments;
 
     if (!ctorCallArgs) {
@@ -96,13 +109,10 @@ export function buildSuperCallsForChain(
       if (isImplicitlyConstructed(parentNode)) {
         parentArgsValues.set(parentNode, []);
       } else {
-        // If a parent is not initializable, we assume its parents aren't initializable either,
-        // because we may not have their constructor arguments.
-        // The user will invoke them anyway in the chained initializer of this parent, which
-        // will have to be manually called.
-        for (const parent of parentNode.linearizedBaseContracts) {
-          notInitializable.add(parent);
-        }
+        // If a parent is not initializable, we assume its parents might be initializable either,
+        // because we may not have their constructor arguments. So we save the arguments in case
+        // other parent reference it.
+        markNotInitializable(parentNode);
       }
     } else {
       // We have arguments for this parent constructor, but they may include references to the constructor parameters of
@@ -122,7 +132,11 @@ export function buildSuperCallsForChain(
             arg.referencedDeclaration!,
           );
           const sourceValue = argsValues.get(sourceParam);
-          if (sourceValue) {
+
+          if (invalidReference.has(arg.referencedDeclaration!)) {
+            // This parentNode is the parent of an uninitializable contract and uses a parameter that won't be in the context.
+            markNotInitializable(parentNode);
+          } else if (sourceValue) {
             if (sourceValue.nodeType === 'Literal' || sourceValue.nodeType === 'Identifier') {
               // If the source value is a literal or another identifier, we use it as the argument.
               arg = argsValues.get(sourceParam)!;
@@ -146,7 +160,11 @@ export function buildSuperCallsForChain(
               id.referencedDeclaration!,
             );
             const sourceValue = argsValues.get(sourceParam);
-            if (
+
+            if (invalidReference.has(id.referencedDeclaration!)) {
+              // This parentNode is the parent of an uninitializable contract and uses a parameter that won't be in the context.
+              markNotInitializable(parentNode);
+            } else if (
               sourceValue &&
               (sourceValue.nodeType !== 'Identifier' || sourceValue.name !== id.name)
             ) {

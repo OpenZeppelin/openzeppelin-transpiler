@@ -173,3 +173,23 @@ contract Foo26 is Foo19 {
 contract Foo27 is Foo26 {
     constructor(IFoo t) Foo26(t) public {}
 }
+
+contract Foo28 {
+    constructor(uint x) public {}
+}
+
+abstract contract Foo29 is Foo28 {
+    constructor(uint y) public {}
+}
+
+abstract contract Foo30  is Foo28, Foo29 {
+    constructor(uint z) Foo28(z) public {}
+}
+
+abstract contract Foo31 is Foo19 {
+  constructor(uint b) public {}
+}
+
+abstract contract Foo32 is Foo20, Foo31 {
+  constructor(uint b) Foo20(b) public {}
+}
