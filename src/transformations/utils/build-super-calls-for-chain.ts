@@ -54,7 +54,12 @@ export function buildSuperCallsForChain(
           for (const call of constructorNode.modifiers) {
             // we only care about modifiers that reference base contracts
             const { referencedDeclaration } = call.modifierName;
-            if (referencedDeclaration != null && chainIds.has(referencedDeclaration) && call.arguments != null && call.arguments.length > 0) {
+            if (
+              referencedDeclaration != null &&
+              chainIds.has(referencedDeclaration) &&
+              call.arguments != null &&
+              call.arguments.length > 0
+            ) {
               res.push({ call });
             }
           }
@@ -193,7 +198,6 @@ export function buildSuperCallsForChain(
         initializable.set(base.id, value);
       }
     }
-
   }
 
   // once we have gathered all constructor calls for each parent, we linearize
