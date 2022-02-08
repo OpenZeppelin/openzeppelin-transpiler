@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.7 (2022-02-08)
+
+- Fix bug when removing abstract parents too eagerly.
+
 ## 0.3.6 (2022-01-31)
 
 - Remove calls to empty self unchained method from init method body, and empty parent unchained methods calls without parameters.
