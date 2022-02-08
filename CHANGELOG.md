@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.8 (2022-02-08)
+
+- Fix wrong assumption that Identifier maps to VariableDeclaration.
+
 ## 0.3.7 (2022-02-08)
 
 - Fix bug when removing abstract parents too eagerly.

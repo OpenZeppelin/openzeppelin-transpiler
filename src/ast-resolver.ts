@@ -20,6 +20,14 @@ export class ASTResolver {
   }
 
   resolveNode<T extends NodeType>(nodeType: T, id: number): NodeTypeMap[T] {
+    const node = this.tryResolveNode(nodeType, id);
+    if (node === undefined) {
+      throw new ASTResolverError(nodeType);
+    }
+    return node;
+  }
+
+  tryResolveNode<T extends NodeType>(nodeType: T, id: number): NodeTypeMap[T] | undefined {
     for (const source in this.output.sources) {
       for (const c of findAll(nodeType, this.output.sources[source].ast)) {
         if (c.id === id) {
@@ -31,8 +39,6 @@ export class ASTResolver {
         }
       }
     }
-
-    throw new ASTResolverError(nodeType);
   }
 }
 

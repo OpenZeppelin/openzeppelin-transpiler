@@ -155,11 +155,11 @@ export function buildSuperCallsForChain(
           // We will only allow this expression if it is correct in the new context without any changes.
           const identifiers = [...findAll('Identifier', arg)];
           for (const id of identifiers) {
-            const sourceParam = resolver.resolveNode(
+            const sourceParam = resolver.tryResolveNode(
               'VariableDeclaration',
               id.referencedDeclaration!,
             );
-            const sourceValue = argsValues.get(sourceParam);
+            const sourceValue = sourceParam && argsValues.get(sourceParam);
 
             if (invalidReference.has(id.referencedDeclaration!)) {
               // This parentNode is the parent of an uninitializable contract and uses a parameter that won't be in the context.
