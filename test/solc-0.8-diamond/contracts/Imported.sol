@@ -3,7 +3,7 @@
 pragma solidity ^0.8.0;
 
 contract Imported1 {
-
+    uint256 constant public constTestValue = 123456789;
     constructor(uint256 x, uint256 y) { }
 }
 

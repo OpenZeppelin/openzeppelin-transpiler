@@ -10,6 +10,9 @@ import { Transformation } from './type';
 
 export function appendInitializableImport(initializablePath: string) {
   return function* (sourceUnit: SourceUnit): Generator<Transformation> {
+    if (sourceUnit.absolutePath === initializablePath) {
+      return;
+    }
     const contracts = [...findAll('ContractDefinition', sourceUnit)];
     if (!contracts.some(c => c.contractKind === 'contract')) {
       return;

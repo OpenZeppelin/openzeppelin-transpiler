@@ -108,20 +108,21 @@ export function getScopedContractsForVariables(contract: ContractDefinition, too
      scope: number,
      contractPaths: Map<string, Set<string>>,
      contractScopes: Map<number, string>,
-     tools: TransformerTools) : string {
+     tools: TransformerTools, suffix = 'Storage') : string {
     const { resolver } = tools;
      let contractName = contractScopes.get(scope);
      if (!contractName) {
          const nodeInfo = resolver.resolveScope(scope);
          assert(nodeInfo, `Unable to find scope for id: ${scope}`);
-         const path = nodeInfo.path;
+         const { dir, name, ext} = path.parse(nodeInfo.path);
+         const contractPath = `${dir}/${name}${suffix}${ext}`;
          if (nodeInfo.node.nodeType === 'ContractDefinition') {
-             contractName = nodeInfo.node.name;
+             contractName = nodeInfo.node.name + suffix;
              contractScopes.set(scope, contractName);
-             if (!contractPaths.has(path)) {
-                 contractPaths.set(path, new Set<string>());
+             if (!contractPaths.has(contractPath)) {
+                 contractPaths.set(contractPath, new Set<string>());
              }
-             const contractSet = contractPaths.get(path)!;
+             const contractSet = contractPaths.get(contractPath)!;
              if (!contractSet.has(contractName)) {
                  contractSet.add(contractName);
              }
@@ -133,7 +134,7 @@ export function getScopedContractsForVariables(contract: ContractDefinition, too
      return contractName;
  }
 
- export function getNodeCount<T extends NodeType>(nodeTypes: T | T[], contract: ContractDefinition) : number {
+ export function getNodeCount<T extends NodeType>(nodeTypes: T | T[], contract: ContractDefinition, filter?:(node: NodeTypeMap[T]) => any ) : number {
     if (!Array.isArray(nodeTypes)) {
         nodeTypes = [nodeTypes];
     }
@@ -142,7 +143,7 @@ export function getScopedContractsForVariables(contract: ContractDefinition, too
 
     contract.nodes.forEach( node => {
         const newNode = node as NodeTypeMap[T];
-        if (nodeTypes.indexOf(newNode.nodeType as T) > -1 ) {
+        if ((nodeTypes.indexOf(newNode.nodeType as T) > -1 ) && (!filter || filter(newNode))) {
             count++;
         }
      });

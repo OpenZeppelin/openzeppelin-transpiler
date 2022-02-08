@@ -12,7 +12,6 @@ import {newFunctionPosition} from "./utils/new-function-position";
 import {Node} from "solidity-ast/node";
 import {
   addVariableScopedContract,
-  getScopedContractName,
   getScopedContractsForVariables,
   getUniqueIdentifierVarsUsed,
   IdentifierVariable,
@@ -92,8 +91,10 @@ export function addDiamondStorage(newFiles: OutputFile[]) {
         const referencedTypeDeclarations: Map<number, IdentifierVariable> = getUniqueIdentifierVarsUsed(contract, tools);
         for (const [_, identifierVar] of referencedTypeDeclarations) {
           const { varDecl } = identifierVar;
-          addVariableScopedContract(contractPaths, varDecl, tools.resolver);
-          // getScopedContractName(varDecl.scope, contractPaths, contractScopes, tools);
+          const nodeInfo = resolver.resolveScope(varDecl.scope)!;
+          if (nodeInfo.scopeNode && (nodeInfo.scopeNode.id !== sourceUnit.id)) {
+            addVariableScopedContract(contractPaths, varDecl, tools.resolver);
+          }
         }
 
         buffer = makeStorageLib(contract.name, variableNodes, commentMap, buffer);
@@ -199,7 +200,7 @@ ${ variables.map(v =>  {
   }
 }
     `;
-  
+
   return buffer;
 }
 

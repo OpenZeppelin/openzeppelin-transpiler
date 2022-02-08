@@ -61,7 +61,7 @@ async function getVersion() {
 }
 
 async function main() {
-  console.error(await getVersion());
+  console.log(await getVersion());
 
   const paths = await getPaths();
   const resolveRootRelative = (p: string) => path.relative(paths.root, path.resolve(p));
