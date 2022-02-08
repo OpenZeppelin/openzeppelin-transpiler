@@ -54,13 +54,13 @@ export function buildSuperCallsForChain(
           for (const call of constructorNode.modifiers) {
             // we only care about modifiers that reference base contracts
             const { referencedDeclaration } = call.modifierName;
-            if (referencedDeclaration != null && chainIds.has(referencedDeclaration)) {
+            if (referencedDeclaration != null && chainIds.has(referencedDeclaration) && call.arguments != null && call.arguments.length > 0) {
               res.push({ call });
             }
           }
         }
         for (const call of parentNode.baseContracts) {
-          if (call.arguments != null) {
+          if (call.arguments != null && call.arguments.length > 0) {
             res.push({ call });
           }
         }
@@ -81,13 +81,12 @@ export function buildSuperCallsForChain(
 
   // this is where we store the parents of uninitialized parents if any
   const notInitializable = new Set<number>();
+  let invalidReference: number[] = [];
 
   const argsValues = new Map<VariableDeclaration, Expression>();
   const parentArgsValues = new Map<ContractDefinition, Expression[]>();
-  let directParents: number[] = [];
   for (const parentNode of chain) {
     if (parentNode === contractNode) {
-      directParents = parentNode.baseContracts.map(c => c.baseName.referencedDeclaration);
       continue;
     }
     const ctorCallArgs = ctorCalls[parentNode.id]?.call?.arguments;
@@ -97,17 +96,13 @@ export function buildSuperCallsForChain(
       if (isImplicitlyConstructed(parentNode)) {
         parentArgsValues.set(parentNode, []);
       } else {
-        // If a parent is not initializable, we assume its parents aren't initializable either,
-        // because we may not have their constructor arguments.
-        // The user will invoke them anyway in the chained initializer of this parent, which
-        // will have to be manually called.
-        for (const parent of parentNode.linearizedBaseContracts) {
-          // Only add if is a direct parent or if the parent's parent is not a direct parent of the contract being transformed
-          const isDirectParent = parent === parentNode.id;
-          if (isDirectParent || !directParents.includes(parent)) {
-            notInitializable.add(parent);
-          }
-        }
+        // If a parent is not initializable, we assume its parents might be initializable either,
+        // because we may not have their constructor arguments. So we save the arguments in case
+        // other parent reference it.
+        notInitializable.add(parentNode.id);
+        const parameters = getConstructor(parentNode)?.parameters?.parameters;
+        const paramIds = parameters ? parameters.map(p => p.id) : [];
+        invalidReference = invalidReference.concat(paramIds);
       }
     } else {
       // We have arguments for this parent constructor, but they may include references to the constructor parameters of
@@ -126,19 +121,27 @@ export function buildSuperCallsForChain(
             'VariableDeclaration',
             arg.referencedDeclaration!,
           );
-          const sourceValue = argsValues.get(sourceParam);
-          if (sourceValue) {
-            if (sourceValue.nodeType === 'Literal' || sourceValue.nodeType === 'Identifier') {
-              // If the source value is a literal or another identifier, we use it as the argument.
-              arg = argsValues.get(sourceParam)!;
-            } else {
-              // If the source value is some other expression, this would be the second time it's used and we
-              // reject this as it may have side effects.
-              throw new Error(
-                `Can't transpile non-trivial expression in parent constructor argument (${helper.read(
-                  sourceValue,
-                )})`,
-              );
+
+          if (arg.referencedDeclaration && invalidReference.includes(arg.referencedDeclaration)) {
+            // This parentNode is the parent of an uninitialize contract and uses a paramter that wont be in the context
+            notInitializable.add(parentNode.id);
+            const paramIds = parameters ? parameters.map(p => p.id) : [];
+            invalidReference = invalidReference.concat(paramIds);
+          } else {
+            const sourceValue = argsValues.get(sourceParam);
+            if (sourceValue) {
+              if (sourceValue.nodeType === 'Literal' || sourceValue.nodeType === 'Identifier') {
+                // If the source value is a literal or another identifier, we use it as the argument.
+                arg = argsValues.get(sourceParam)!;
+              } else {
+                // If the source value is some other expression, this would be the second time it's used and we
+                // reject this as it may have side effects.
+                throw new Error(
+                  `Can't transpile non-trivial expression in parent constructor argument (${helper.read(
+                    sourceValue,
+                  )})`,
+                );
+              }
             }
           }
         } else {
@@ -150,6 +153,15 @@ export function buildSuperCallsForChain(
               'VariableDeclaration',
               id.referencedDeclaration!,
             );
+
+            if (id.referencedDeclaration && invalidReference.includes(id.referencedDeclaration)) {
+              // This parentNode is the parent of an uninitialize contract and uses a paramter that wont be in the context
+              notInitializable.add(parentNode.id);
+              const paramIds = parameters ? parameters.map(p => p.id) : [];
+              invalidReference = invalidReference.concat(paramIds);
+              continue;
+            }
+
             const sourceValue = argsValues.get(sourceParam);
             if (
               sourceValue &&

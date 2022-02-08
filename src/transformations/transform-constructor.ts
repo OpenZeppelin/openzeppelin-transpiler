@@ -86,7 +86,7 @@ export function* transformConstructor(
       continue;
     }
 
-    const { name } = contractNode;
+    const { name } = contractNode;console.log('checking', name);
     const {
       constructorNode,
       varInitNodes,
