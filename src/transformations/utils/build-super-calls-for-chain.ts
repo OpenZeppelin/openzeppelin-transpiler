@@ -84,17 +84,22 @@ export function buildSuperCallsForChain(
     },
   );
 
-  let invalidReference: number[] = [];
-  // Save if initializable path is found
-  const initializable = new Map<number, boolean>();
+  const invalidReference = new Set<number>();
+  const notInitializable = new Set<number>();
+  const markNotInitializable = (parentNode: ContractDefinition) => {
+    const parameters = getConstructor(parentNode)?.parameters?.parameters ?? [];
+    for (const { id } of parameters) {
+      invalidReference.add(id);
+    }
+    notInitializable.add(parentNode.id);
+  };
 
   const argsValues = new Map<VariableDeclaration, Expression>();
   const parentArgsValues = new Map<ContractDefinition, Expression[]>();
+
   for (const parentNode of chain) {
     if (parentNode === contractNode) {
       continue;
-    } else if (!initializable.has(parentNode.id)) {
-      initializable.set(parentNode.id, true);
     }
 
     const ctorCallArgs = ctorCalls[parentNode.id]?.call?.arguments;
@@ -107,10 +112,7 @@ export function buildSuperCallsForChain(
         // If a parent is not initializable, we assume its parents might be initializable either,
         // because we may not have their constructor arguments. So we save the arguments in case
         // other parent reference it.
-        const parameters = getConstructor(parentNode)?.parameters?.parameters;
-        const paramIds = parameters ? parameters.map(p => p.id) : [];
-        invalidReference = invalidReference.concat(paramIds);
-        initializable.set(parentNode.id, false);
+        markNotInitializable(parentNode);
       }
     } else {
       // We have arguments for this parent constructor, but they may include references to the constructor parameters of
@@ -129,27 +131,23 @@ export function buildSuperCallsForChain(
             'VariableDeclaration',
             arg.referencedDeclaration!,
           );
+          const sourceValue = argsValues.get(sourceParam);
 
-          if (arg.referencedDeclaration && invalidReference.includes(arg.referencedDeclaration)) {
-            // This parentNode is the parent of an uninitialize contract and uses a paramter that wont be in the context
-            const paramIds = parameters ? parameters.map(p => p.id) : [];
-            invalidReference = invalidReference.concat(paramIds);
-            initializable.set(parentNode.id, false);
-          } else {
-            const sourceValue = argsValues.get(sourceParam);
-            if (sourceValue) {
-              if (sourceValue.nodeType === 'Literal' || sourceValue.nodeType === 'Identifier') {
-                // If the source value is a literal or another identifier, we use it as the argument.
-                arg = argsValues.get(sourceParam)!;
-              } else {
-                // If the source value is some other expression, this would be the second time it's used and we
-                // reject this as it may have side effects.
-                throw new Error(
-                  `Can't transpile non-trivial expression in parent constructor argument (${helper.read(
-                    sourceValue,
-                  )})`,
-                );
-              }
+          if (invalidReference.has(arg.referencedDeclaration!)) {
+            // This parentNode is the parent of an uninitializable contract and uses a parameter that won't be in the context.
+            markNotInitializable(parentNode);
+          } else if (sourceValue) {
+            if (sourceValue.nodeType === 'Literal' || sourceValue.nodeType === 'Identifier') {
+              // If the source value is a literal or another identifier, we use it as the argument.
+              arg = argsValues.get(sourceParam)!;
+            } else {
+              // If the source value is some other expression, this would be the second time it's used and we
+              // reject this as it may have side effects.
+              throw new Error(
+                `Can't transpile non-trivial expression in parent constructor argument (${helper.read(
+                  sourceValue,
+                )})`,
+              );
             }
           }
         } else {
@@ -161,17 +159,12 @@ export function buildSuperCallsForChain(
               'VariableDeclaration',
               id.referencedDeclaration!,
             );
-
-            if (id.referencedDeclaration && invalidReference.includes(id.referencedDeclaration)) {
-              // This parentNode is the parent of an uninitialize contract and uses a paramter that wont be in the context
-              const paramIds = parameters ? parameters.map(p => p.id) : [];
-              invalidReference = invalidReference.concat(paramIds);
-              initializable.set(parentNode.id, false);
-              continue;
-            }
-
             const sourceValue = argsValues.get(sourceParam);
-            if (
+
+            if (invalidReference.has(id.referencedDeclaration!)) {
+              // This parentNode is the parent of an uninitializable contract and uses a parameter that won't be in the context.
+              markNotInitializable(parentNode);
+            } else if (
               sourceValue &&
               (sourceValue.nodeType !== 'Identifier' || sourceValue.name !== id.name)
             ) {
@@ -190,14 +183,6 @@ export function buildSuperCallsForChain(
 
       parentArgsValues.set(parentNode, parentArgs);
     }
-
-    // Check base contracts to trace if initializable path exists for parents
-    for (const base of parentNode.baseContracts) {
-      const value = initializable.get(parentNode.id) ?? true;
-      if (!initializable.has(base.id) || !initializable.get(base.id)) {
-        initializable.set(base.id, value);
-      }
-    }
   }
 
   // once we have gathered all constructor calls for each parent, we linearize
@@ -211,7 +196,7 @@ export function buildSuperCallsForChain(
       parentNode === contractNode ||
       hasConstructorOverride(parentNode) ||
       parentNode.contractKind === 'interface' ||
-      !initializable.get(parentNode.id)
+      notInitializable.has(parentNode.id)
     ) {
       continue;
     }
