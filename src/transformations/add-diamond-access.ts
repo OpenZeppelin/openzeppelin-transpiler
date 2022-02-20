@@ -43,7 +43,7 @@ export function* addDiamondAccess(sourceUnit: SourceUnit,
         for (const [_, identifierVar] of getUniqueIdentifierVarsUsed(contractNode, tools)) {
             const { identifier, varDecl } = identifierVar;
             const scopedContractName = getScopedContractName(varDecl.scope, contractPaths, contractScopes, tools);
-            const storageLayoutAccess = scopedContractName + `.layout(_slot_${scopedContractName}).`;
+            const storageLayoutAccess = scopedContractName + `.layout().`;
             const idBounds = getNodeBounds(identifier);
 
             yield {
