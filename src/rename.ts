@@ -20,12 +20,23 @@ export function renamePath(filePath: string, _suffix = suffix): string {
   return path.format({ dir, ext, name: renameContract(name, _suffix) });
 }
 
-export function getContractsImportPath(contractPaths: Map<string, Set<string>>, suffix = 'Upgradeable') : string {
+export function renameRelativePath(filePath: string, _suffix = suffix, basePath: string): string {
+  let { dir, name, ext } = path.parse(filePath);
+  if (dir[0] !== '.') {
+    dir = path.relative(basePath, dir);
+    if (dir === '') {
+      dir = '.';
+    }
+  }
+  return path.format({ dir, ext, name: renameContract(name, _suffix) });
+}
+
+export function getContractsImportPath(contractPaths: Map<string, Set<string>>, basePath: string, suffix = 'Upgradeable') : string {
   let importsText = '';
   contractPaths.forEach( (contractNames, filePath ) => {
     const renamedContractNames = [...contractNames].map(c => renameContract(c, suffix));
     const cNames = ((renamedContractNames.length > 0) ? `{ ${renamedContractNames.join(', ')} } from ` : '');
-    importsText += `\nimport ${cNames}"${renamePath(filePath, suffix)}";`;
+    importsText += `\nimport ${cNames}"${renameRelativePath(filePath, suffix, basePath)}";`;
   });
   return importsText;
 }

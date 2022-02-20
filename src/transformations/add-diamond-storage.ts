@@ -108,7 +108,7 @@ export function addDiamondStorage(newFiles: OutputFile[]) {
 
 pragma solidity ^0.8.0;
 
-${ getContractsImportPath(contractPaths) }
+${ getContractsImportPath(contractPaths, path.parse(sourceUnit.absolutePath).dir) }
 ${ buffer }
 `;
 
