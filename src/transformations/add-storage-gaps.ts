@@ -28,7 +28,10 @@ export function* addStorageGaps(
 ): Generator<Transformation> {
   for (const contract of findAll('ContractDefinition', sourceUnit)) {
     if (contract.contractKind === 'contract') {
-      const doc = typeof contract.documentation === 'string' ? contract.documentation : contract.documentation?.text ?? '';
+      const doc =
+        typeof contract.documentation === 'string'
+          ? contract.documentation
+          : contract.documentation?.text ?? '';
 
       let targetSlots = DEFAULT_SLOT_COUNT;
       for (const { groups } of execall(
@@ -86,11 +89,11 @@ function getContractSize(contractNode: ContractDefinition, layout: StorageLayout
     }
 
     // size of current object
-    const size = parseInt(type.numberOfBytes, 10)
+    const size = parseInt(type.numberOfBytes, 10);
     // used space in the current slot
     const used = contractSize % 32;
     // free space in the current slot (if any)
-    const free = used > 0 ? 32 - used : 0
+    const free = used > 0 ? 32 - used : 0;
     // if the free space is not enough to fit the current object, then consume the free space to start at next slot
     contractSize += (size > free ? free : 0) + size;
   }
