@@ -8,7 +8,7 @@ interface NatspecTag {
 }
 
 export function* extractNatspec(node: {
-  documentation: string | StructuredDocumentation | null;
+  documentation?: string | StructuredDocumentation | null;
 }): Generator<NatspecTag> {
   const doc =
     typeof node.documentation === 'string' ? node.documentation : node.documentation?.text ?? '';
