@@ -56,7 +56,7 @@ test('preserves immutable if allowed', t => {
   t.snapshot(t.context.transform.results()[file]);
 });
 
-test.only('custom contract size', t => {
+test('custom contract size', t => {
   const file = 'contracts/TransformCustomSize.sol';
   t.context.transform.apply(transformConstructor);
   t.context.transform.apply(removeLeftoverConstructorHead);

@@ -16,6 +16,8 @@ contract SizeDefault {
     uint32  z2;
     HalfASlot s1;
     HalfASlot s2;
+    uint64[5] a1;
+    uint64[3] a2;
 
     constructor(uint _x) {
       x = _x;
@@ -33,6 +35,8 @@ contract SizeOverride {
     uint32  z2;
     HalfASlot s1;
     HalfASlot s2;
+    uint64[5] a1;
+    uint64[3] a2;
 
     constructor(uint _x) {
       x = _x;
