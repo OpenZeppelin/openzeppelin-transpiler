@@ -6,21 +6,10 @@ import { getNodeBounds } from '../solc/ast-utils';
 import { StorageLayout } from '../solc/input-output';
 import { Transformation } from './type';
 import { TransformerTools } from '../transform';
+import { extractNatspec } from '../utils/extractNatspec';
 
 // By default, make the contract a total of 50 slots (storage + gap)
 const DEFAULT_SLOT_COUNT = 50;
-
-function* execall(re: RegExp, text: string) {
-  re = new RegExp(re, re.flags + (re.sticky ? '' : 'y'));
-  while (true) {
-    const match = re.exec(text);
-    if (match && match[0] !== '') {
-      yield match;
-    } else {
-      break;
-    }
-  }
-}
 
 export function* addStorageGaps(
   sourceUnit: SourceUnit,
@@ -28,18 +17,10 @@ export function* addStorageGaps(
 ): Generator<Transformation> {
   for (const contract of findAll('ContractDefinition', sourceUnit)) {
     if (contract.contractKind === 'contract') {
-      const doc =
-        typeof contract.documentation === 'string'
-          ? contract.documentation
-          : contract.documentation?.text ?? '';
-
       let targetSlots = DEFAULT_SLOT_COUNT;
-      for (const { groups } of execall(
-        /^\s*(?:@(?<title>\w+)(?::(?<tag>[a-z][a-z-]*))? )?(?<args>(?:(?!^\s@\w+)[^])*)/m,
-        doc,
-      )) {
-        if (groups && groups.title === 'custom' && groups.tag === 'contract-size') {
-          targetSlots = parseInt(groups.args);
+      for (const entry of extractNatspec(contract)) {
+        if (entry.title === 'custom' && entry.tag === 'contract-size') {
+          targetSlots = parseInt(entry.args);
         }
       }
 
