@@ -7,8 +7,20 @@ import { StorageLayout } from '../solc/input-output';
 import { Transformation } from './type';
 import { TransformerTools } from '../transform';
 
-// 100 slots of 32 contractSize each
-const TARGET_SIZE = 32 * 50;
+// By default, make the contract a total of 50 slots (storage + gap)
+const DEFAULT_SLOT_COUNT = 50;
+
+function* execall(re: RegExp, text: string) {
+  re = new RegExp(re, re.flags + (re.sticky ? '' : 'y'));
+  while (true) {
+    const match = re.exec(text);
+    if (match && match[0] !== '') {
+      yield match;
+    } else {
+      break;
+    }
+  }
+}
 
 export function* addStorageGaps(
   sourceUnit: SourceUnit,
@@ -16,7 +28,20 @@ export function* addStorageGaps(
 ): Generator<Transformation> {
   for (const contract of findAll('ContractDefinition', sourceUnit)) {
     if (contract.contractKind === 'contract') {
-      const gapSize = getGapSize(contract, getLayout(contract));
+      const doc = typeof contract.documentation === 'string' ? contract.documentation : contract.documentation?.text ?? '';
+
+      let targetSlots = DEFAULT_SLOT_COUNT;
+      for (const { groups } of execall(
+        /^\s*(?:@(?<title>\w+)(?::(?<tag>[a-z][a-z-]*))? )?(?<args>(?:(?!^\s@\w+)[^])*)/m,
+        doc,
+      )) {
+        if (groups && groups.title === 'custom' && groups.tag === 'contract-size') {
+          targetSlots = parseInt(groups.args);
+        }
+      }
+
+      const contractSize = getContractSize(contract, getLayout(contract));
+      const gapSize = Math.floor((32 * targetSlots - contractSize) / 32);
 
       const contractBounds = getNodeBounds(contract);
       const start = contractBounds.start + contractBounds.length - 1;
@@ -43,7 +68,7 @@ export function* addStorageGaps(
   }
 }
 
-function getGapSize(contractNode: ContractDefinition, layout: StorageLayout): number {
+function getContractSize(contractNode: ContractDefinition, layout: StorageLayout): number {
   const varIds = new Set([...findAll('VariableDeclaration', contractNode)].map(v => v.id));
 
   if (layout === undefined) {
@@ -59,8 +84,16 @@ function getGapSize(contractNode: ContractDefinition, layout: StorageLayout): nu
     if (type === undefined) {
       throw new Error(`Missing type information for ${type}`);
     }
-    contractSize += parseInt(type.numberOfBytes, 10);
+
+    // size of current object
+    const size = parseInt(type.numberOfBytes, 10)
+    // used space in the current slot
+    const used = contractSize % 32;
+    // free space in the current slot (if any)
+    const free = used > 0 ? 32 - used : 0
+    // if the free space is not enough to fit the current object, then consume the free space to start at next slot
+    contractSize += (size > free ? free : 0) + size;
   }
 
-  return Math.floor((TARGET_SIZE - contractSize) / 32);
+  return contractSize;
 }
