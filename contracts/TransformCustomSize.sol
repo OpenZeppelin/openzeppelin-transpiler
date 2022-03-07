@@ -8,7 +8,9 @@ struct HalfASlot {
 
 contract SizeDefault {
   /// @custom:oz-upgrades-unsafe-allow state-variable-immutable state-variable-assignment
-  uint immutable w = block.number;
+  uint immutable w1 = block.number;
+  /// @custom:oz-upgrades-unsafe-allow state-variable-immutable state-variable-assignment
+  uint immutable w2 = block.timestamp;
   uint immutable x; // slot 0 (after conversion to private)
   uint constant y = 1;
   uint224 z0; // slot 1
@@ -31,7 +33,9 @@ contract SizeDefault {
 /// @custom:contract-size 128
 contract SizeOverride {
   /// @custom:oz-upgrades-unsafe-allow state-variable-immutable state-variable-assignment
-  uint immutable w = block.number;
+  uint immutable w1 = block.number;
+  /// @custom:oz-upgrades-unsafe-allow state-variable-immutable  state-variable-assignment
+  uint immutable w2 = block.timestamp;
   uint immutable x; // slot 0 (after conversion to private)
   uint constant y = 1;
   uint224 z0; // slot 1

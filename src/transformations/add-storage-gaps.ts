@@ -1,7 +1,8 @@
 import { SourceUnit, ContractDefinition } from 'solidity-ast';
-import { findAll } from 'solidity-ast/utils';
+import { findAll, isNodeType } from 'solidity-ast/utils';
 
 import { formatLines } from './utils/format-lines';
+import { hasOverride } from '../utils/upgrades-overrides';
 import { getNodeBounds } from '../solc/ast-utils';
 import { StorageLayout } from '../solc/input-output';
 import { Transformation } from './type';
@@ -52,25 +53,55 @@ export function* addStorageGaps(
   }
 }
 
-function getContractSize(contractNode: ContractDefinition, layout: StorageLayout): number {
-  const varIds = new Set([...findAll('VariableDeclaration', contractNode)].map(v => v.id));
+function getNumberOfBytesOfValueType(type: string): number {
+  let details;
 
-  if (layout === undefined) {
-    throw new Error('Storage layout is needed for this transformation');
+  if (type === 't_bool') {
+    return 1;
   }
 
-  const local = layout.storage.filter(l => varIds.has(l.astId));
+  if (type === 't_byte') {
+    return 1;
+  }
 
+  if (type === 't_address') {
+    return 20;
+  }
+
+  if (details = type.match(/^t\_int(?<size>[\d]+)$/)) {
+    return parseInt(details.groups?.size as string, 10) / 8; // size is [\d]+
+  }
+
+  if (details = type.match(/^t\_uint(?<size>[\d]+)$/)) {
+    return parseInt(details.groups?.size as string, 10) / 8; // size is [\d]+
+  }
+
+  if (details = type.match(/^t\_bytes(?<size>[\d]+)$/)) {
+    return parseInt(details.groups?.size as string, 10); // size is [\d]+
+  }
+
+  throw new Error(`unknown bas type ${type}`);
+}
+
+function getContractSize(contractNode: ContractDefinition, layout: StorageLayout): number {
   let contractSize = 0;
 
-  for (const l of local) {
-    const type = layout.types?.[l.type];
-    if (type === undefined) {
-      throw new Error(`Missing type information for ${type}`);
-    }
+  // don't use `findAll` here, we don't want to go recursive
+  for (const varDecl of contractNode.nodes.filter(isNodeType('VariableDeclaration'))) {
+    if (varDecl.mutability === 'constant') continue;
+    if (varDecl.mutability === 'immutable' && hasOverride(varDecl, 'state-variable-immutable')) continue;
 
-    // size of current object
-    const size = parseInt(type.numberOfBytes, 10);
+    // try get type details
+    const typeIdentifier = varDecl.typeDescriptions.typeIdentifier
+      ?.replace('$_', '(')
+      ?.replace('_$', ')');
+    const type = layout.types?.[typeIdentifier || ''];
+
+    // size of current object from type details, of alternativelly try to reconstruct it
+    const size = type
+      ? parseInt(type?.numberOfBytes, 10)
+      : getNumberOfBytesOfValueType(typeIdentifier || '');
+
     // used space in the current slot
     const used = contractSize % 32;
     // free space in the current slot (if any)
