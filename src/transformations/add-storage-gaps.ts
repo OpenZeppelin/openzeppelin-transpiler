@@ -8,6 +8,7 @@ import { StorageLayout } from '../solc/input-output';
 import { Transformation } from './type';
 import { TransformerTools } from '../transform';
 import { extractNatspec } from '../utils/extractNatspec';
+import { decodeTypeIdentifier } from '../utils/type-id';
 
 // By default, make the contract a total of 50 slots (storage + gap)
 const DEFAULT_SLOT_COUNT = 50;
@@ -53,34 +54,22 @@ export function* addStorageGaps(
   }
 }
 
-function getNumberOfBytesOfValueType(type: string): number {
-  let details;
-
-  if (type === 't_bool') {
-    return 1;
+function getNumberOfBytesOfValueType(type: string) {
+  const details = type.match(/^t_(?<base>[a-z]+)(?<size>[\d]+)?/);
+  switch (details?.groups?.base) {
+      case 'bool':
+      case 'byte':
+          return 1;
+      case 'address':
+          return 20;
+      case 'bytes':
+          return parseInt(details.groups.size, 10);
+      case 'int':
+      case 'uint':
+          return parseInt(details.groups.size, 10) / 8;
+      default:
+          throw new Error(`Unsupported value type: ${type}`);
   }
-
-  if (type === 't_byte') {
-    return 1;
-  }
-
-  if (type === 't_address') {
-    return 20;
-  }
-
-  if (details = type.match(/^t\_int(?<size>[\d]+)$/)) {
-    return parseInt(details.groups?.size as string, 10) / 8; // size is [\d]+
-  }
-
-  if (details = type.match(/^t\_uint(?<size>[\d]+)$/)) {
-    return parseInt(details.groups?.size as string, 10) / 8; // size is [\d]+
-  }
-
-  if (details = type.match(/^t\_bytes(?<size>[\d]+)$/)) {
-    return parseInt(details.groups?.size as string, 10); // size is [\d]+
-  }
-
-  throw new Error(`unknown bas type ${type}`);
 }
 
 function getContractSize(contractNode: ContractDefinition, layout: StorageLayout): number {
@@ -92,9 +81,7 @@ function getContractSize(contractNode: ContractDefinition, layout: StorageLayout
     if (varDecl.mutability === 'immutable' && hasOverride(varDecl, 'state-variable-immutable')) continue;
 
     // try get type details
-    const typeIdentifier = varDecl.typeDescriptions.typeIdentifier
-      ?.replace('$_', '(')
-      ?.replace('_$', ')');
+    const typeIdentifier = decodeTypeIdentifier(varDecl.typeDescriptions.typeIdentifier ?? '');
     const type = layout.types?.[typeIdentifier || ''];
 
     // size of current object from type details, of alternativelly try to reconstruct it
