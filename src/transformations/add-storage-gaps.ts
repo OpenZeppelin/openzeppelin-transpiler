@@ -55,7 +55,7 @@ export function* addStorageGaps(
 }
 
 function getNumberOfBytesOfValueType(type: string) {
-  const details = type.match(/^t_(?<base>[a-z]+)(?<size>[\d]+)?/);
+  const details = type.match(/^t_(?<base>[a-z]+)(?<size>[\d]+)?$/);
   switch (details?.groups?.base) {
       case 'bool':
       case 'byte':
