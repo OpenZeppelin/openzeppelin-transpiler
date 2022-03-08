@@ -21,7 +21,7 @@ export function* addStorageGaps(
     if (contract.contractKind === 'contract') {
       let targetSlots = DEFAULT_SLOT_COUNT;
       for (const entry of extractNatspec(contract)) {
-        if (entry.title === 'custom' && entry.tag === 'contract-size') {
+        if (entry.title === 'custom' && entry.tag === 'storage-size') {
           targetSlots = parseInt(entry.args);
         }
       }
@@ -29,27 +29,31 @@ export function* addStorageGaps(
       const contractSize = getContractSize(contract, getLayout(contract));
       const gapSize = Math.floor((32 * targetSlots - contractSize) / 32);
 
-      const contractBounds = getNodeBounds(contract);
-      const start = contractBounds.start + contractBounds.length - 1;
+      if (gapSize > 0) {
+        const contractBounds = getNodeBounds(contract);
+        const start = contractBounds.start + contractBounds.length - 1;
 
-      const text = formatLines(0, [
-        ``,
-        [
-          `/**`,
-          ` * This empty reserved space is put in place to allow future versions to add new`,
-          ` * variables without shifting down storage in the inheritance chain.`,
-          ` * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps`,
-          ` */`,
-          `uint256[${gapSize}] private __gap;`,
-        ],
-      ]);
+        const text = formatLines(0, [
+          ``,
+          [
+            `/**`,
+            ` * This empty reserved space is put in place to allow future versions to add new`,
+            ` * variables without shifting down storage in the inheritance chain.`,
+            ` * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps`,
+            ` */`,
+            `uint256[${gapSize}] private __gap;`,
+          ],
+        ]);
 
-      yield {
-        kind: 'add-storage-gaps',
-        start,
-        length: 0,
-        text,
-      };
+        yield {
+          kind: 'add-storage-gaps',
+          start,
+          length: 0,
+          text,
+        };
+      } else if (gapSize < 0) {
+        throw new Error(`Contract ${contract.name} uses more then the ${targetSlots} reserved slots.`);
+      }
     }
   }
 }
@@ -82,12 +86,14 @@ function getContractSize(contractNode: ContractDefinition, layout: StorageLayout
 
     // try get type details
     const typeIdentifier = decodeTypeIdentifier(varDecl.typeDescriptions.typeIdentifier ?? '');
-    const type = layout.types?.[typeIdentifier || ''];
+    const type = layout.types?.[typeIdentifier];
 
-    // size of current object from type details, of alternativelly try to reconstruct it
+    // size of current object from type details, or try to reconstruct it if
+    // they're not available try to reconstruct it, which can happen for
+    // immutable variables
     const size = type
-      ? parseInt(type?.numberOfBytes, 10)
-      : getNumberOfBytesOfValueType(typeIdentifier || '');
+      ? parseInt(type.numberOfBytes, 10)
+      : getNumberOfBytesOfValueType(typeIdentifier);
 
     // used space in the current slot
     const used = contractSize % 32;
