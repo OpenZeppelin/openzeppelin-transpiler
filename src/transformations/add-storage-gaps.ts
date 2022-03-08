@@ -52,7 +52,9 @@ export function* addStorageGaps(
           text,
         };
       } else if (gapSize < 0) {
-        throw new Error(`Contract ${contract.name} uses more then the ${targetSlots} reserved slots.`);
+        throw new Error(
+          `Contract ${contract.name} uses more then the ${targetSlots} reserved slots.`,
+        );
       }
     }
   }
@@ -61,18 +63,18 @@ export function* addStorageGaps(
 function getNumberOfBytesOfValueType(type: string) {
   const details = type.match(/^t_(?<base>[a-z]+)(?<size>[\d]+)?$/);
   switch (details?.groups?.base) {
-      case 'bool':
-      case 'byte':
-          return 1;
-      case 'address':
-          return 20;
-      case 'bytes':
-          return parseInt(details.groups.size, 10);
-      case 'int':
-      case 'uint':
-          return parseInt(details.groups.size, 10) / 8;
-      default:
-          throw new Error(`Unsupported value type: ${type}`);
+    case 'bool':
+    case 'byte':
+      return 1;
+    case 'address':
+      return 20;
+    case 'bytes':
+      return parseInt(details.groups.size, 10);
+    case 'int':
+    case 'uint':
+      return parseInt(details.groups.size, 10) / 8;
+    default:
+      throw new Error(`Unsupported value type: ${type}`);
   }
 }
 
@@ -81,8 +83,12 @@ function getContractSize(contractNode: ContractDefinition, layout: StorageLayout
 
   // don't use `findAll` here, we don't want to go recursive
   for (const varDecl of contractNode.nodes.filter(isNodeType('VariableDeclaration'))) {
-    if (varDecl.mutability === 'constant') continue;
-    if (varDecl.mutability === 'immutable' && hasOverride(varDecl, 'state-variable-immutable')) continue;
+    if (varDecl.mutability === 'constant') {
+      continue;
+    }
+    if (varDecl.mutability === 'immutable' && hasOverride(varDecl, 'state-variable-immutable')) {
+      continue;
+    }
 
     // try get type details
     const typeIdentifier = decodeTypeIdentifier(varDecl.typeDescriptions.typeIdentifier ?? '');
