@@ -30,31 +30,31 @@ export function* addStorageGaps(
 
       if (gapSize <= 0) {
         throw new Error(
-          `Contract ${contract.name} uses more then the ${targetSlots} reserved slots.`,
+          `Contract ${contract.name} uses more than the ${targetSlots} reserved slots.`,
         );
-      } else {
-        const contractBounds = getNodeBounds(contract);
-        const start = contractBounds.start + contractBounds.length - 1;
-
-        const text = formatLines(0, [
-          ``,
-          [
-            `/**`,
-            ` * @dev This empty reserved space is put in place to allow future versions to add new`,
-            ` * variables without shifting down storage in the inheritance chain.`,
-            ` * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps`,
-            ` */`,
-            `uint256[${gapSize}] private __gap;`,
-          ],
-        ]);
-
-        yield {
-          kind: 'add-storage-gaps',
-          start,
-          length: 0,
-          text,
-        };
       }
+
+      const contractBounds = getNodeBounds(contract);
+      const start = contractBounds.start + contractBounds.length - 1;
+
+      const text = formatLines(0, [
+        ``,
+        [
+          `/**`,
+          ` * @dev This empty reserved space is put in place to allow future versions to add new`,
+          ` * variables without shifting down storage in the inheritance chain.`,
+          ` * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps`,
+          ` */`,
+          `uint256[${gapSize}] private __gap;`,
+        ],
+      ]);
+
+      yield {
+        kind: 'add-storage-gaps',
+        start,
+        length: 0,
+        text,
+      };
     }
   }
 }
