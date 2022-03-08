@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.10 (2022-03-08)
+
+- Fix gap size when immutable variables are transpiled to storage, and add `@custom:storage-size` override to customize gap size.
+
+## 0.3.9 (2022-02-11)
+
+- Add `@dev` tag to gap variable natspec.
+
 ## 0.3.8 (2022-02-08)
 
 - Fix wrong assumption that Identifier maps to VariableDeclaration.
