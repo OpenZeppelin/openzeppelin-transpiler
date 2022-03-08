@@ -29,7 +29,7 @@ export function* addStorageGaps(
 
       if (gapSize <= 0) {
         throw new Error(
-          `Contract ${contract.name} uses more then the ${targetSlots} reserved slots.`,
+          `Contract ${contract.name} uses more than the ${targetSlots} reserved slots.`,
         );
       }
 
