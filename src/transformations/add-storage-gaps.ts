@@ -27,7 +27,7 @@ export function* addStorageGaps(
       }
 
       const contractSize = getContractSize(contract, getLayout(contract));
-      const gapSize = Math.floor((32 * targetSlots - contractSize) / 32);
+      const gapSize = targetSlots - Math.ceil(contractSize / 32);
 
       if (gapSize > 0) {
         const contractBounds = getNodeBounds(contract);
