@@ -5,7 +5,7 @@ import { StorageLayout } from '../../solc/input-output';
 import { hasOverride } from '../../utils/upgrades-overrides';
 import { decodeTypeIdentifier } from '../../utils/type-id';
 
-function getNumberOfBytesOfValueType(type: string) {
+function getNumberOfBytesOfValueType(type: string): number {
   const details = type.match(/^t_(?<base>[a-z]+)(?<size>[\d]+)?$/);
   switch (details?.groups?.base) {
     case 'bool':
@@ -43,7 +43,7 @@ export class Layout {
     this.variables = [];
   }
 
-  static fromContract(contractNode: ContractDefinition, layout: StorageLayout) {
+  static fromContract(contractNode: ContractDefinition, layout: StorageLayout): Layout {
     const instance = new Layout();
 
     for (const variable of contractNode.nodes.filter(isNodeType('VariableDeclaration'))) {
@@ -65,20 +65,20 @@ export class Layout {
     return instance;
   }
 
-  getPosition() {
+  getPosition(): { slot: number, offset:number, remaining: number } {
     const slot = (this.size / 32) | 0;
     const offset = this.size % 32;
     const remaining = (32 - offset) % 32;
     return { slot, offset, remaining };
   }
 
-  moveToFreeSlot() {
+  moveToFreeSlot(): Layout {
     const { remaining } = this.getPosition();
     this.size += remaining;
     return this;
   }
 
-  append(variable: VariableDeclaration, size: number) {
+  append(variable: VariableDeclaration, size: number): Layout {
     if (this.getPosition().remaining < size) {
       this.moveToFreeSlot();
     }
