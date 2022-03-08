@@ -84,16 +84,12 @@ export class Layout {
     }
 
     const pos = this.getPosition();
-    this.variables.push(
-      Object.assign(
-        {
-          slot: pos.slot,
-          offset: pos.offset,
-          size,
-        },
-        variable,
-      ),
-    );
+    this.variables.push({
+      slot: pos.slot,
+      offset: pos.offset,
+      size,
+      ...variable,
+    });
     this.size += size;
 
     return this;
