@@ -26,8 +26,7 @@ export function* addStorageGaps(
         }
       }
 
-      const contractSize = getContractSize(contract, getLayout(contract));
-      const gapSize = targetSlots - Math.ceil(contractSize / 32);
+      const gapSize = targetSlots - getContractSlotCount(contract, getLayout(contract));
 
       if (gapSize > 0) {
         const contractBounds = getNodeBounds(contract);
@@ -78,8 +77,11 @@ function getNumberOfBytesOfValueType(type: string) {
   }
 }
 
-function getContractSize(contractNode: ContractDefinition, layout: StorageLayout): number {
-  let contractSize = 0;
+function getContractSlotCount(contractNode: ContractDefinition, layout: StorageLayout): number {
+  // This tracks both slot and offset:
+  // - slot   = contractSizeInBytes / 32
+  // - offset = contractSizeInBytes % 32
+  let contractSizeInBytes = 0;
 
   // don't use `findAll` here, we don't want to go recursive
   for (const varDecl of contractNode.nodes.filter(isNodeType('VariableDeclaration'))) {
@@ -102,12 +104,12 @@ function getContractSize(contractNode: ContractDefinition, layout: StorageLayout
       : getNumberOfBytesOfValueType(typeIdentifier);
 
     // used space in the current slot
-    const used = contractSize % 32;
-    // free space in the current slot (if any)
-    const free = used > 0 ? 32 - used : 0;
+    const offset = contractSizeInBytes % 32;
+    // free space in the current slot (only if slot is dirty)
+    const free = (32 - offset) % 32;
     // if the free space is not enough to fit the current object, then consume the free space to start at next slot
-    contractSize += (size > free ? free : 0) + size;
+    contractSizeInBytes += (size > free ? free : 0) + size;
   }
 
-  return contractSize;
+  return Math.ceil(contractSizeInBytes / 32);
 }
