@@ -65,7 +65,7 @@ export class Layout {
     return instance;
   }
 
-  getPosition(): { slot: number, offset:number, remaining: number } {
+  getPosition(): { slot: number; offset: number; remaining: number } {
     const slot = (this.size / 32) | 0;
     const offset = this.size % 32;
     const remaining = (32 - offset) % 32;
