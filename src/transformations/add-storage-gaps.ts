@@ -79,7 +79,7 @@ function getNumberOfBytesOfValueType(type: string) {
 
 function getContractSlotCount(contractNode: ContractDefinition, layout: StorageLayout): number {
   // This tracks both slot and offset:
-  // - slot   = contractSizeInBytes / 32
+  // - slot   = Math.floor(contractSizeInBytes / 32)
   // - offset = contractSizeInBytes % 32
   let contractSizeInBytes = 0;
 
