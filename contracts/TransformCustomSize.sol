@@ -54,9 +54,3 @@ contract SizeOverride {
   }
   // gap should be 116 = 128 - 12
 }
-
-/// @custom:storage-size 2
-contract SizeOverrideExact {
-  uint immutable s1 = block.number;
-  bool s2;
-}
