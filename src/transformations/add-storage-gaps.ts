@@ -1,4 +1,4 @@
-import { SourceUnit, ContractDefinition } from 'solidity-ast';
+import { SourceUnit, ContractDefinition, VariableDeclaration } from 'solidity-ast';
 import { findAll, isNodeType } from 'solidity-ast/utils';
 
 import { formatLines } from './utils/format-lines';
@@ -28,7 +28,11 @@ export function* addStorageGaps(
 
       const gapSize = targetSlots - getContractSlotCount(contract, getLayout(contract));
 
-      if (gapSize > 0) {
+      if (gapSize <= 0) {
+        throw new Error(
+          `Contract ${contract.name} uses more then the ${targetSlots} reserved slots.`,
+        );
+      } else {
         const contractBounds = getNodeBounds(contract);
         const start = contractBounds.start + contractBounds.length - 1;
 
@@ -50,12 +54,19 @@ export function* addStorageGaps(
           length: 0,
           text,
         };
-      } else if (gapSize < 0) {
-        throw new Error(
-          `Contract ${contract.name} uses more then the ${targetSlots} reserved slots.`,
-        );
       }
     }
+  }
+}
+
+function isStorageVariable(varDecl: VariableDeclaration): boolean {
+  switch (varDecl.mutability) {
+    case 'constant':
+      return false;
+    case 'immutable':
+      return !hasOverride(varDecl, 'state-variable-immutable');
+    default:
+      return true;
   }
 }
 
@@ -85,30 +96,25 @@ function getContractSlotCount(contractNode: ContractDefinition, layout: StorageL
 
   // don't use `findAll` here, we don't want to go recursive
   for (const varDecl of contractNode.nodes.filter(isNodeType('VariableDeclaration'))) {
-    if (varDecl.mutability === 'constant') {
-      continue;
+    if (isStorageVariable(varDecl)) {
+      // try get type details
+      const typeIdentifier = decodeTypeIdentifier(varDecl.typeDescriptions.typeIdentifier ?? '');
+      const type = layout.types?.[typeIdentifier];
+
+      // size of current object from type details, or try to reconstruct it if
+      // they're not available try to reconstruct it, which can happen for
+      // immutable variables
+      const size = type
+        ? parseInt(type.numberOfBytes, 10)
+        : getNumberOfBytesOfValueType(typeIdentifier);
+
+      // used space in the current slot
+      const offset = contractSizeInBytes % 32;
+      // remaining space in the current slot (only if slot is dirty)
+      const remaining = (32 - offset) % 32;
+      // if the remaining space is not enough to fit the current object, then consume the free space to start at next slot
+      contractSizeInBytes += (size > remaining ? remaining : 0) + size;
     }
-    if (varDecl.mutability === 'immutable' && hasOverride(varDecl, 'state-variable-immutable')) {
-      continue;
-    }
-
-    // try get type details
-    const typeIdentifier = decodeTypeIdentifier(varDecl.typeDescriptions.typeIdentifier ?? '');
-    const type = layout.types?.[typeIdentifier];
-
-    // size of current object from type details, or try to reconstruct it if
-    // they're not available try to reconstruct it, which can happen for
-    // immutable variables
-    const size = type
-      ? parseInt(type.numberOfBytes, 10)
-      : getNumberOfBytesOfValueType(typeIdentifier);
-
-    // used space in the current slot
-    const offset = contractSizeInBytes % 32;
-    // free space in the current slot (only if slot is dirty)
-    const free = (32 - offset) % 32;
-    // if the free space is not enough to fit the current object, then consume the free space to start at next slot
-    contractSizeInBytes += (size > free ? free : 0) + size;
   }
 
   return Math.ceil(contractSizeInBytes / 32);
