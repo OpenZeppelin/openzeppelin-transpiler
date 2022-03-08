@@ -46,10 +46,10 @@ export class Layout {
   static fromContract(contractNode: ContractDefinition, layout: StorageLayout) {
     const instance = new Layout();
 
-    for (const varDecl of contractNode.nodes.filter(isNodeType('VariableDeclaration'))) {
-      if (isStorageVariable(varDecl)) {
+    for (const variable of contractNode.nodes.filter(isNodeType('VariableDeclaration'))) {
+      if (isStorageVariable(variable)) {
         // try get type details
-        const typeIdentifier = decodeTypeIdentifier(varDecl.typeDescriptions.typeIdentifier ?? '');
+        const typeIdentifier = decodeTypeIdentifier(variable.typeDescriptions.typeIdentifier ?? '');
         const type = layout.types?.[typeIdentifier];
 
         // size of current object from type details, or try to reconstruct it if
@@ -59,7 +59,7 @@ export class Layout {
           ? parseInt(type.numberOfBytes, 10)
           : getNumberOfBytesOfValueType(typeIdentifier);
 
-        instance.append(varDecl, size);
+        instance.append(variable, size);
       }
     }
     return instance;
@@ -68,18 +68,18 @@ export class Layout {
   getPosition() {
     const slot = (this.size / 32) | 0;
     const offset = this.size % 32;
-    const free = (32 - offset) % 32;
-    return { slot, offset, free };
+    const remaining = (32 - offset) % 32;
+    return { slot, offset, remaining };
   }
 
   moveToFreeSlot() {
-    const { free } = this.getPosition();
-    this.size += free;
+    const { remaining } = this.getPosition();
+    this.size += remaining;
     return this;
   }
 
-  append(varDecl: VariableDeclaration, numberOfBytes: number) {
-    if (this.getPosition().free < numberOfBytes) {
+  append(variable: VariableDeclaration, size: number) {
+    if (this.getPosition().remaining < size) {
       this.moveToFreeSlot();
     }
 
@@ -89,12 +89,12 @@ export class Layout {
         {
           slot: pos.slot,
           offset: pos.offset,
-          size: numberOfBytes,
+          size,
         },
-        varDecl,
+        variable,
       ),
     );
-    this.size += numberOfBytes;
+    this.size += size;
 
     return this;
   }
