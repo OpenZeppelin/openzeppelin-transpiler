@@ -13,6 +13,7 @@ import {
   transformConstructor,
 } from './transformations/transform-constructor';
 import { renameInheritdoc } from './transformations/rename-inheritdoc';
+import { addStorageGaps } from './transformations/add-storage-gaps';
 
 const test = _test as TestFn<Context>;
 
@@ -52,5 +53,15 @@ test('preserves immutable if allowed', t => {
   t.context.transform.apply(removeLeftoverConstructorHead);
   t.context.transform.apply(removeStateVarInits);
   t.context.transform.apply(removeImmutable);
+  t.snapshot(t.context.transform.results()[file]);
+});
+
+test('custom contract size', t => {
+  const file = 'contracts/TransformCustomSize.sol';
+  t.context.transform.apply(transformConstructor);
+  t.context.transform.apply(removeLeftoverConstructorHead);
+  t.context.transform.apply(removeStateVarInits);
+  t.context.transform.apply(removeImmutable);
+  t.context.transform.apply(addStorageGaps);
   t.snapshot(t.context.transform.results()[file]);
 });
