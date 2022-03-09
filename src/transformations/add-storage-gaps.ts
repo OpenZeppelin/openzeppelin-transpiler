@@ -72,8 +72,8 @@ function isStorageVariable(varDecl: VariableDeclaration): boolean {
 }
 
 function getNumberOfBytesOfValueType(typeId: string) {
-  const details = parseTypeId(typeId).head.match(/^t_(?<name>[a-z]+)(?<size>\d+)?/);
-  switch (details?.groups?.name) {
+  const details = parseTypeId(typeId).head.match(/^t_(?<base>[a-z]+)(?<size>\d+)?/);
+  switch (details?.groups?.base) {
     case 'bool':
     case 'byte':
     case 'enum':
