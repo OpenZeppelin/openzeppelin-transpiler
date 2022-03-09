@@ -71,7 +71,7 @@ function isStorageVariable(varDecl: VariableDeclaration): boolean {
   }
 }
 
-function getNumberOfBytesOfValueType(typeId: string) {
+function getNumberOfBytesOfValueType(typeId: string): number {
   const details = parseTypeId(typeId).head.match(/^t_(?<base>[a-z]+)(?<size>\d+)?/);
   switch (details?.groups?.base) {
     case 'bool':
