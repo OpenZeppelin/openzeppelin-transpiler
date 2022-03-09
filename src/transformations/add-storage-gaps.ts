@@ -71,12 +71,14 @@ function isStorageVariable(varDecl: VariableDeclaration): boolean {
 }
 
 function getNumberOfBytesOfValueType(type: string) {
-  const details = type.match(/^t_(?<base>[a-z]+)(?<size>[\d]+)?$/);
+  const details = type.match(/^(?<base>[a-z]+)(?<size>[\d]+)?( (?<extra>\w+))?$/);
   switch (details?.groups?.base) {
     case 'bool':
     case 'byte':
+    case 'enum':
       return 1;
     case 'address':
+    case 'contract':
       return 20;
     case 'bytes':
       return parseInt(details.groups.size, 10);
@@ -99,14 +101,13 @@ function getContractSlotCount(contractNode: ContractDefinition, layout: StorageL
     if (isStorageVariable(varDecl)) {
       // try get type details
       const typeIdentifier = decodeTypeIdentifier(varDecl.typeDescriptions.typeIdentifier ?? '');
-      const type = layout.types?.[typeIdentifier];
 
       // size of current object from type details, or try to reconstruct it if
       // they're not available try to reconstruct it, which can happen for
       // immutable variables
-      const size = type
-        ? parseInt(type.numberOfBytes, 10)
-        : getNumberOfBytesOfValueType(typeIdentifier);
+      const size = layout.types && layout.types[typeIdentifier]
+        ? parseInt(layout.types[typeIdentifier]?.numberOfBytes ?? '')
+        : getNumberOfBytesOfValueType(varDecl.typeDescriptions.typeString ?? '');
 
       // used space in the current slot
       const offset = contractSizeInBytes % 32;
