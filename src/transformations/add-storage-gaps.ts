@@ -9,6 +9,7 @@ import { Transformation } from './type';
 import { TransformerTools } from '../transform';
 import { extractNatspec } from '../utils/extractNatspec';
 import { decodeTypeIdentifier } from '../utils/type-id';
+import { parseTypeId } from '../utils/parse-type-id';
 
 // By default, make the contract a total of 50 slots (storage + gap)
 const DEFAULT_SLOT_COUNT = 50;
@@ -70,9 +71,9 @@ function isStorageVariable(varDecl: VariableDeclaration): boolean {
   }
 }
 
-function getNumberOfBytesOfValueType(type: string) {
-  const details = type.match(/^(?<base>[a-z]+)(?<size>[\d]+)?( (?<extra>\w+))?$/);
-  switch (details?.groups?.base) {
+function getNumberOfBytesOfValueType(typeId: string) {
+  const details = parseTypeId(typeId).head.match(/^t_(?<name>[a-z]+)(?<size>\d+)?/);
+  switch (details?.groups?.name) {
     case 'bool':
     case 'byte':
     case 'enum':
@@ -86,7 +87,7 @@ function getNumberOfBytesOfValueType(type: string) {
     case 'uint':
       return parseInt(details.groups.size, 10) / 8;
     default:
-      throw new Error(`Unsupported value type: ${type}`);
+      throw new Error(`Unsupported value type: ${typeId}`);
   }
 }
 
@@ -108,7 +109,7 @@ function getContractSlotCount(contractNode: ContractDefinition, layout: StorageL
       const size =
         layout.types && layout.types[typeIdentifier]
           ? parseInt(layout.types[typeIdentifier]?.numberOfBytes ?? '')
-          : getNumberOfBytesOfValueType(varDecl.typeDescriptions.typeString ?? '');
+          : getNumberOfBytesOfValueType(typeIdentifier);
 
       // used space in the current slot
       const offset = contractSizeInBytes % 32;
