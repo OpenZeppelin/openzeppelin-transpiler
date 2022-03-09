@@ -105,9 +105,10 @@ function getContractSlotCount(contractNode: ContractDefinition, layout: StorageL
       // size of current object from type details, or try to reconstruct it if
       // they're not available try to reconstruct it, which can happen for
       // immutable variables
-      const size = layout.types && layout.types[typeIdentifier]
-        ? parseInt(layout.types[typeIdentifier]?.numberOfBytes ?? '')
-        : getNumberOfBytesOfValueType(varDecl.typeDescriptions.typeString ?? '');
+      const size =
+        layout.types && layout.types[typeIdentifier]
+          ? parseInt(layout.types[typeIdentifier]?.numberOfBytes ?? '')
+          : getNumberOfBytesOfValueType(varDecl.typeDescriptions.typeString ?? '');
 
       // used space in the current slot
       const offset = contractSizeInBytes % 32;
