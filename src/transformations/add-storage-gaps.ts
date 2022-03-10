@@ -9,6 +9,7 @@ import { Transformation } from './type';
 import { TransformerTools } from '../transform';
 import { extractNatspec } from '../utils/extractNatspec';
 import { decodeTypeIdentifier } from '../utils/type-id';
+import { parseTypeId } from '../utils/parse-type-id';
 
 // By default, make the contract a total of 50 slots (storage + gap)
 const DEFAULT_SLOT_COUNT = 50;
@@ -70,13 +71,15 @@ function isStorageVariable(varDecl: VariableDeclaration): boolean {
   }
 }
 
-function getNumberOfBytesOfValueType(type: string) {
-  const details = type.match(/^t_(?<base>[a-z]+)(?<size>[\d]+)?$/);
+function getNumberOfBytesOfValueType(typeId: string): number {
+  const details = parseTypeId(typeId).head.match(/^t_(?<base>[a-z]+)(?<size>\d+)?/);
   switch (details?.groups?.base) {
     case 'bool':
     case 'byte':
+    case 'enum':
       return 1;
     case 'address':
+    case 'contract':
       return 20;
     case 'bytes':
       return parseInt(details.groups.size, 10);
@@ -84,7 +87,7 @@ function getNumberOfBytesOfValueType(type: string) {
     case 'uint':
       return parseInt(details.groups.size, 10) / 8;
     default:
-      throw new Error(`Unsupported value type: ${type}`);
+      throw new Error(`Unsupported value type: ${typeId}`);
   }
 }
 
@@ -99,14 +102,14 @@ function getContractSlotCount(contractNode: ContractDefinition, layout: StorageL
     if (isStorageVariable(varDecl)) {
       // try get type details
       const typeIdentifier = decodeTypeIdentifier(varDecl.typeDescriptions.typeIdentifier ?? '');
-      const type = layout.types?.[typeIdentifier];
 
       // size of current object from type details, or try to reconstruct it if
       // they're not available try to reconstruct it, which can happen for
       // immutable variables
-      const size = type
-        ? parseInt(type.numberOfBytes, 10)
-        : getNumberOfBytesOfValueType(typeIdentifier);
+      const size =
+        layout.types && layout.types[typeIdentifier]
+          ? parseInt(layout.types[typeIdentifier]?.numberOfBytes ?? '')
+          : getNumberOfBytesOfValueType(typeIdentifier);
 
       // used space in the current slot
       const offset = contractSizeInBytes % 32;
