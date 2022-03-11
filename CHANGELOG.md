@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.10-1 (2022-03-10)
+## 0.3.11 (2022-03-11)
 
 - Fix evaluation te size of value type variables that are not documented in the layout, adding support for enum, contracts and payable addresses.
 
