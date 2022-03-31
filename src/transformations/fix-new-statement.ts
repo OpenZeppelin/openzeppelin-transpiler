@@ -11,6 +11,14 @@ declare module '../transform' {
   }
 }
 
+// Finds statements of the form:
+//   - x = new Foo(...);
+//   - x = address(new Foo(...));
+// and transforms them to use initializers:
+//     x = new Foo();
+//     x.initialize(...);
+// Note that these are variable assignments.
+// Variable declarations are not supported.
 export function* fixNewStatement(
   sourceUnit: SourceUnit,
   tools: TransformerTools,
@@ -21,12 +29,22 @@ export function* fixNewStatement(
     const { expression } = statement;
 
     if (expression.nodeType === 'Assignment') {
-      const { rightHandSide } = expression;
+      let needsCast = false;
+      let { rightHandSide } = expression;
+
+      if (rightHandSide.nodeType === 'FunctionCall' && rightHandSide.kind === 'typeConversion') {
+        const castTo = rightHandSide.expression;
+        if (castTo.nodeType === 'ElementaryTypeNameExpression' && castTo.typeName.name === 'address') {
+          rightHandSide = rightHandSide.arguments[0];
+          needsCast = true;
+        }
+      }
 
       if (
         rightHandSide.nodeType === 'FunctionCall' &&
         rightHandSide.expression.nodeType === 'NewExpression'
       ) {
+        const functionCall = rightHandSide;
         const { typeName } = rightHandSide.expression;
 
         if (typeName.nodeType === 'UserDefinedTypeName') {
@@ -46,10 +64,12 @@ export function* fixNewStatement(
                 [
                   ';\n',
                   ' '.repeat(4 * 2),
-                  helper.read(expression.leftHandSide),
+                  ...needsCast
+                  ? [ helper.read(typeName), '(', helper.read(expression.leftHandSide), ')', ]
+                  : helper.read(expression.leftHandSide),
                   '.initialize',
                   '(',
-                  rightHandSide.arguments.map(a => helper.read(a)).join(', '),
+                  functionCall.arguments.map(a => helper.read(a)).join(', '),
                   ')',
                 ].join(''),
             };

@@ -1,8 +1,12 @@
 # Changelog
 
+## 0.3.12 (2022-03-31)
+
+- Fix transpilation of new statements when immediately cast to address.
+
 ## 0.3.11 (2022-03-11)
 
-- Fix evaluation te size of value type variables that are not documented in the layout, adding support for enum, contracts and payable addresses.
+- Fix evaluation of the size of value type variables that are not documented in the layout, adding support for enum, contracts and payable addresses.
 
 ## 0.3.10 (2022-03-08)
 
