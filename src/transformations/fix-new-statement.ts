@@ -34,7 +34,10 @@ export function* fixNewStatement(
 
       if (rightHandSide.nodeType === 'FunctionCall' && rightHandSide.kind === 'typeConversion') {
         const castTo = rightHandSide.expression;
-        if (castTo.nodeType === 'ElementaryTypeNameExpression' && castTo.typeName.name === 'address') {
+        if (
+          castTo.nodeType === 'ElementaryTypeNameExpression' &&
+          castTo.typeName.name === 'address'
+        ) {
           rightHandSide = rightHandSide.arguments[0];
           needsCast = true;
         }
@@ -64,9 +67,9 @@ export function* fixNewStatement(
                 [
                   ';\n',
                   ' '.repeat(4 * 2),
-                  ...needsCast
-                  ? [ helper.read(typeName), '(', helper.read(expression.leftHandSide), ')', ]
-                  : helper.read(expression.leftHandSide),
+                  ...(needsCast
+                    ? [helper.read(typeName), '(', helper.read(expression.leftHandSide), ')']
+                    : helper.read(expression.leftHandSide)),
                   '.initialize',
                   '(',
                   functionCall.arguments.map(a => helper.read(a)).join(', '),
