@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.13 (2022-03-31)
+
+- Transform new expressions in variable initializations.
+
 ## 0.3.12 (2022-03-31)
 
 - Fix transpilation of new statements when immediately cast to address.

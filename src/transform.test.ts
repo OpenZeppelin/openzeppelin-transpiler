@@ -179,6 +179,15 @@ test('fix new statement', t => {
   t.snapshot(t.context.transform.results()[file]);
 });
 
+test('fix new statement in var init', t => {
+  const file = 'contracts/TransformNewVarInit.sol';
+  t.context.transform.apply(transformConstructor);
+  t.context.transform.apply(removeStateVarInits);
+  t.context.transform.apply(removeLeftoverConstructorHead);
+  t.context.transform.apply(addRequiredPublicInitializer([]));
+  t.snapshot(t.context.transform.results()[file]);
+});
+
 test('exclude', t => {
   const file = 'contracts/TransformInitializable.sol';
   const transform = new Transform(t.context.solcInput, t.context.solcOutput, {

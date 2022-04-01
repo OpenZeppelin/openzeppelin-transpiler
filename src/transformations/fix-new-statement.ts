@@ -4,6 +4,7 @@ import { findAll } from 'solidity-ast/utils';
 import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
 import { TransformerTools } from '../transform';
+import { parseNewExpression } from '../utils/new-expression';
 
 declare module '../transform' {
   interface TransformData {
@@ -29,67 +30,42 @@ export function* fixNewStatement(
     const { expression } = statement;
 
     if (expression.nodeType === 'Assignment') {
-      let needsCast = false;
-      let { rightHandSide } = expression;
+      const newExpr = parseNewExpression(expression.rightHandSide);
 
-      if (rightHandSide.nodeType === 'FunctionCall' && rightHandSide.kind === 'typeConversion') {
-        const castTo = rightHandSide.expression;
-        if (
-          castTo.nodeType === 'ElementaryTypeNameExpression' &&
-          castTo.typeName.name === 'address'
-        ) {
-          rightHandSide = rightHandSide.arguments[0];
-          needsCast = true;
-        }
-      }
+      if (newExpr) {
+        const { typeName, args, initializeCall } = newExpr;
+        const contract = resolver.resolveContract(typeName.referencedDeclaration);
 
-      if (
-        rightHandSide.nodeType === 'FunctionCall' &&
-        rightHandSide.expression.nodeType === 'NewExpression'
-      ) {
-        const functionCall = rightHandSide;
-        const { typeName } = rightHandSide.expression;
+        if (contract) {
+          getData(contract).isUsedInNewStatement = true;
 
-        if (typeName.nodeType === 'UserDefinedTypeName') {
-          const contract = resolver.resolveContract(typeName.referencedDeclaration);
+          const stBounds = getNodeBounds(statement);
+          const afterStatement = stBounds.start + stBounds.length;
 
-          if (contract) {
-            getData(contract).isUsedInNewStatement = true;
+          yield {
+            start: afterStatement,
+            length: 0,
+            kind: 'fix-new-statement',
+            transform: (_, helper) =>
+              [
+                ';\n',
+                ' '.repeat(4 * 2),
+                initializeCall(helper.read(expression.leftHandSide), helper),
+              ].join(''),
+          };
 
-            const stBounds = getNodeBounds(statement);
-            const afterStatement = stBounds.start + stBounds.length;
+          if (args.length > 0) {
+            const { start } = getNodeBounds(args[0]);
+            const [lastArg] = args.slice(-1);
+            const lastArgBounds = getNodeBounds(lastArg);
+            const length = lastArgBounds.start + lastArgBounds.length - start;
 
             yield {
-              start: afterStatement,
-              length: 0,
-              kind: 'fix-new-statement',
-              transform: (_, helper) =>
-                [
-                  ';\n',
-                  ' '.repeat(4 * 2),
-                  ...(needsCast
-                    ? [helper.read(typeName), '(', helper.read(expression.leftHandSide), ')']
-                    : helper.read(expression.leftHandSide)),
-                  '.initialize',
-                  '(',
-                  functionCall.arguments.map(a => helper.read(a)).join(', '),
-                  ')',
-                ].join(''),
+              start,
+              length,
+              kind: 'fix-new-statement-remove-args',
+              text: '',
             };
-
-            if (rightHandSide.arguments.length > 0) {
-              const { start } = getNodeBounds(rightHandSide.arguments[0]);
-              const [lastArg] = rightHandSide.arguments.slice(-1);
-              const lastArgBounds = getNodeBounds(lastArg);
-              const length = lastArgBounds.start + lastArgBounds.length - start;
-
-              yield {
-                start,
-                length,
-                kind: 'fix-new-statement-remove-args',
-                text: '',
-              };
-            }
           }
         }
       }

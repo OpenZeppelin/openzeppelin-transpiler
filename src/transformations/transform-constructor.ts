@@ -10,6 +10,7 @@ import { newFunctionPosition } from './utils/new-function-position';
 import { formatLines } from './utils/format-lines';
 import { hasConstructorOverride } from '../utils/upgrades-overrides';
 import { getInitializerItems } from './utils/get-initializer-items';
+import { parseNewExpression } from '../utils/new-expression';
 
 function getArgsList(constructor: FunctionDefinition, helper: TransformHelper): string {
   return helper.read(constructor.parameters).replace(/^\((.*)\)$/s, '$1');
@@ -81,6 +82,8 @@ export function* transformConstructor(
   sourceUnit: SourceUnit,
   tools: TransformerTools,
 ): Generator<Transformation> {
+  const { resolver, getData } = tools;
+
   for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
     if (contractNode.contractKind !== 'contract' || hasConstructorOverride(contractNode)) {
       continue;
@@ -112,7 +115,19 @@ export function* transformConstructor(
         ...modifiers.map(m => helper.read(m)),
         `{`,
       ].join(' '),
-      varInitNodes.map(v => `${v.name} = ${helper.read(v.value!)};`),
+      varInitNodes.map(v => {
+        const newExpr = parseNewExpression(v.value!);
+        if (!newExpr) {
+          return `${v.name} = ${helper.read(v.value!)};`;
+        } else {
+          const { typeName, newCall, initializeCall } = newExpr;
+          const createdContract = resolver.resolveContract(typeName.referencedDeclaration);
+          if (createdContract) {
+            getData(createdContract).isUsedInNewStatement = true;
+          }
+          return `${v.name} = ${newCall(helper)};\n        ${initializeCall(v.name, helper)};`;
+        }
+      }),
       `}`,
     ];
 
