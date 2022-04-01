@@ -24,8 +24,7 @@ export function generateWithInit(
     for (const contract of findAll('ContractDefinition', sourceUnit)) {
       if (
         contract.contractKind !== 'contract' ||
-        contract.abstract ||
-        hasConstructorOverride(contract)
+        contract.abstract
       ) {
         continue;
       }
@@ -50,6 +49,14 @@ export function generateWithInit(
 
       const renamedContract = renameContract(contract.name);
 
+      let parents: string[] = [];
+      let statements: string[] = [];
+      if (hasConstructorOverride(contract)) {
+        parents = [`${renameContract(contract.name)}(${argNames})`];
+      } else {
+        statements = [`__${contract.name}_init(${argNames});`];
+      }
+
       res.push(
         `import "${relativePath(path.dirname(destPath), renamePath(sourceUnit.absolutePath))}";`,
         ``,
@@ -57,10 +64,11 @@ export function generateWithInit(
         [
           [
             `constructor(${argsList})`,
+            ...parents,
             ...(satisfies(pragmaVersion, '>=0.7') ? [] : [`public`]),
             `payable initializer {`,
           ].join(' '),
-          [`__${contract.name}_init(${argNames});`],
+          statements,
           `}`,
         ],
         `}`,

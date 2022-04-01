@@ -3,6 +3,7 @@
 ## 0.3.13 (2022-03-31)
 
 - Transform new expressions in variable initializations.
+- Fix WithInit contracts when there is a constructor override.
 
 ## 0.3.12 (2022-03-31)
 
