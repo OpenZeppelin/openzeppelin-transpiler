@@ -4,20 +4,23 @@ interface ByteMatch {
   captureLengths: number[];
 }
 
-function withFlags(re: RegExp, add: string, remove: string = '') {
+function withFlags(re: RegExp, add: string, remove = '') {
   const flags = new Set(...re.flags);
-  for (const f of add) flags.add(f);
-  for (const f of remove) flags.delete(f);
+  for (const f of add) {
+    flags.add(f);
+  }
+  for (const f of remove) {
+    flags.delete(f);
+  }
   return new RegExp(re, [...flags].join(''));
 }
 
-export function matchFrom(str: string, re: RegExp, index: number): RegExpExecArray | null {
-  const re2 = withFlags(re, 'g');
-  re2.lastIndex = index;
-  return re2.exec(str);
-}
-
-function matchWithFlags(buf: Buffer, re: RegExp, index: number, flags: string): ByteMatch | undefined {
+function matchWithFlags(
+  buf: Buffer,
+  re: RegExp,
+  index: number,
+  flags: string,
+): ByteMatch | undefined {
   const str = buf.slice(index).toString('utf8');
   const m = withFlags(re, flags).exec(str);
   if (m) {
