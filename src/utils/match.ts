@@ -1,3 +1,9 @@
+interface ByteMatch {
+  start: number;
+  length: number;
+  captureLengths: number[];
+}
+
 function withFlags(re: RegExp, add: string, remove: string = '') {
   const flags = new Set(...re.flags);
   for (const f of add) flags.add(f);
@@ -11,17 +17,25 @@ export function matchFrom(str: string, re: RegExp, index: number): RegExpExecArr
   return re2.exec(str);
 }
 
-export function matchAt(str: string, re: RegExp, index: number): RegExpExecArray | null {
-  const re2 = withFlags(re, 'y');
-  re2.lastIndex = index;
-  return re2.exec(str);
+function matchWithFlags(buf: Buffer, re: RegExp, index: number, flags: string): ByteMatch | undefined {
+  const str = buf.slice(index).toString('utf8');
+  const m = withFlags(re, flags).exec(str);
+  if (m) {
+    const start = index + Buffer.from(str.slice(0, m.index), 'utf8').length;
+    const length = Buffer.from(str.slice(m.index, m.index + m[0].length), 'utf8').length;
+    const captureLengths = m.slice(1).map(c => Buffer.from(c, 'utf8').length);
+    return { start, length, captureLengths };
+  }
 }
 
-function byteIndexToCharIndex(str: string, byteIndex: number): number {
-  return Buffer.from(str, 'utf8').slice(0, byteIndex).toString('utf8').length;
+export function matchBuffer(buf: Buffer, re: RegExp): ByteMatch | undefined {
+  return matchWithFlags(buf, re, 0, '');
 }
 
-export function matchAtByte(str: string, re: RegExp, byteIndex: number): RegExpExecArray | null {
-  const charIndex = byteIndexToCharIndex(str, byteIndex);
-  return matchAt(str, re, charIndex);
+export function matchBufferFrom(buf: Buffer, re: RegExp, index: number): ByteMatch | undefined {
+  return matchWithFlags(buf, re, index, 'g');
+}
+
+export function matchBufferAt(buf: Buffer, re: RegExp, index: number): ByteMatch | undefined {
+  return matchWithFlags(buf, re, index, 'y');
 }

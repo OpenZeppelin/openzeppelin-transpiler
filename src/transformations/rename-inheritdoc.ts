@@ -5,6 +5,7 @@ import { renameContract } from '../rename';
 import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
 import { TransformerTools } from '../transform';
+import { matchBuffer } from '../utils/match';
 
 export function* renameInheritdoc(
   sourceUnit: SourceUnit,
@@ -13,12 +14,12 @@ export function* renameInheritdoc(
   for (const doc of findAll('StructuredDocumentation', sourceUnit)) {
     const bounds = getNodeBounds(doc);
     const re = /(@inheritdoc\s+)([a-zA-Z0-9$_]+)/;
-    const match = re.exec(readOriginal(doc));
+    const match = matchBuffer(readOriginal(doc, 'buffer'), re);
 
     if (match) {
       yield {
-        start: bounds.start + match.index + match[1].length,
-        length: match[2].length,
+        start: bounds.start + match.start + match.captureLengths[0],
+        length: match.captureLengths[1],
         kind: 'rename-inheritdoc',
         transform: source => source.replace(/[a-zA-Z0-9$_]+$/, renameContract),
       };

@@ -2,7 +2,7 @@ import { ContractDefinition } from 'solidity-ast';
 
 import { TransformerTools } from '../../transform';
 import { getNodeBounds } from '../../solc/ast-utils';
-import { matchFrom } from '../../utils/match';
+import { matchBufferFrom, matchFrom } from '../../utils/match';
 
 export function newFunctionPosition(
   contract: ContractDefinition,
@@ -28,12 +28,12 @@ export function newFunctionPosition(
       searchStart = pb.start + pb.length - offset;
     }
 
-    const brace = matchFrom(readOriginal(contract), /\{[\t ]*\n?/, searchStart);
-    if (brace === null) {
+    const brace = matchBufferFrom(readOriginal(contract, 'buffer'), /\{\n?/, searchStart);
+
+    if (!brace) {
       throw new Error(`Can't find start of contract ${contract.name}`);
     }
 
-    return offset + brace.index +  brace[0].length;
-  }}
-
-
+    return offset + brace.start + brace.length;
+  }
+}
