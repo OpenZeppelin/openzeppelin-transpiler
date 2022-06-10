@@ -14,9 +14,15 @@ import { ASTResolver } from './ast-resolver';
 
 type Transformer = (sourceUnit: SourceUnit, tools: TransformerTools) => Generator<Transformation>;
 
+interface ReadOriginal {
+  (node: Node, type?: 'string'): string;
+  (node: Node, type: 'buffer'): Buffer;
+}
+
 export interface TransformerTools {
   originalSource: string;
-  readOriginal: (node: Node) => string;
+  originalSourceBuf: Buffer;
+  readOriginal: ReadOriginal;
   resolver: ASTResolver;
   getData: (node: Node) => Partial<TransformData>;
   getLayout: LayoutGetter;
@@ -78,12 +84,13 @@ export class Transform {
 
   apply(transform: Transformer): void {
     for (const source in this.state) {
-      const { original: originalSource, ast } = this.state[source];
+      const { original: originalSource, originalBuf: originalSourceBuf, ast } = this.state[source];
       const { resolver, getLayout } = this;
       const readOriginal = this.readOriginal.bind(this);
       const getData = this.getData.bind(this);
       const tools: TransformerTools = {
         originalSource,
+        originalSourceBuf,
         resolver,
         readOriginal,
         getData,
@@ -112,10 +119,17 @@ export class Transform {
     return data;
   }
 
-  readOriginal(node: WithSrc): string {
+  readOriginal(node: WithSrc, type?: 'string'): string;
+  readOriginal(node: WithSrc, type: 'buffer'): Buffer;
+  readOriginal(node: WithSrc, type: 'string' | 'buffer' = 'string'): string | Buffer {
     const { source, start, length } = this.decodeSrc(node.src);
     const { originalBuf } = this.state[source];
-    return originalBuf.slice(start, start + length).toString();
+    const buf = originalBuf.slice(start, start + length);
+    if (type === 'buffer') {
+      return buf;
+    } else {
+      return buf.toString('utf8');
+    }
   }
 
   read(node: WithSrc): string {

@@ -3,11 +3,11 @@ import { findAll } from 'solidity-ast/utils';
 import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
 import { TransformerTools } from '../transform';
-import { matchAtByte } from '../utils/match';
+import { matchBufferAt } from '../utils/match';
 
 export function* prependInitializableBase(
   sourceUnit: SourceUnit,
-  { originalSource }: TransformerTools,
+  { originalSourceBuf }: TransformerTools,
 ): Generator<Transformation> {
   for (const contract of findAll('ContractDefinition', sourceUnit)) {
     if (contract.contractKind !== 'contract') {
@@ -25,13 +25,13 @@ export function* prependInitializableBase(
     } else {
       const bounds = getNodeBounds(contract);
       const re = /(?:abstract\s+)?contract\s+([a-zA-Z0-9$_]+)/;
-      const match = matchAtByte(originalSource, re, bounds.start);
+      const match = matchBufferAt(originalSourceBuf, re, bounds.start);
 
-      if (match === null) {
+      if (!match) {
         throw new Error(`Can't find ${contract.name} in ${sourceUnit.absolutePath}`);
       }
 
-      const start = match.index + match[0].length;
+      const start = match.start + match.length;
 
       yield {
         start,
