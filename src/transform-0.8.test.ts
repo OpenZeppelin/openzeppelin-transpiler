@@ -14,6 +14,7 @@ import {
 } from './transformations/transform-constructor';
 import { renameInheritdoc } from './transformations/rename-inheritdoc';
 import { addStorageGaps } from './transformations/add-storage-gaps';
+import { renameContractDefinition } from './transformations/rename-contract-definition';
 
 const test = _test as TestFn<Context>;
 
@@ -44,6 +45,7 @@ test('rename parents in solidity 0.8', t => {
 test('correctly index when utf8 characters', t => {
   const file = 'contracts/TransformUtf8Chars.sol';
   t.context.transform.apply(renameIdentifiers);
+  t.context.transform.apply(renameContractDefinition);
   t.snapshot(t.context.transform.results()[file]);
 });
 
