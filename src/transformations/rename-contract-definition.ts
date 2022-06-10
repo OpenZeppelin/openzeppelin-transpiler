@@ -5,6 +5,7 @@ import { renameContract } from '../rename';
 import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
 import { TransformerTools } from '../transform';
+import { matchAtByte } from '../utils/match';
 
 export function* renameContractDefinition(
   sourceUnit: SourceUnit,
@@ -12,9 +13,8 @@ export function* renameContractDefinition(
 ): Generator<Transformation> {
   for (const contract of findAll('ContractDefinition', sourceUnit)) {
     const bounds = getNodeBounds(contract);
-    const re = /(?:abstract\s+)?(?:contract|library|interface)\s+([a-zA-Z0-9$_]+)/y;
-    re.lastIndex = bounds.start;
-    const match = re.exec(originalSource);
+    const re = /(?:abstract\s+)?(?:contract|library|interface)\s+([a-zA-Z0-9$_]+)/;
+    const match = matchAtByte(originalSource, re, bounds.start);
 
     if (match === null) {
       throw new Error(`Can't find ${contract.name} in ${sourceUnit.absolutePath}`);

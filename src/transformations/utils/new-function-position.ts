@@ -2,7 +2,7 @@ import { ContractDefinition } from 'solidity-ast';
 
 import { TransformerTools } from '../../transform';
 import { getNodeBounds } from '../../solc/ast-utils';
-import { matchFrom } from '../../utils/match-from';
+import { matchFrom } from '../../utils/match';
 
 export function newFunctionPosition(
   contract: ContractDefinition,
