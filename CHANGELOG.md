@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.16 (2022-09-23)
+
+- Add -b flag to manually pass build info file path.
+
 ## 0.3.13 (2022-03-31)
 
 - Transform new expressions in variable initializations.
