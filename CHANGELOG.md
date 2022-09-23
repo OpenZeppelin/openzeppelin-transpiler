@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.17 (2022-09-23)
+
+- Add info to error message.
+
 ## 0.3.16 (2022-09-23)
 
 - Add -b flag to manually pass build info file path.
