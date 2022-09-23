@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.18 (2022-09-23)
+
+- Fix ignored `-b` flag.
+
 ## 0.3.17 (2022-09-23)
 
 - Add info to error message.

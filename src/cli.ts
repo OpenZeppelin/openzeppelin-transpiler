@@ -32,6 +32,7 @@ function readCommandFlags(resolveRootRelative: (p: string) => string): Options {
     x: exclude = [],
   } = minimist(process.argv.slice(2));
   return {
+    buildInfo,
     deleteOriginals,
     initializablePath: initializablePath && resolveRootRelative(initializablePath),
     publicInitializers: ensureArray(publicInitializers).map(resolveRootRelative),
