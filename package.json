@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
+    "src",
     "dist",
     "!*.tsbuildinfo",
     "Initializable.sol"
@@ -41,8 +42,7 @@
     "lodash": "^4.17.20",
     "minimatch": "^5.0.0",
     "minimist": "^1.2.5",
-    "solidity-ast": "^0.4.13",
-    "source-map-support": "^0.5.19"
+    "solidity-ast": "^0.4.13"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.165",

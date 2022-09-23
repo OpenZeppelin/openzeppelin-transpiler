@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import 'source-map-support/register';
 import { promises as fs } from 'fs';
 import path from 'path';
 import minimist from 'minimist';
