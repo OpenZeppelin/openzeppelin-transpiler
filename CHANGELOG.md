@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.19 (2022-09-24)
+
+- Add license header to WithInit.sol.
+
 ## 0.3.18 (2022-09-23)
 
 - Fix ignored `-b` flag.
