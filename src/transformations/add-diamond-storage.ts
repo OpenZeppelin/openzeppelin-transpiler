@@ -190,7 +190,7 @@ ${ variables.map(v =>  {
   
   }
   
-  bytes32 internal constant STORAGE_SLOT = keccak256('openzepplin.contracts.storage.${name}');
+  bytes32 internal constant STORAGE_SLOT = keccak256('openzeppelin.contracts.storage.${name}');
 
   function layout() internal pure returns (Layout storage l) {
     bytes32 slot = STORAGE_SLOT;
