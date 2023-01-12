@@ -33,13 +33,12 @@ export function* prependInitializableBase(
 
       const start = match.start + match.length;
 
-        yield {
-          start,
-          length: 0,
-          kind: 'prepend-initializable-base',
-          text: ' is Initializable',
-        };
-      }
+      yield {
+        start,
+        length: 0,
+        kind: 'prepend-initializable-base',
+        text: ' is Initializable',
+      };
     }
   }
 }

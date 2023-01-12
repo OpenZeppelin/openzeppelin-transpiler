@@ -92,7 +92,7 @@ export async function transpile(
   transform.apply(renameIdentifiers);
   transform.apply(renameContractDefinition);
   transform.apply(renameInheritdoc);
-  transform.apply(prependInitializableBase(options?.extractStorage));
+  transform.apply(prependInitializableBase);
   transform.apply(fixImportDirectives);
   transform.apply(addRequiredPublicInitializer(options?.publicInitializers));
   transform.apply(transformConstructor(options?.extractStorage || false));

@@ -10,7 +10,7 @@ export function newFunctionPosition(
   atEnd = false,
 ): number {
   if (atEnd) {
-    const contractText = readOriginal(contract);
+    const contractText = readOriginal(contract, 'buffer').toString('utf8');
     const offset = contractText.lastIndexOf('}');
     if (offset < 1) {
       throw new Error(`Can't find ending of contract ${contract.name}`);
