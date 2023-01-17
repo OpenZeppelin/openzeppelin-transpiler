@@ -2,6 +2,10 @@
 
 pragma solidity ^0.6.0;
 
+interface CIC {
+    function fooBar(uint a) external;
+}
+
 contract CIA {
     uint256 public foo;
     uint256 public foo2;
@@ -19,4 +23,12 @@ contract CIB is CIA(324) {
         foo2 = 456;
     }
 
+}
+
+contract CID is CIC {
+    uint256 public val = 123;
+
+    function fooBar(uint a) override external{
+
+    }
 }

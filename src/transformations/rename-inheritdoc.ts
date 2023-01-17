@@ -21,7 +21,7 @@ export function* renameInheritdoc(
         start: bounds.start + match.start + match.captureLengths[0],
         length: match.captureLengths[1],
         kind: 'rename-inheritdoc',
-        transform: source => source.replace(/[a-zA-Z0-9$_]+$/, renameContract),
+        transform: source => source.replace(/[a-zA-Z0-9$_]+$/, (oldName) => { return renameContract(oldName)} ),
       };
     }
   }

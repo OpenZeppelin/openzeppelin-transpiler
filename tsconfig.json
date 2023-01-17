@@ -12,7 +12,10 @@
     "declarationMap": true,
     "sourceMap": true,
     "strict": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "lib": [
+      "es2019"
+    ]
   },
   "include": ["src"],
   "ts-node": {

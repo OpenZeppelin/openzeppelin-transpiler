@@ -3,7 +3,12 @@
 pragma solidity ^0.6.0;
 
 contract StringConstructor {
-    constructor(string memory message) public {
+
+    modifier hasModifier() {
+        _;
+    }
+
+    constructor(string memory message) public hasModifier {
 
     }
 }

@@ -24,7 +24,8 @@ export function getUniqueIdentifierVarsUsed(contractNode: ContractDefinition, to
     const { resolver } = tools;
     const identifiers  = new Map<number, IdentifierVariable>();
 
-    for (const identifier of findAll('Identifier', contractNode) ) {
+    const identifierNodes = findAll('Identifier', contractNode);
+    for (const identifier of identifierNodes) {
         const { id, referencedDeclaration } = identifier;
         if (referencedDeclaration && !identifiers.has(id)) {
             const varDecl: VariableDeclaration = resolver.resolveNode('VariableDeclaration', referencedDeclaration, false)!;

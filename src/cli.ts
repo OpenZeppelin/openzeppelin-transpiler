@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import 'source-map-support/register';
 import { promises as fs } from 'fs';
 import path from 'path';
 import minimist from 'minimist';
@@ -18,6 +17,7 @@ async function getPaths() {
 
 interface Options {
   initializablePath?: string;
+  buildInfo?: string;
   deleteOriginals: boolean;
   exclude: string[];
   publicInitializers: string[];
@@ -26,6 +26,7 @@ interface Options {
 
 function readCommandFlags(resolveRootRelative: (p: string) => string): Options {
   const {
+    b: buildInfo,
     i: initializablePath,
     p: publicInitializers = [],
     D: deleteOriginals = false,
@@ -33,6 +34,7 @@ function readCommandFlags(resolveRootRelative: (p: string) => string): Options {
     E: extractStorage = false,
   } = minimist(process.argv.slice(2));
   return {
+    buildInfo,
     deleteOriginals,
     initializablePath: initializablePath && resolveRootRelative(initializablePath),
     publicInitializers: ensureArray(publicInitializers).map(resolveRootRelative),
@@ -67,12 +69,17 @@ async function main() {
   const resolveRootRelative = (p: string) => path.relative(paths.root, path.resolve(p));
   const options = readCommandFlags(resolveRootRelative);
 
-  const buildinfo = path.join(paths.artifacts, 'build-info');
-  const filenames = await fs.readdir(buildinfo);
-  if (filenames.length != 1) {
-    throw new Error(`Expect ${buildinfo} to contain only one file`);
+  let buildInfo = options.buildInfo;
+
+  if (buildInfo === undefined) {
+    const buildInfoDir = path.join(paths.artifacts, 'build-info');
+    const filenames = await fs.readdir(buildInfoDir);
+    if (filenames.length != 1) {
+      throw new Error(`Expected ${buildInfoDir} to contain only one file`);
+    }
+    buildInfo = path.join(buildInfoDir, filenames[0]);
   }
-  const filepath = path.join(buildinfo, filenames[0]);
+
   const {
     input: solcInput,
     output: solcOutput,
@@ -81,7 +88,7 @@ async function main() {
     input: SolcInput;
     output: SolcOutput;
     solcVersion: string;
-  } = JSON.parse(await fs.readFile(filepath, 'utf8'));
+  } = JSON.parse(await fs.readFile(buildInfo, 'utf8'));
 
   const transpiled = await transpile(solcInput, solcOutput, paths, { solcVersion, ...options });
 

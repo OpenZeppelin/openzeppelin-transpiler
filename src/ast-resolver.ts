@@ -1,41 +1,22 @@
-import {ContractDefinition, SourceUnit} from 'solidity-ast';
-import { findAll } from 'solidity-ast/utils';
+import { ContractDefinition, SourceUnit } from 'solidity-ast';
 import { Node, NodeType, NodeTypeMap } from 'solidity-ast/node';
 
 import { SolcOutput } from './solc/input-output';
-
-export interface nodeInfo {
-  path: string;
-  scopeNode: Node | undefined;
-  node: Node
-}
+import { NodeInfoResolver, NODEINFO } from 'solidity-ast/utils';
 
 export class ASTResolver {
-  fastNodeLookup: Map<number, nodeInfo> = new Map<number, nodeInfo>();
-
-  addChildNodes(path: string, scopeNode: Node, childNodes: Node[]) {
-    for (const childNode of childNodes) {
-      this.fastNodeLookup.set(childNode.id, {path, scopeNode, node: childNode });
-      if ('nodes' in childNode) {
-        this.addChildNodes(path, childNode, childNode.nodes);
-      }
-    }
-  }
+  private nodeInfoResolver: NodeInfoResolver;
 
   constructor(readonly output: SolcOutput, readonly exclude?: (source: string) => boolean) {
-    for (const source in this.output.sources) {
-      const sUnit = this.output.sources[source].ast;
-      this.fastNodeLookup.set(sUnit.id, { path: sUnit.absolutePath, scopeNode: undefined, node: sUnit});
-      this.addChildNodes(sUnit.absolutePath, sUnit, sUnit.nodes);
-    }
+    this.nodeInfoResolver = new NodeInfoResolver(output);
   }
 
-  resolveScope(id: number): nodeInfo | undefined {
-    return this.fastNodeLookup.get(id);
+  resolveScope(id: number): NODEINFO | undefined {
+    return this.nodeInfoResolver.getNodeInfo(id);
   }
 
-  resolveContract(id: number) : ContractDefinition | undefined {
-    const contract = this.fastNodeLookup.get(id)?.node as ContractDefinition;
+  resolveContract(id: number): ContractDefinition | undefined {
+    const contract = this.nodeInfoResolver.getNodeInfo(id)?.node as ContractDefinition;
 
     if (contract && contract.nodeType === 'ContractDefinition') {
       return contract;
@@ -44,31 +25,40 @@ export class ASTResolver {
     return undefined;
   }
 
-  resolveNode<T extends NodeType>(nodeType: T | T[], id: number, doThrows:boolean = true): NodeTypeMap[T] | undefined {
-
-    if (!Array.isArray(nodeType)) {
-      nodeType = [nodeType];
+  resolveNode<T extends NodeType>(
+    nodeType: T,
+    id: number,
+    doThrows = true,
+  ): NodeTypeMap[T] | undefined {
+    const node = this.tryResolveNode(nodeType, id, doThrows);
+    if (node === undefined && doThrows) {
+      throw new ASTResolverError(nodeType);
     }
+    return node;
+  }
+
+  tryResolveNode<T extends NodeType>(
+    nodeType: T,
+    id: number,
+    doThrows = true,
+  ): NodeTypeMap[T] | undefined {
 
     const nodeInfo = this.resolveScope(id);
     if (nodeInfo) {
       const node = nodeInfo.node as NodeTypeMap[T];
-      if (nodeType.indexOf(node.nodeType as T) > -1 ) {
+      if (nodeType === node.nodeType as T) {
         if (this.exclude?.(nodeInfo.path) && doThrows) {
           throw new Error(`Symbol was imported from an excluded file (${nodeInfo.path})`);
         } else {
           return node;
         }
+      } else {
+        return undefined;
       }
     }
 
-    if (doThrows) {
-      throw new ASTResolverError(nodeType);
-    } else {
-      return undefined;
-    }
+    return undefined;
   }
-
 }
 
 export class ASTResolverError extends Error {

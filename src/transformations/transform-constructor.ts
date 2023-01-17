@@ -1,46 +1,67 @@
-import {ContractDefinition, SourceUnit, VariableDeclaration, VariableDeclarationStatement} from 'solidity-ast';
+import {
+  ContractDefinition,
+  ModifierInvocation,
+  SourceUnit,
+  VariableDeclaration,
+  VariableDeclarationStatement,
+} from 'solidity-ast';
 
 import { getConstructor, getNodeBounds } from '../solc/ast-utils';
 import { Transformation, TransformHelper } from './type';
-import { buildSuperCallsForChain2 } from './utils/build-super-calls-for-chain';
+import { buildSuperCallsForChain } from './utils/build-super-calls-for-chain';
 import { findAll } from 'solidity-ast/utils';
-import { FunctionDefinition } from 'solidity-ast';
+import { FunctionDefinition, Identifier } from 'solidity-ast';
 import { TransformerTools } from '../transform';
 import { newFunctionPosition } from './utils/new-function-position';
 import { formatLines } from './utils/format-lines';
 import { hasConstructorOverride, hasOverride } from '../utils/upgrades-overrides';
-import { getVarStorageName } from "./utils/get-var-storage-name";
-import { getScopedContractsForVariables } from "./utils/get-identifiers-used";
+import { getVarStorageName } from './utils/get-var-storage-name';
+import { getScopedContractsForVariables } from './utils/get-identifiers-used';
+import { getInitializerItems } from './utils/get-initializer-items';
+import { parseNewExpression } from '../utils/new-expression';
 
 function getArgsList(constructor: FunctionDefinition, helper: TransformHelper): string {
   return helper.read(constructor.parameters).replace(/^\((.*)\)$/s, '$1');
 }
 
 // Removes parameters unused by the constructor's body
-function getUnchainedArguments(constructor: FunctionDefinition, helper: TransformHelper): string {
+function getUnchainedArguments(
+  constructor: FunctionDefinition,
+  helper: TransformHelper,
+  modifiers: ModifierInvocation[],
+): string {
+  // Get declared parameters information
   const parameters = constructor.parameters.parameters;
+  // Gets all arguments arrays and concat them into one array
+  const usedOnModifiers = modifiers.flatMap((m: ModifierInvocation) => [
+    ...findAll('Identifier', m),
+  ]);
 
-  if (parameters?.length) {
-    const identifiersIds = new Set(
+  if (!parameters?.length) {
+    return '';
+  } else {
+    let result: string = getArgsList(constructor, helper);
+    const usedIds = new Set(
       [...findAll('Identifier', constructor.body!)].map(i => i.referencedDeclaration),
     );
-    let result: string = getArgsList(constructor, helper);
 
     for (const p of parameters) {
-      // Check if parameter is used
-      const found = identifiersIds.has(p.id);
-      if (!found) {
+      // Check if parameter is used on the body or the modifiers
+      if (
+        !usedIds.has(p.id) &&
+        !usedOnModifiers.some((m: Identifier) => m!.referencedDeclaration! === p.id)
+      ) {
         // Remove unused parameter
         result = result.replace(/\s+[a-z0-9$_]+/gi, m => (m.trim() === p.name ? '' : m));
       }
     }
-
     return result;
-  } else {
-    return '';
   }
 }
 
+// Runs after transformConstructor to remove the constructor keyword and parameters until the first `{`. For example
+// This: constructor(uint a) /* modifiers */ public { function __Name_init(uint a) /* modifiers */
+// Results in: function __Name_init(uint a) /* modifiers */
 export function* removeLeftoverConstructorHead(sourceUnit: SourceUnit): Generator<Transformation> {
   for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
     if (hasConstructorOverride(contractNode)) {
@@ -61,44 +82,68 @@ export function* removeLeftoverConstructorHead(sourceUnit: SourceUnit): Generato
   }
 }
 
+// Inserts the init and unchained function declarations before the constructor first`{`,
+// and must run removeLeftoverConstructorHead after. For example
+// This: constructor(uint a) /* modifiers */ public
+// Results in: constructor(uint a) /* modifiers */ public { function __Name_init(uint a) /* modifiers */
 export function transformConstructor(extractStorage = false) {
-  return function * (
-  sourceUnit: SourceUnit,
-  tools: TransformerTools,
-): Generator<Transformation> {
+  return function* (sourceUnit: SourceUnit, tools: TransformerTools): Generator<Transformation> {
+    const { resolver, getData } = tools;
+
     for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
       if (contractNode.contractKind !== 'contract' || hasConstructorOverride(contractNode)) {
         continue;
       }
 
-      const {name} = contractNode;
-
-      const constructorNode = getConstructor(contractNode);
-
-      const varInitNodes = [...findAll('VariableDeclaration', contractNode)].filter(
-          v =>
-              v.stateVariable && v.value && !v.constant && !hasOverride(v, 'state-variable-assignment'),
-      );
+      const { name } = contractNode;
+      const {
+        constructorNode,
+        varInitNodes,
+        modifiers,
+        emptyUnchained: emptyConstructor,
+      } = getInitializerItems(contractNode);
 
       const initializer = (
-          helper: TransformHelper,
-          argsList = '',
-          unchainedArgsList = '',
-          argNames: string[] = [],
+        helper: TransformHelper,
+        argsList = '',
+        unchainedArgsList = '',
+        argNames: string[] = [],
       ) => [
         `function __${name}_init(${argsList}) internal onlyInitializing {`,
-        buildSuperCallsForChain2(contractNode, tools, helper),
-        [`__${name}_init_unchained(${argNames.join(', ')});`],
+        buildSuperCallsForChain(contractNode, tools, helper),
+        emptyConstructor ? [] : [`__${name}_init_unchained(${argNames.join(', ')});`],
         `}`,
         ``,
-        `function __${name}_init_unchained(${unchainedArgsList}) internal onlyInitializing {`,
-        varInitNodes.map(v => `${(extractStorage ? getVarStorageName(v, tools) : '') + v.name} = ${helper.read(v.value!)};`),
+        [
+          `function`,
+          `__${name}_init_unchained(${unchainedArgsList})`,
+          `internal onlyInitializing`,
+          ...modifiers.map(m => helper.read(m)),
+          `{`,
+        ].join(' '),
+        varInitNodes.map(v => {
+          const newExpr = parseNewExpression(v.value!);
+          if (!newExpr) {
+            return `${(extractStorage ? getVarStorageName(v, tools) : '') + v.name} = ${helper.read(
+              v.value!,
+            )};`;
+          } else {
+            const { typeName, newCall, initializeCall } = newExpr;
+            const createdContract = resolver.resolveContract(typeName.referencedDeclaration);
+            if (createdContract) {
+              getData(createdContract).isUsedInNewStatement = true;
+            }
+            return `$${(extractStorage ? getVarStorageName(v, tools) : '') + v.name} = ${newCall(
+              helper,
+            )};\n        ${initializeCall(v.name, helper)};`;
+          }
+        }),
         `}`,
       ];
 
       const usingLines = createUsingLines(contractNode, tools);
       if (constructorNode) {
-        const {start: bodyStart} = getNodeBounds(constructorNode.body!);
+        const { start: bodyStart } = getNodeBounds(constructorNode.body!);
         const argNames = constructorNode.parameters.parameters.map(p => p.name);
 
         yield {
@@ -107,11 +152,11 @@ export function transformConstructor(extractStorage = false) {
           kind: 'transform-constructor',
           transform: (_, helper) => {
             const argsList = getArgsList(constructorNode, helper);
-            const unchainedArgsList = getUnchainedArguments(constructorNode, helper);
+            const unchainedArgsList = getUnchainedArguments(constructorNode, helper, modifiers);
 
             return formatLines(
-                1,
-                initializer(helper, argsList, unchainedArgsList, argNames).slice(0, -1),
+              1,
+              initializer(helper, argsList, unchainedArgsList, argNames).slice(0, -1),
             ).trim();
           },
         };
@@ -123,7 +168,6 @@ export function transformConstructor(extractStorage = false) {
           kind: 'add-using-lines',
           text: usingLines,
         };
-
       } else {
         const start = newFunctionPosition(contractNode, tools);
 
@@ -132,8 +176,8 @@ export function transformConstructor(extractStorage = false) {
           length: 0,
           kind: 'add-initializers',
           transform: (source, helper) => {
-            return usingLines + formatLines(1, initializer(helper))
-          }
+            return usingLines + formatLines(1, initializer(helper));
+          },
         };
       }
     }
@@ -141,13 +185,12 @@ export function transformConstructor(extractStorage = false) {
 }
 
 function createUsingLines(contract: ContractDefinition, tools: TransformerTools): string {
-
   const contractsAccessed = getScopedContractsForVariables(contract, tools);
 
   let usingLines = '';
 
-  contractsAccessed.forEach( (contractAccessed) => {
-    contractAccessed.forEach( (contractName) =>  {
+  contractsAccessed.forEach(contractAccessed => {
+    contractAccessed.forEach(contractName => {
       usingLines += `    using ${contractName}Storage for ${contractName}Storage.Layout;\n`;
     });
   });

@@ -94,9 +94,9 @@ export async function transpile(
   transform.apply(renameInheritdoc);
   transform.apply(prependInitializableBase);
   transform.apply(fixImportDirectives);
-  transform.apply(addRequiredPublicInitializer(options?.publicInitializers));
   transform.apply(transformConstructor(options?.extractStorage || false));
   transform.apply(removeLeftoverConstructorHead);
+  transform.apply(addRequiredPublicInitializer(options?.publicInitializers));
   transform.apply(removeInheritanceListArguments);
   transform.apply(removeImmutable);
   if (!options?.extractStorage) {

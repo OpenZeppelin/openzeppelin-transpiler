@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
+    "src",
     "dist",
     "!*.tsbuildinfo",
     "Initializable.sol",
@@ -41,12 +42,11 @@
   "homepage": "https://github.com/OpenZeppelin/openzeppelin-sdk#readme",
   "dependencies": {
     "ajv": "^8.0.0",
-    "compare-versions": "^4.1.3",
+    "compare-versions": "^5.0.0",
     "lodash": "^4.17.20",
-    "minimatch": "^3.0.4",
+    "minimatch": "^5.0.0",
     "minimist": "^1.2.5",
-    "solidity-ast": "^0.4.13",
-    "source-map-support": "^0.5.19"
+    "solidity-ast": "github:GeniusVentures/solidity-ast#fast-node-lookup"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.165",
@@ -56,7 +56,7 @@
     "@types/node": "^10.17.44",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
-    "ava": "^5.0.0",
+    "ava": "^5.1.0",
     "eslint": "^8.0.0",
     "eslint-config-prettier": "^8.0.0",
     "eslint-plugin-prettier": "^4.0.0",

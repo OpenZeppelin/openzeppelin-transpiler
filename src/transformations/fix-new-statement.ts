@@ -5,6 +5,7 @@ import { findAll } from 'solidity-ast/utils';
 import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
 import { TransformerTools } from '../transform';
+import { parseNewExpression } from '../utils/new-expression';
 
 declare module '../transform' {
   interface TransformData {
@@ -12,6 +13,14 @@ declare module '../transform' {
   }
 }
 
+// Finds statements of the form:
+//   - x = new Foo(...);
+//   - x = address(new Foo(...));
+// and transforms them to use initializers:
+//     x = new Foo();
+//     x.initialize(...);
+// Note that these are variable assignments.
+// Variable declarations are supported.
 export function* fixNewStatement(
   sourceUnit: SourceUnit,
   tools: TransformerTools,

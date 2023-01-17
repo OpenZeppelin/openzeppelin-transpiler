@@ -17,4 +17,9 @@ contract TransformNew {
         Bar bar;
         bar = new Bar();
     }
+
+    function test3() external {
+        address bar;
+        bar = address(new Bar());
+    }
 }
