@@ -1,11 +1,19 @@
 import { ContractDefinition } from 'solidity-ast';
-import { findAll } from 'solidity-ast/utils';
 import { NodeType, NodeTypeMap } from 'solidity-ast/node';
 
 import { SolcOutput } from './solc/input-output';
+import { NodeInfoResolver, NODEINFO } from 'solidity-ast/utils';
 
 export class ASTResolver {
-  constructor(readonly output: SolcOutput, readonly exclude?: (source: string) => boolean) {}
+  private nodeInfoResolver: NodeInfoResolver;
+
+  constructor(readonly output: SolcOutput, readonly exclude?: (source: string) => boolean) {
+    this.nodeInfoResolver = new NodeInfoResolver(output);
+  }
+
+  resolveScope(id: number): NODEINFO | undefined {
+    return this.nodeInfoResolver.getNodeInfo(id);
+  }
 
   resolveContract(id: number): ContractDefinition | undefined {
     try {
@@ -28,17 +36,18 @@ export class ASTResolver {
   }
 
   tryResolveNode<T extends NodeType>(nodeType: T, id: number): NodeTypeMap[T] | undefined {
-    for (const source in this.output.sources) {
-      for (const c of findAll(nodeType, this.output.sources[source].ast)) {
-        if (c.id === id) {
-          if (this.exclude?.(source)) {
-            throw new Error(`Symbol #${id} was imported from an excluded file (${source})`);
-          } else {
-            return c;
-          }
+    const nodeInfo = this.resolveScope(id);
+    let node = undefined;
+    if (nodeInfo) {
+      node = nodeInfo.node as NodeTypeMap[T];
+      if (node && nodeType === (node.nodeType as T)) {
+        if (this.exclude?.(nodeInfo.path)) {
+          throw new Error(`Symbol #${id} was imported from an excluded file (${nodeInfo.path})`);
         }
       }
     }
+
+    return node;
   }
 }
 

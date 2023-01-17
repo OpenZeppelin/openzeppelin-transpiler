@@ -1,6 +1,6 @@
 {
   "name": "@openzeppelin/upgrade-safe-transpiler",
-  "version": "0.3.19",
+  "version": "0.3.20",
   "description": "Solidity preprocessor used to generate OpenZeppelin Contracts Upgrade Safe.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -42,7 +42,7 @@
     "lodash": "^4.17.20",
     "minimatch": "^5.0.0",
     "minimist": "^1.2.5",
-    "solidity-ast": "^0.4.13"
+    "solidity-ast": "GeniusVentures/solidity-ast#fast-node-lookup"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.165",
