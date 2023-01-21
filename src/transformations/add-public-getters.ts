@@ -77,7 +77,7 @@ export function* addPublicGetters(
 
         const arrayAccess = argumentsText.map((arg, index) => `[arg${index.toString()}]`).join('');
         getterFuncsText += '\n' +
-          '    // generated getter for ${varDecl.name}\n' +
+          `    // generated getter for ${varDecl.name}\n` +
           `    function ${varDecl.name}(${argumentsText.join(',')}) public view returns(${returnType}) {\n` +
           `        return ${getVarStorageName(varDecl, tools)}${varDecl.name}${arrayAccess};\n` +
           `    }\n`;
