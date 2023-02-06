@@ -15,7 +15,7 @@ const errorKinds = [
   'missing-public-upgradeto',
 ] as const;
 
-type ValidationErrorKind = typeof errorKinds[number];
+type ValidationErrorKind = (typeof errorKinds)[number];
 
 export function hasOverride(node: Node, override: ValidationErrorKind): boolean {
   return getOverrides(node).includes(override);
