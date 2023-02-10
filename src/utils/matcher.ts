@@ -1,8 +1,8 @@
-import { Minimatch, IMinimatch } from 'minimatch';
+import { Minimatch } from 'minimatch';
 
 export function matcher(patterns: string[]): (path: string) => boolean | undefined {
-  const positivePatterns: IMinimatch[] = [];
-  const negativePatterns: IMinimatch[] = [];
+  const positivePatterns: Minimatch[] = [];
+  const negativePatterns: Minimatch[] = [];
 
   for (const pat of patterns) {
     const m = new Minimatch(pat);
