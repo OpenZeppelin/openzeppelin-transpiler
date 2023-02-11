@@ -67,3 +67,9 @@ test('custom contract size', t => {
   t.context.transform.apply(addStorageGaps);
   t.snapshot(t.context.transform.results()[file]);
 });
+
+test('add storage gaps', t => {
+  const file = 'contracts/TransformAddGap-0.8.sol';
+  t.context.transform.apply(addStorageGaps);
+  t.snapshot(t.context.transform.results()[file]);
+});

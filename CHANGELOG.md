@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.20 (2023-02-11)
+
+- Fix support for immutable variables of user defined value types.
+
 ## 0.3.19 (2022-09-24)
 
 - Add license header to WithInit.sol.

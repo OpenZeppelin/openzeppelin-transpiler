@@ -10,13 +10,14 @@ import { TransformerTools } from '../transform';
 import { extractNatspec } from '../utils/extractNatspec';
 import { decodeTypeIdentifier } from '../utils/type-id';
 import { parseTypeId } from '../utils/parse-type-id';
+import { ASTResolver } from '../ast-resolver';
 
 // By default, make the contract a total of 50 slots (storage + gap)
 const DEFAULT_SLOT_COUNT = 50;
 
 export function* addStorageGaps(
   sourceUnit: SourceUnit,
-  { getLayout }: TransformerTools,
+  { getLayout, resolver }: TransformerTools,
 ): Generator<Transformation> {
   for (const contract of findAll('ContractDefinition', sourceUnit)) {
     if (contract.contractKind === 'contract') {
@@ -27,7 +28,7 @@ export function* addStorageGaps(
         }
       }
 
-      const gapSize = targetSlots - getContractSlotCount(contract, getLayout(contract));
+      const gapSize = targetSlots - getContractSlotCount(contract, getLayout(contract), resolver);
 
       if (gapSize <= 0) {
         throw new Error(
@@ -71,8 +72,9 @@ function isStorageVariable(varDecl: VariableDeclaration): boolean {
   }
 }
 
-function getNumberOfBytesOfValueType(typeId: string): number {
-  const details = parseTypeId(typeId).head.match(/^t_(?<base>[a-z]+)(?<size>\d+)?/);
+function getNumberOfBytesOfValueType(typeId: string, resolver: ASTResolver): number {
+  const { head, tail } = parseTypeId(typeId);
+  const details = head.match(/^t_(?<base>[a-zA-Z]+)(?<size>\d+)?/);
   switch (details?.groups?.base) {
     case 'bool':
     case 'byte':
@@ -86,12 +88,20 @@ function getNumberOfBytesOfValueType(typeId: string): number {
     case 'int':
     case 'uint':
       return parseInt(details.groups.size, 10) / 8;
+    case 'userDefinedValueType':
+      const definition = resolver.resolveNode('UserDefinedValueTypeDefinition', Number(tail));
+      const underlying = definition.underlyingType.typeDescriptions.typeIdentifier;
+      if (underlying) {
+        return getNumberOfBytesOfValueType(underlying, resolver);
+      } else {
+        throw new Error(`Unsupported value type: ${typeId}`);
+      }
     default:
       throw new Error(`Unsupported value type: ${typeId}`);
   }
 }
 
-function getContractSlotCount(contractNode: ContractDefinition, layout: StorageLayout): number {
+function getContractSlotCount(contractNode: ContractDefinition, layout: StorageLayout, resolver: ASTResolver): number {
   // This tracks both slot and offset:
   // - slot   = Math.floor(contractSizeInBytes / 32)
   // - offset = contractSizeInBytes % 32
@@ -109,7 +119,7 @@ function getContractSlotCount(contractNode: ContractDefinition, layout: StorageL
       const size =
         layout.types && layout.types[typeIdentifier]
           ? parseInt(layout.types[typeIdentifier]?.numberOfBytes ?? '')
-          : getNumberOfBytesOfValueType(typeIdentifier);
+          : getNumberOfBytesOfValueType(typeIdentifier, resolver);
 
       // used space in the current slot
       const offset = contractSizeInBytes % 32;
