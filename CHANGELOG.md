@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.21 (2023-02-17)
+
+- Generate `WithInit` contract variant for abstract but fully implemented contracts.
+
 ## 0.3.20 (2023-02-11)
 
 - Fix support for immutable variables of user defined value types.
