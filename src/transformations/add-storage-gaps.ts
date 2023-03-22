@@ -88,7 +88,7 @@ function getNumberOfBytesOfValueType(typeId: string, resolver: ASTResolver): num
     case 'int':
     case 'uint':
       return parseInt(details.groups.size, 10) / 8;
-    case 'userDefinedValueType':
+    case 'userDefinedValueType': {
       const definition = resolver.resolveNode('UserDefinedValueTypeDefinition', Number(tail));
       const underlying = definition.underlyingType.typeDescriptions.typeIdentifier;
       if (underlying) {
@@ -96,12 +96,17 @@ function getNumberOfBytesOfValueType(typeId: string, resolver: ASTResolver): num
       } else {
         throw new Error(`Unsupported value type: ${typeId}`);
       }
+    }
     default:
       throw new Error(`Unsupported value type: ${typeId}`);
   }
 }
 
-function getContractSlotCount(contractNode: ContractDefinition, layout: StorageLayout, resolver: ASTResolver): number {
+function getContractSlotCount(
+  contractNode: ContractDefinition,
+  layout: StorageLayout,
+  resolver: ASTResolver,
+): number {
   // This tracks both slot and offset:
   // - slot   = Math.floor(contractSizeInBytes / 32)
   // - offset = contractSizeInBytes % 32
