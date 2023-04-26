@@ -42,6 +42,7 @@ interface TranspileOptions {
   exclude?: string[];
   publicInitializers?: string[];
   solcVersion?: string;
+  skipWithInit?: boolean;
 }
 
 function getExtraOutputPaths(
@@ -120,11 +121,13 @@ export async function transpile(
     fileName: path.basename(outputPaths.initializable),
   });
 
-  outputFiles.push({
-    source: generateWithInit(transform, outputPaths.withInit, options?.solcVersion),
-    path: outputPaths.withInit,
-    fileName: path.basename(outputPaths.withInit),
-  });
+  if (!options?.skipWithInit) {
+    outputFiles.push({
+      source: generateWithInit(transform, outputPaths.withInit, options?.solcVersion),
+      path: outputPaths.withInit,
+      fileName: path.basename(outputPaths.withInit),
+    });
+  }
 
   return outputFiles;
 }

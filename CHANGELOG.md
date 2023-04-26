@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.22 (2023-04-26)
+
+- Add `-W` option to skip `WithInit` generation.
+
 ## 0.3.21 (2023-02-17)
 
 - Generate `WithInit` contract variant for abstract but fully implemented contracts.

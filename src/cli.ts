@@ -19,6 +19,7 @@ interface Options {
   initializablePath?: string;
   buildInfo?: string;
   deleteOriginals: boolean;
+  skipWithInit: boolean;
   exclude: string[];
   publicInitializers: string[];
 }
@@ -30,10 +31,12 @@ function readCommandFlags(resolveRootRelative: (p: string) => string): Options {
     p: publicInitializers = [],
     D: deleteOriginals = false,
     x: exclude = [],
+    W: skipWithInit = false,
   } = minimist(process.argv.slice(2));
   return {
     buildInfo,
     deleteOriginals,
+    skipWithInit,
     initializablePath: initializablePath && resolveRootRelative(initializablePath),
     publicInitializers: ensureArray(publicInitializers).map(resolveRootRelative),
     exclude: ensureArray(exclude).map(p =>
