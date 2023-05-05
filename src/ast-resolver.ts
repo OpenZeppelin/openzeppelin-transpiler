@@ -1,11 +1,15 @@
 import { ContractDefinition } from 'solidity-ast';
-import { findAll } from 'solidity-ast/utils';
+import { findAll, astDereferencer, ASTDereferencer } from 'solidity-ast/utils';
 import { NodeType, NodeTypeMap } from 'solidity-ast/node';
 
 import { SolcOutput } from './solc/input-output';
 
 export class ASTResolver {
-  constructor(readonly output: SolcOutput, readonly exclude?: (source: string) => boolean) {}
+  private deref: ASTDereferencer;
+
+  constructor(readonly output: SolcOutput, readonly exclude?: (source: string) => boolean) {
+    this.deref = astDereferencer(output);
+  }
 
   resolveContract(id: number): ContractDefinition | undefined {
     try {
@@ -28,16 +32,12 @@ export class ASTResolver {
   }
 
   tryResolveNode<T extends NodeType>(nodeType: T, id: number): NodeTypeMap[T] | undefined {
-    for (const source in this.output.sources) {
-      for (const c of findAll(nodeType, this.output.sources[source].ast)) {
-        if (c.id === id) {
-          if (this.exclude?.(source)) {
-            throw new Error(`Symbol #${id} was imported from an excluded file (${source})`);
-          } else {
-            return c;
-          }
-        }
-      }
+    const { node, sourceUnit } = this.deref.withSourceUnit(nodeType, id);
+    const source = sourceUnit.absolutePath;
+    if (this.exclude?.(source)) {
+      throw new Error(`Symbol #${id} was imported from an excluded file (${source})`);
+    } else {
+      return node;
     }
   }
 }
