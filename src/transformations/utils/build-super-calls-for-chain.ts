@@ -203,7 +203,7 @@ export function buildSuperCallsForChain(
 
     const args = parentArgsValues.get(parentNode) ?? [];
 
-    if (args.length || !getInitializerItems(parentNode).emptyUnchained) {
+    if (args.length || !getInitializerItems(parentNode, resolver).emptyUnchained) {
       // TODO: we have to use the name in the lexical context and not necessarily
       // the original contract name
       linearizedCtorCalls.push(buildSuperCall(args, parentNode.name, helper));

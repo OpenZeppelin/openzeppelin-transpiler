@@ -95,7 +95,7 @@ export function* transformConstructor(
       varInitNodes,
       modifiers,
       emptyUnchained: emptyConstructor,
-    } = getInitializerItems(contractNode);
+    } = getInitializerItems(contractNode, resolver);
 
     const initializer = (
       helper: TransformHelper,

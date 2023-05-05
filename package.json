@@ -42,7 +42,7 @@
     "lodash": "^4.17.20",
     "minimatch": "^6.0.0",
     "minimist": "^1.2.5",
-    "solidity-ast": "^0.4.48"
+    "solidity-ast": "^0.4.49"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.165",

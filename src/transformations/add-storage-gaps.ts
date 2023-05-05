@@ -61,12 +61,12 @@ export function* addStorageGaps(
   }
 }
 
-function isStorageVariable(varDecl: VariableDeclaration): boolean {
+function isStorageVariable(varDecl: VariableDeclaration, resolver: ASTResolver): boolean {
   switch (varDecl.mutability) {
     case 'constant':
       return false;
     case 'immutable':
-      return !hasOverride(varDecl, 'state-variable-immutable');
+      return !hasOverride(varDecl, 'state-variable-immutable', resolver);
     default:
       return true;
   }
@@ -114,7 +114,7 @@ function getContractSlotCount(
 
   // don't use `findAll` here, we don't want to go recursive
   for (const varDecl of contractNode.nodes.filter(isNodeType('VariableDeclaration'))) {
-    if (isStorageVariable(varDecl)) {
+    if (isStorageVariable(varDecl, resolver)) {
       // try get type details
       const typeIdentifier = decodeTypeIdentifier(varDecl.typeDescriptions.typeIdentifier ?? '');
 
