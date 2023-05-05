@@ -1,5 +1,6 @@
 import { ContractDefinition } from 'solidity-ast';
 import { Node } from 'solidity-ast/node';
+import { ASTResolver } from '../ast-resolver';
 import { getConstructor } from '../solc/ast-utils';
 import { execall } from '../utils/execall';
 
@@ -17,11 +18,22 @@ const errorKinds = [
 
 type ValidationErrorKind = (typeof errorKinds)[number];
 
-export function hasOverride(node: Node, override: ValidationErrorKind): boolean {
-  return getOverrides(node).includes(override);
+export function hasOverride(node: Node, override: ValidationErrorKind, resolver: ASTResolver): boolean {
+  return getOverrides(node, resolver).includes(override);
 }
 
-export function getOverrides(node: Node): ValidationErrorKind[] {
+export function getOverrides(node: Node, resolver: ASTResolver): ValidationErrorKind[] {
+  const overrides = getOwnOverrides(node);
+  if ('scope' in node) {
+    const contract = resolver.resolveContract(node.scope);
+    if (contract) {
+      overrides.push(...getOwnOverrides(contract));
+    }
+  }
+  return overrides;
+}
+
+function getOwnOverrides(node: Node): ValidationErrorKind[] {
   if ('documentation' in node) {
     const doc =
       typeof node.documentation === 'string' ? node.documentation : node.documentation?.text ?? '';

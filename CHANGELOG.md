@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.23 (2023-05-04)
+
+- Switch AST resolver to faster implementation.
+- Consider unsafe-allow at contract level.
+
 ## 0.3.22 (2023-04-26)
 
 - Add `-W` option to skip `WithInit` generation.
