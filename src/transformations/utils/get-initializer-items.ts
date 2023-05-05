@@ -8,7 +8,11 @@ export function getInitializerItems(contract: ContractDefinition, resolver: ASTR
   const constructorNode = getConstructor(contract);
 
   const varInitNodes = [...findAll('VariableDeclaration', contract)].filter(
-    v => v.stateVariable && v.value && !v.constant && !hasOverride(v, 'state-variable-assignment', resolver),
+    v =>
+      v.stateVariable &&
+      v.value &&
+      !v.constant &&
+      !hasOverride(v, 'state-variable-assignment', resolver),
   );
 
   const modifiers =

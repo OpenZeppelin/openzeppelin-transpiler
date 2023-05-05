@@ -6,7 +6,10 @@ import { hasConstructorOverride, hasOverride } from '../utils/upgrades-overrides
 
 import { Transformation } from './type';
 
-export function* removeStateVarInits(sourceUnit: SourceUnit, { resolver }: TransformerTools): Generator<Transformation> {
+export function* removeStateVarInits(
+  sourceUnit: SourceUnit,
+  { resolver }: TransformerTools,
+): Generator<Transformation> {
   for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
     if (hasConstructorOverride(contractNode)) {
       continue;

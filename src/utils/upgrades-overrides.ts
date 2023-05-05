@@ -18,7 +18,11 @@ const errorKinds = [
 
 type ValidationErrorKind = (typeof errorKinds)[number];
 
-export function hasOverride(node: Node, override: ValidationErrorKind, resolver: ASTResolver): boolean {
+export function hasOverride(
+  node: Node,
+  override: ValidationErrorKind,
+  resolver: ASTResolver,
+): boolean {
   return getOverrides(node, resolver).includes(override);
 }
 

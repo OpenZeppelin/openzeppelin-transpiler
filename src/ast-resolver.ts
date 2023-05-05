@@ -1,5 +1,9 @@
 import { ContractDefinition } from 'solidity-ast';
-import { findAll, astDereferencer, ASTDereferencer, ASTDereferencerError } from 'solidity-ast/utils';
+import {
+  astDereferencer,
+  ASTDereferencer,
+  ASTDereferencerError,
+} from 'solidity-ast/utils';
 import { NodeType, NodeTypeMap } from 'solidity-ast/node';
 
 import { SolcOutput } from './solc/input-output';
