@@ -66,5 +66,5 @@ function getOwnOverrides(node: Node): ValidationErrorKind[] {
 
 export function hasConstructorOverride(contract: ContractDefinition): boolean {
   const ctor = getConstructor(contract);
-  return ctor ? getOwnOverrides(ctor).includes('constructor') : false;
+  return ctor ? [...getOwnOverrides(ctor), ...getOwnOverrides(contract)].includes('constructor') : false;
 }

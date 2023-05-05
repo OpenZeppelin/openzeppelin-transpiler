@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.24 (2023-05-04)
+
+- Allow constructor override at contract level.
+
 ## 0.3.23 (2023-05-04)
 
 - Switch AST resolver to faster implementation.
