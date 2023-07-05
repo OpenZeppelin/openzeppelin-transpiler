@@ -13,9 +13,9 @@ struct OneAndAHalfSlot {
 }
 
 contract SizeDefault {
-  /// @custom:oz-upgrades-unsafe-allow state-variable-immutable state-variable-assignment
+  /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
   uint immutable w1 = block.number;
-  /// @custom:oz-upgrades-unsafe-allow state-variable-immutable state-variable-assignment
+  /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
   uint immutable w2 = block.timestamp;
   uint immutable x; // slot 0 (after conversion to private)
   uint constant y = 1;
@@ -43,9 +43,9 @@ contract SizeDefault {
 
 /// @custom:storage-size 128
 contract SizeOverride {
-  /// @custom:oz-upgrades-unsafe-allow state-variable-immutable state-variable-assignment
+  /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
   uint immutable w1 = block.number;
-  /// @custom:oz-upgrades-unsafe-allow state-variable-immutable  state-variable-assignment
+  /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
   uint immutable w2 = block.timestamp;
   uint immutable x; // slot 0 (after conversion to private)
   uint constant y = 1;

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.25 (2023-07-05)
+
+- Allow immutable variable assignment given `unsafe-allow state-variable-immutable`. Previously `unsafe-allow state-variable-assignment` was required as well.
+
 ## 0.3.24 (2023-05-04)
 
 - Allow constructor override at contract level.

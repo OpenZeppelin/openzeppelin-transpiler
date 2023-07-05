@@ -23,7 +23,14 @@ export function hasOverride(
   override: ValidationErrorKind,
   resolver: ASTResolver,
 ): boolean {
-  return getOverrides(node, resolver).includes(override);
+  const overrides = getOverrides(node, resolver);
+  return (
+    overrides.includes(override) ||
+    (override === 'state-variable-assignment' &&
+      node.nodeType === 'VariableDeclaration' &&
+      node.mutability === 'immutable' &&
+      overrides.includes('state-variable-immutable'))
+  );
 }
 
 export function getOverrides(node: Node, resolver: ASTResolver): ValidationErrorKind[] {
