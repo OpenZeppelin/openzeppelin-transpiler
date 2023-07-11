@@ -55,7 +55,7 @@
     "ava": "^5.0.0",
     "eslint": "^8.0.0",
     "eslint-config-prettier": "^8.0.0",
-    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
     "hardhat": "^2.0.9",
     "prettier": "^2.1.2",
     "rimraf": "^3.0.2",
