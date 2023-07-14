@@ -105,8 +105,17 @@ export function* addNamespaceStruct(
       };
 
       for (const fnDef of findAll('FunctionDefinition', contract)) {
+        for (const ref of fnDef.modifiers.flatMap(m => [...findAll('Identifier', m)])) {
+          const varDecl = resolver.tryResolveNode(
+            'VariableDeclaration',
+            ref.referencedDeclaration!,
+          );
+          if (varDecl && isStorageVariable(varDecl, resolver)) {
+            throw error(ref, "Unsupported storage variable found in modifier");
+          }
+        }
+
         let foundReferences = false;
-        // TODO: variable references in modifiers?
         if (fnDef.body) {
           for (const ref of findAll('Identifier', fnDef.body)) {
             const varDecl = resolver.tryResolveNode(
