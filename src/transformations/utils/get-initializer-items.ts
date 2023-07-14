@@ -3,16 +3,13 @@ import { findAll } from 'solidity-ast/utils';
 import { ASTResolver } from '../../ast-resolver';
 import { getConstructor } from '../../solc/ast-utils';
 import { hasOverride } from '../../utils/upgrades-overrides';
+import { isStorageVariable } from './is-storage-variable';
 
 export function getInitializerItems(contract: ContractDefinition, resolver: ASTResolver) {
   const constructorNode = getConstructor(contract);
 
   const varInitNodes = [...findAll('VariableDeclaration', contract)].filter(
-    v =>
-      v.stateVariable &&
-      v.value &&
-      !v.constant &&
-      !hasOverride(v, 'state-variable-assignment', resolver),
+    v => v.value && isStorageVariable(v, resolver) && !hasOverride(v, 'state-variable-assignment', resolver)
   );
 
   const modifiers =
