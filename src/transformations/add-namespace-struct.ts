@@ -111,7 +111,7 @@ export function* addNamespaceStruct(
             ref.referencedDeclaration!,
           );
           if (varDecl && isStorageVariable(varDecl, resolver)) {
-            throw error(ref, "Unsupported storage variable found in modifier");
+            throw error(ref, 'Unsupported storage variable found in modifier');
           }
         }
 
