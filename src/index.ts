@@ -20,6 +20,7 @@ import { appendInitializableImport } from './transformations/append-initializabl
 import { fixNewStatement } from './transformations/fix-new-statement';
 import { addRequiredPublicInitializer } from './transformations/add-required-public-initializers';
 import { addStorageGaps } from './transformations/add-storage-gaps';
+import { addNamespaceStruct } from './transformations/add-namespace-struct';
 import { renameInheritdoc } from './transformations/rename-inheritdoc';
 import {
   transformConstructor,
@@ -43,6 +44,7 @@ interface TranspileOptions {
   publicInitializers?: string[];
   solcVersion?: string;
   skipWithInit?: boolean;
+  namespaced?: boolean;
 }
 
 function getExtraOutputPaths(
@@ -93,7 +95,12 @@ export async function transpile(
   transform.apply(removeInheritanceListArguments);
   transform.apply(removeStateVarInits);
   transform.apply(removeImmutable);
-  transform.apply(addStorageGaps);
+
+  if (options?.namespaced) {
+    transform.apply(addNamespaceStruct);
+  } else {
+    transform.apply(addStorageGaps);
+  }
 
   // build a final array of files to return
   const outputFiles: OutputFile[] = [];

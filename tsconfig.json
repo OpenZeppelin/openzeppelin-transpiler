@@ -7,15 +7,12 @@
     "moduleResolution": "Node",
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "target": "es2018",
+    "target": "es2020",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     "strict": true,
-    "outDir": "dist",
-    "lib": [
-      "es2019"
-    ]
+    "outDir": "dist"
   },
   "include": ["src"],
   "ts-node": {
