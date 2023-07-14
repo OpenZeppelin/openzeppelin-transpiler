@@ -50,7 +50,7 @@ export function* addNamespaceStruct(
       yield {
         kind: 'relocate-nonstorage-var-remove',
         ...bounds,
-        transform: (source) => {
+        transform: source => {
           removed = source;
           return '';
         },
@@ -84,24 +84,23 @@ export function* addNamespaceStruct(
         start,
         length: end - start,
         transform: source => {
-          const [_, leading, rest] = source.match(/^((?:[ \t\v\f]*[\n\r]+)*)(.*)$/s)!;
-          return leading + formatLines(1, [
-            `/// @custom:storage-location erc7201:${id}`,
-            `struct ${namespace} {`,
+          const [, leading, rest] = source.match(/^((?:[ \t\v\f]*[\n\r]+)*)(.*)$/s)!;
+          return (
+            leading +
+            formatLines(1, [
+              `/// @custom:storage-location erc7201:${id}`,
+              `struct ${namespace} {`,
               ...rest.split('\n'),
-            `}`,
-            ``,
-            `// keccak256(abi.encode(uint256(keccak256("${id}")) - 1))`,
-            `bytes32 private constant ${namespace}Location = ${erc7201Location(id)};`,
-            ``,
-            `function _get${namespace}() private pure returns (${namespace} storage $) {`,
-              [
-                `assembly {`,
-                  [ `$.slot := ${namespace}Location` ],
-                `}`,
-              ],
-            `}`,
-          ]).trimEnd();
+              `}`,
+              ``,
+              `// keccak256(abi.encode(uint256(keccak256("${id}")) - 1))`,
+              `bytes32 private constant ${namespace}Location = ${erc7201Location(id)};`,
+              ``,
+              `function _get${namespace}() private pure returns (${namespace} storage $) {`,
+              [`assembly {`, [`$.slot := ${namespace}Location`], `}`],
+              `}`,
+            ]).trimEnd()
+          );
         },
       };
 
@@ -110,14 +109,17 @@ export function* addNamespaceStruct(
         // TODO: variable references in modifiers?
         if (fnDef.body) {
           for (const ref of findAll('Identifier', fnDef.body)) {
-            const varDecl = resolver.tryResolveNode('VariableDeclaration', ref.referencedDeclaration!);
+            const varDecl = resolver.tryResolveNode(
+              'VariableDeclaration',
+              ref.referencedDeclaration!,
+            );
             if (varDecl && isStorageVariable(varDecl, resolver)) {
               if (varDecl.scope !== contract.id) {
                 throw error(varDecl, 'Namespaces assume all variables are private');
               }
               foundReferences = true;
               const { start } = getNodeBounds(ref);
-              yield { kind: 'add-namespace-ref', start, length: 0, text: '$.' }
+              yield { kind: 'add-namespace-ref', start, length: 0, text: '$.' };
             }
           }
 
@@ -127,8 +129,7 @@ export function* addNamespaceStruct(
               kind: 'add-namespace-base-ref',
               start: fnBodyStart + 1,
               length: 0,
-              text:
-              `\n        ${namespace} storage $ = _get${namespace}();`,
+              text: `\n        ${namespace} storage $ = _get${namespace}();`,
             };
           }
         }

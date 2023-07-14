@@ -1,8 +1,7 @@
-import { SourceUnit, ContractDefinition, VariableDeclaration } from 'solidity-ast';
+import { SourceUnit, ContractDefinition } from 'solidity-ast';
 import { findAll, isNodeType } from 'solidity-ast/utils';
 
 import { formatLines } from './utils/format-lines';
-import { hasOverride } from '../utils/upgrades-overrides';
 import { getNodeBounds } from '../solc/ast-utils';
 import { StorageLayout } from '../solc/input-output';
 import { Transformation } from './type';

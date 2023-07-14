@@ -1,6 +1,6 @@
 import { mapValues } from 'lodash';
 
-import { SourceUnit, VariableDeclaration } from 'solidity-ast';
+import { SourceUnit } from 'solidity-ast';
 import { Node } from 'solidity-ast/node';
 import { SolcInput, SolcOutput } from './solc/input-output';
 import { srcDecoder, SrcDecoder } from './solc/src-decoder';
@@ -147,7 +147,7 @@ export class Transform {
 
   getShiftedBounds(node: WithSrc): Bounds {
     const { source, ...bounds } = this.decodeSrc(node.src);
-    const { shifts, transformations, content } = this.state[source];
+    const { shifts, transformations } = this.state[source];
 
     const incompatible = (t: Transformation) => {
       const c = compareContainment(t, bounds);
@@ -162,7 +162,9 @@ export class Transform {
 
   error(node: Node, msg: string): Error {
     const { source, start } = this.decodeSrc(node.src);
-    const line = 1 + [...this.state[source].originalBuf.slice(0, start).toString('utf8').matchAll(/\n/g)].length;
+    const line =
+      1 +
+      [...this.state[source].originalBuf.slice(0, start).toString('utf8').matchAll(/\n/g)].length;
     const error = new Error(`${msg} (${source}:${line})`);
     Error.captureStackTrace(error, this.error); // capture stack trace without this function
     return error;
@@ -176,7 +178,7 @@ export class Transform {
       // VariableDeclaration node bounds don't include the semicolon
       const buf = this.state[source].originalBuf;
       let index = start + length;
-      while (true) {
+      while (index < buf.length) {
         const c = buf.toString('utf8', index, index + 1);
         if (c === ';') {
           return index;
@@ -185,6 +187,7 @@ export class Transform {
         }
         index += 1;
       }
+      throw this.error(node, 'could not find end of node');
     }
   }
 
