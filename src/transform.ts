@@ -191,17 +191,6 @@ export class Transform {
     }
   }
 
-  getLeadingWhitespace(node: Node): string {
-    const { source } = this.decodeSrc(node.src);
-    const { start: nodeStart } = this.getShiftedBounds(node);
-    const buf = this.state[source].content;
-    let wsStart = nodeStart;
-    while (wsStart > 0 && /[ \t]/.test(buf.toString('utf8', wsStart - 1, wsStart))) {
-      wsStart -= 1;
-    }
-    return buf.toString('utf8', wsStart, nodeStart);
-  }
-
   results(): { [file in string]: string } {
     return mapValues(this.state, s => s.content.toString());
   }
