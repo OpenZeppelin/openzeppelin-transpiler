@@ -34,6 +34,7 @@ export interface TransformerTools {
 export interface TransformData {}
 
 interface TransformState {
+  id: number;
   ast: SourceUnit;
   transformations: Transformation[];
   shifts: Shift[];
@@ -74,6 +75,7 @@ export class Transform {
 
       const contentBuf = Buffer.from(s.content);
       this.state[source] = {
+        id: output.sources[source].id,
         ast: output.sources[source].ast,
         original: s.content,
         originalBuf: contentBuf,
@@ -104,8 +106,9 @@ export class Transform {
       };
 
       for (const t of transform(ast, tools)) {
-        const { content, shifts, transformations } = this.state[source];
-        insertSortedAndValidate(transformations, t);
+        const { id, content, shifts, transformations } = this.state[source];
+        const error = (byteIndex: number, msg: string) => this.error({ src: `${byteIndex}:0:${id}` }, msg);
+        insertSortedAndValidate(transformations, t, error);
 
         const { result, shift } = applyTransformation(t, content, shifts, this);
 
@@ -160,11 +163,9 @@ export class Transform {
     return shiftBounds(shifts, bounds);
   }
 
-  error(node: Node, msg: string): Error {
+  error(node: WithSrc, msg: string): Error {
     const { source, start } = this.decodeSrc(node.src);
-    const line =
-      1 +
-      [...this.state[source].originalBuf.slice(0, start).toString('utf8').matchAll(/\n/g)].length;
+    const line = byteToLineNumber(this.state[source].originalBuf, start);
     const error = new Error(`${msg} (${source}:${line})`);
     Error.captureStackTrace(error, this.error); // capture stack trace without this function
     return error;
@@ -200,14 +201,17 @@ export class Transform {
   }
 }
 
-function insertSortedAndValidate(transformations: Transformation[], t: Transformation): void {
+function insertSortedAndValidate(transformations: Transformation[], t: Transformation, error: (byteIndex: number, msg: string) => Error): void {
   transformations.push(t);
   transformations.sort(compareTransformations); // checks for overlaps
   for (let i = transformations.indexOf(t) + 1; i < transformations.length; i += 1) {
     const s = transformations[i];
     const c = compareContainment(t, s);
     if (typeof c === 'number' && c < 0) {
-      throw new Error(`A bigger area has already been transformed (${s.kind} > ${t.kind})`);
+      throw error(s.start, `A bigger area has already been transformed (${s.kind} > ${t.kind})`);
     }
   }
+}
+function byteToLineNumber(buf: Buffer, byteIndex: number): number {
+  return 1 + [...buf.slice(0, byteIndex).toString('utf8').matchAll(/\n/g)].length;
 }
