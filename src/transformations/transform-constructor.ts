@@ -82,10 +82,7 @@ export function* removeLeftoverConstructorHead(sourceUnit: SourceUnit): Generato
 // This: constructor(uint a) /* modifiers */ public
 // Results in: constructor(uint a) /* modifiers */ public { function __Name_init(uint a) /* modifiers */
 export function transformConstructor(isNamespaced?: (source: string) => boolean) {
-  return function* (
-    sourceUnit: SourceUnit,
-    tools: TransformerTools,
-  ): Generator<Transformation> {
+  return function* (sourceUnit: SourceUnit, tools: TransformerTools): Generator<Transformation> {
     const { resolver, getData } = tools;
 
     const useNamespaces = isNamespaced?.(sourceUnit.absolutePath) ?? false;
@@ -105,8 +102,7 @@ export function transformConstructor(isNamespaced?: (source: string) => boolean)
 
       const namespace = getNamespaceStructName(name);
       const constructorUsesStorage =
-        constructorNode !== undefined &&
-        usesStorageVariables(constructorNode, resolver);
+        constructorNode !== undefined && usesStorageVariables(constructorNode, resolver);
 
       const initializer = (
         helper: TransformHelper,
@@ -140,7 +136,10 @@ export function transformConstructor(isNamespaced?: (source: string) => boolean)
             if (createdContract) {
               getData(createdContract).isUsedInNewStatement = true;
             }
-            return `${prefix}${v.name} = ${newCall(helper)};\n        ${initializeCall(v.name, helper)};`;
+            return `${prefix}${v.name} = ${newCall(helper)};\n        ${initializeCall(
+              v.name,
+              helper,
+            )};`;
           }
         }),
         `}`,
@@ -175,16 +174,13 @@ export function transformConstructor(isNamespaced?: (source: string) => boolean)
         };
       }
     }
-  }
+  };
 }
 
 function usesStorageVariables(fnDef: FunctionDefinition, resolver: ASTResolver): boolean {
   if (fnDef.body) {
     for (const ref of findAll('Identifier', fnDef.body)) {
-      const varDecl = resolver.tryResolveNode(
-        'VariableDeclaration',
-        ref.referencedDeclaration!,
-      );
+      const varDecl = resolver.tryResolveNode('VariableDeclaration', ref.referencedDeclaration!);
       if (varDecl && isStorageVariable(varDecl, resolver)) {
         return true;
       }

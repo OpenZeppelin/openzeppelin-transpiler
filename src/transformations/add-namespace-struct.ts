@@ -29,7 +29,10 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
       const storageVars: VariableDeclaration[] = [];
 
       for (const n of contract.nodes) {
-        if (n.nodeType === 'VariableDeclaration' && (storageVars.length > 0 || isStorageVariable(n, resolver))) {
+        if (
+          n.nodeType === 'VariableDeclaration' &&
+          (storageVars.length > 0 || isStorageVariable(n, resolver))
+        ) {
           if (finished) {
             throw error(n, 'All variables in the contract must be contiguous');
           }
@@ -159,5 +162,5 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
         }
       }
     }
-  }
+  };
 }

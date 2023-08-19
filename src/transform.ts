@@ -107,7 +107,8 @@ export class Transform {
 
       for (const t of transform(ast, tools)) {
         const { id, content, shifts, transformations } = this.state[source];
-        const error = (byteIndex: number, msg: string) => this.error({ src: `${byteIndex}:0:${id}` }, msg);
+        const error = (byteIndex: number, msg: string) =>
+          this.error({ src: `${byteIndex}:0:${id}` }, msg);
         insertSortedAndValidate(transformations, t, error);
 
         const { result, shift } = applyTransformation(t, content, shifts, this);
@@ -201,7 +202,11 @@ export class Transform {
   }
 }
 
-function insertSortedAndValidate(transformations: Transformation[], t: Transformation, error: (byteIndex: number, msg: string) => Error): void {
+function insertSortedAndValidate(
+  transformations: Transformation[],
+  t: Transformation,
+  error: (byteIndex: number, msg: string) => Error,
+): void {
   transformations.push(t);
   transformations.sort(compareTransformations); // checks for overlaps
   for (let i = transformations.indexOf(t) + 1; i < transformations.length; i += 1) {
