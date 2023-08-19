@@ -11,7 +11,7 @@ import { findAlreadyInitializable } from './find-already-initializable';
 
 async function getPaths() {
   const hardhat = require.resolve('hardhat', { paths: [process.cwd()] });
-  const hre: HardhatRuntimeEnvironment = await import(hardhat);
+  const hre: HardhatRuntimeEnvironment = (await import(hardhat)).default;
   return hre.config.paths;
 }
 
