@@ -11,6 +11,9 @@ import { formatLines } from './utils/format-lines';
 import { hasConstructorOverride } from '../utils/upgrades-overrides';
 import { getInitializerItems } from './utils/get-initializer-items';
 import { parseNewExpression } from '../utils/new-expression';
+import { getNamespaceStructName } from './add-namespace-struct';
+import { ASTResolver } from '../ast-resolver';
+import { isStorageVariable } from './utils/is-storage-variable';
 
 function getArgsList(constructor: FunctionDefinition, helper: TransformHelper): string {
   return helper.read(constructor.parameters).replace(/^\((.*)\)$/s, '$1');
@@ -78,86 +81,114 @@ export function* removeLeftoverConstructorHead(sourceUnit: SourceUnit): Generato
 // and must run removeLeftoverConstructorHead after. For example
 // This: constructor(uint a) /* modifiers */ public
 // Results in: constructor(uint a) /* modifiers */ public { function __Name_init(uint a) /* modifiers */
-export function* transformConstructor(
-  sourceUnit: SourceUnit,
-  tools: TransformerTools,
-): Generator<Transformation> {
-  const { resolver, getData } = tools;
+export function transformConstructor(namespaced?: (source: string) => boolean) {
+  return function* (
+    sourceUnit: SourceUnit,
+    tools: TransformerTools,
+  ): Generator<Transformation> {
+    const { resolver, getData } = tools;
 
-  for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
-    if (contractNode.contractKind !== 'contract' || hasConstructorOverride(contractNode)) {
-      continue;
-    }
+    const namespaces = namespaced?.(sourceUnit.absolutePath) ?? false;
 
-    const { name } = contractNode;
-    const {
-      constructorNode,
-      varInitNodes,
-      modifiers,
-      emptyUnchained: emptyConstructor,
-    } = getInitializerItems(contractNode, resolver);
+    for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
+      if (contractNode.contractKind !== 'contract' || hasConstructorOverride(contractNode)) {
+        continue;
+      }
 
-    const initializer = (
-      helper: TransformHelper,
-      argsList = '',
-      unchainedArgsList = '',
-      argNames: string[] = [],
-    ) => [
-      `function __${name}_init(${argsList}) internal onlyInitializing {`,
-      buildSuperCallsForChain(contractNode, tools, helper),
-      emptyConstructor ? [] : [`__${name}_init_unchained(${argNames.join(', ')});`],
-      `}`,
-      ``,
-      [
-        `function`,
-        `__${name}_init_unchained(${unchainedArgsList})`,
-        `internal onlyInitializing`,
-        ...modifiers.map(m => helper.read(m)),
-        `{`,
-      ].join(' '),
-      varInitNodes.map(v => {
-        const newExpr = parseNewExpression(v.value!);
-        if (!newExpr) {
-          return `${v.name} = ${helper.read(v.value!)};`;
-        } else {
-          const { typeName, newCall, initializeCall } = newExpr;
-          const createdContract = resolver.resolveContract(typeName.referencedDeclaration);
-          if (createdContract) {
-            getData(createdContract).isUsedInNewStatement = true;
+      const { name } = contractNode;
+      const {
+        constructorNode,
+        varInitNodes,
+        modifiers,
+        emptyUnchained: emptyConstructor,
+      } = getInitializerItems(contractNode, resolver);
+
+      const namespace = getNamespaceStructName(name);
+      const constructorUsesStorage =
+        constructorNode !== undefined &&
+        usesStorageVariables(constructorNode, resolver);
+
+      const initializer = (
+        helper: TransformHelper,
+        argsList = '',
+        unchainedArgsList = '',
+        argNames: string[] = [],
+      ) => [
+        `function __${name}_init(${argsList}) internal onlyInitializing {`,
+        buildSuperCallsForChain(contractNode, tools, helper),
+        emptyConstructor ? [] : [`__${name}_init_unchained(${argNames.join(', ')});`],
+        `}`,
+        ``,
+        [
+          `function`,
+          `__${name}_init_unchained(${unchainedArgsList})`,
+          `internal onlyInitializing`,
+          ...modifiers.map(m => helper.read(m)),
+          `{`,
+        ].join(' '),
+        namespaced && varInitNodes.length > 0 && !constructorUsesStorage
+          ? [`${namespace} storage $ = _get${namespace}();`]
+          : [],
+        varInitNodes.map(v => {
+          const prefix = namespaced ? '$.' : '';
+          const newExpr = parseNewExpression(v.value!);
+          if (!newExpr) {
+            return `${prefix}${v.name} = ${helper.read(v.value!)};`;
+          } else {
+            const { typeName, newCall, initializeCall } = newExpr;
+            const createdContract = resolver.resolveContract(typeName.referencedDeclaration);
+            if (createdContract) {
+              getData(createdContract).isUsedInNewStatement = true;
+            }
+            return `${prefix}${v.name} = ${newCall(helper)};\n        ${initializeCall(v.name, helper)};`;
           }
-          return `${v.name} = ${newCall(helper)};\n        ${initializeCall(v.name, helper)};`;
-        }
-      }),
-      `}`,
-    ];
+        }),
+        `}`,
+      ];
 
-    if (constructorNode) {
-      const { start: bodyStart } = getNodeBounds(constructorNode.body!);
-      const argNames = constructorNode.parameters.parameters.map(p => p.name);
+      if (constructorNode) {
+        const { start: bodyStart } = getNodeBounds(constructorNode.body!);
+        const argNames = constructorNode.parameters.parameters.map(p => p.name);
 
-      yield {
-        start: bodyStart + 1,
-        length: 0,
-        kind: 'transform-constructor',
-        transform: (_, helper) => {
-          const argsList = getArgsList(constructorNode, helper);
-          const unchainedArgsList = getUnchainedArguments(constructorNode, helper, modifiers);
+        yield {
+          start: bodyStart + 1,
+          length: 0,
+          kind: 'transform-constructor',
+          transform: (_, helper) => {
+            const argsList = getArgsList(constructorNode, helper);
+            const unchainedArgsList = getUnchainedArguments(constructorNode, helper, modifiers);
 
-          return formatLines(
-            1,
-            initializer(helper, argsList, unchainedArgsList, argNames).slice(0, -1),
-          ).trim();
-        },
-      };
-    } else {
-      const start = newFunctionPosition(contractNode, tools);
+            return formatLines(
+              1,
+              initializer(helper, argsList, unchainedArgsList, argNames).slice(0, -1),
+            ).trim();
+          },
+        };
+      } else {
+        const start = newFunctionPosition(contractNode, tools);
 
-      yield {
-        start,
-        length: 0,
-        kind: 'transform-constructor',
-        transform: (source, helper) => formatLines(1, initializer(helper)),
-      };
+        yield {
+          start,
+          length: 0,
+          kind: 'transform-constructor',
+          transform: (source, helper) => formatLines(1, initializer(helper)),
+        };
+      }
     }
   }
+}
+
+function usesStorageVariables(fnDef: FunctionDefinition, resolver: ASTResolver): boolean {
+  if (fnDef.body) {
+    for (const ref of findAll('Identifier', fnDef.body)) {
+      const varDecl = resolver.tryResolveNode(
+        'VariableDeclaration',
+        ref.referencedDeclaration!,
+      );
+      if (varDecl && isStorageVariable(varDecl, resolver)) {
+        return true;
+      }
+    }
+  }
+  return false;
 }

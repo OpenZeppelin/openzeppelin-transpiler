@@ -7,7 +7,6 @@ import { matchBufferFrom } from '../../utils/match';
 export function newFunctionPosition(
   contract: ContractDefinition,
   { readOriginal }: TransformerTools,
-  newline = true,
 ): number {
   const offset = getNodeBounds(contract).start;
   let searchStart = 0;
@@ -18,7 +17,7 @@ export function newFunctionPosition(
     searchStart = pb.start + pb.length - offset;
   }
 
-  const re = newline ? /\{\n?/ : /\{/;
+  const re = /\{\n?/;
   const brace = matchBufferFrom(readOriginal(contract, 'buffer'), re, searchStart);
 
   if (!brace) {

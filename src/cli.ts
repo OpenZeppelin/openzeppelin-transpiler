@@ -23,6 +23,7 @@ interface Options {
   exclude: string[];
   publicInitializers: string[];
   namespaced: boolean;
+  namespaceExclude: string[];
 }
 
 function readCommandFlags(resolveRootRelative: (p: string) => string): Options {
@@ -34,12 +35,14 @@ function readCommandFlags(resolveRootRelative: (p: string) => string): Options {
     x: exclude = [],
     W: skipWithInit = false,
     n: namespaced = false,
+    N: namespaceExclude = [],
   } = minimist(process.argv.slice(2));
   return {
     buildInfo,
     deleteOriginals,
     skipWithInit,
     namespaced,
+    namespaceExclude: ensureArray(namespaceExclude).map(resolveRootRelative),
     initializablePath: initializablePath && resolveRootRelative(initializablePath),
     publicInitializers: ensureArray(publicInitializers).map(resolveRootRelative),
     exclude: ensureArray(exclude).map(p =>

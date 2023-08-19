@@ -7,7 +7,7 @@
     "moduleResolution": "Node",
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "target": "es2020",
+    "target": "es2022",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,

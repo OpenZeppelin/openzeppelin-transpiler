@@ -5,7 +5,9 @@ import { getBuildInfo } from './test-utils/get-build-info';
 import { SolcInput, SolcOutput } from './solc/input-output';
 import { Transform } from './transform';
 
+import { removeStateVarInits } from './transformations/purge-var-inits';
 import { addNamespaceStruct } from './transformations/add-namespace-struct';
+import { transformConstructor } from './transformations/transform-constructor';
 
 const test = _test as TestFn<Context>;
 
@@ -28,6 +30,8 @@ test.beforeEach('transform', async t => {
 
 test('add namespace', t => {
   const file = 'contracts/namespaces.sol';
-  t.context.transform.apply(addNamespaceStruct);
+  t.context.transform.apply(transformConstructor(() => true));
+  t.context.transform.apply(removeStateVarInits);
+  t.context.transform.apply(addNamespaceStruct(() => true));
   t.snapshot(t.context.transform.results()[file]);
 });

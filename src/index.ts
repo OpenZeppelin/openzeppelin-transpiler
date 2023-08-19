@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { mapValues } from 'lodash';
+import minimatch from 'minimatch';
 
 import { matcher } from './utils/matcher';
 import { renamePath, isRenamed } from './rename';
@@ -45,6 +46,7 @@ interface TranspileOptions {
   solcVersion?: string;
   skipWithInit?: boolean;
   namespaced?: boolean;
+  namespaceExclude?: string[];
 }
 
 function getExtraOutputPaths(
@@ -78,6 +80,12 @@ export async function transpile(
   const excludeSet = new Set([...alreadyInitializable, ...Object.values(outputPaths)]);
   const excludeMatch = matcher(options?.exclude ?? []);
 
+  const namespaceInclude = (source: string) => {
+    const namespaced = options?.namespaced ?? false;
+    const namespaceExclude = options?.namespaceExclude ?? [];
+    return namespaced && !namespaceExclude.some(p => minimatch(source, p));
+  };
+
   const transform = new Transform(solcInput, solcOutput, {
     exclude: source => excludeSet.has(source) || (excludeMatch(source) ?? isRenamed(source)),
   });
@@ -89,7 +97,7 @@ export async function transpile(
   transform.apply(fixImportDirectives);
   transform.apply(appendInitializableImport(outputPaths.initializable));
   transform.apply(fixNewStatement);
-  transform.apply(transformConstructor);
+  transform.apply(transformConstructor(namespaceInclude));
   transform.apply(removeLeftoverConstructorHead);
   transform.apply(addRequiredPublicInitializer(options?.publicInitializers));
   transform.apply(removeInheritanceListArguments);
@@ -97,7 +105,7 @@ export async function transpile(
   transform.apply(removeImmutable);
 
   if (options?.namespaced) {
-    transform.apply(addNamespaceStruct);
+    transform.apply(addNamespaceStruct(namespaceInclude));
   } else {
     transform.apply(addStorageGaps);
   }
