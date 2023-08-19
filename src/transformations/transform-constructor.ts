@@ -81,14 +81,14 @@ export function* removeLeftoverConstructorHead(sourceUnit: SourceUnit): Generato
 // and must run removeLeftoverConstructorHead after. For example
 // This: constructor(uint a) /* modifiers */ public
 // Results in: constructor(uint a) /* modifiers */ public { function __Name_init(uint a) /* modifiers */
-export function transformConstructor(namespaced?: (source: string) => boolean) {
+export function transformConstructor(isNamespaced?: (source: string) => boolean) {
   return function* (
     sourceUnit: SourceUnit,
     tools: TransformerTools,
   ): Generator<Transformation> {
     const { resolver, getData } = tools;
 
-    const namespaces = namespaced?.(sourceUnit.absolutePath) ?? false;
+    const useNamespaces = isNamespaced?.(sourceUnit.absolutePath) ?? false;
 
     for (const contractNode of findAll('ContractDefinition', sourceUnit)) {
       if (contractNode.contractKind !== 'contract' || hasConstructorOverride(contractNode)) {
@@ -126,11 +126,11 @@ export function transformConstructor(namespaced?: (source: string) => boolean) {
           ...modifiers.map(m => helper.read(m)),
           `{`,
         ].join(' '),
-        namespaced && varInitNodes.length > 0 && !constructorUsesStorage
+        useNamespaces && varInitNodes.length > 0 && !constructorUsesStorage
           ? [`${namespace} storage $ = _get${namespace}();`]
           : [],
         varInitNodes.map(v => {
-          const prefix = namespaced ? '$.' : '';
+          const prefix = useNamespaces ? '$.' : '';
           const newExpr = parseNewExpression(v.value!);
           if (!newExpr) {
             return `${prefix}${v.name} = ${helper.read(v.value!)};`;
