@@ -174,23 +174,48 @@ export class Transform {
 
   getRealEndIndex(node: Node): number {
     const { source, start, length } = this.decodeSrc(node.src);
+    const buf = this.state[source].originalBuf;
+
+    let end: number | undefined;
+
     if (node.nodeType !== 'VariableDeclaration') {
-      return start + length;
+      end = start + length;
     } else {
-      // VariableDeclaration node bounds don't include the semicolon
-      const buf = this.state[source].originalBuf;
-      let index = start + length;
-      while (index < buf.length) {
-        const c = buf.toString('utf8', index, index + 1);
+      // VariableDeclaration node bounds don't include the semicolon so we manually look for it
+      for (let i = start + length; i < buf.length; i++) {
+        const c = buf.toString('utf8', i, i + 1);
         if (c === ';') {
-          return index;
+          end = i;
+          break;
         } else if (/\S/.test(c)) {
           throw this.error(node, 'Found unexpected content before semicolon');
         }
-        index += 1;
       }
-      throw this.error(node, 'could not find end of node');
+      if (end === undefined) {
+        throw this.error(node, 'could not find end of node');
+      }
     }
+
+    let foundComment = false;
+
+    for (let i = end + 1; i < buf.length; i++) {
+      // look ahead 2 bytes to search for '//'
+      const next = buf.toString('utf8', i, i + 2);
+      if (foundComment) {
+        if (/[^\n\r]/.test(next[0])) {
+          end = i;
+        } else {
+          break;
+        }
+      } else if (next === '//') {
+        end = i + 1;
+        foundComment = true;
+      } else if (/[^ \t]/.test(next[0])) {
+        break;
+      }
+    }
+
+    return end;
   }
 
   results(): { [file in string]: string } {

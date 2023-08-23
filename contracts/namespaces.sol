@@ -44,3 +44,10 @@ contract C5 {
 
 contract C6 {
 }
+
+contract C7 {
+    uint x; // a comment
+
+    uint y;
+    // a separate comment
+}
