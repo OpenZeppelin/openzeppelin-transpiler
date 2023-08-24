@@ -17,8 +17,7 @@ export function newFunctionPosition(
     searchStart = pb.start + pb.length - offset;
   }
 
-  const re = /\{\n?/;
-  const brace = matchBufferFrom(readOriginal(contract, 'buffer'), re, searchStart);
+  const brace = matchBufferFrom(readOriginal(contract, 'buffer'), /\{\n?/, searchStart);
 
   if (!brace) {
     throw new Error(`Can't find start of contract ${contract.name}`);
