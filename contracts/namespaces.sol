@@ -51,3 +51,12 @@ contract C7 {
     uint y;
     // a separate comment
 }
+
+contract C8 {
+    address private x;
+    address private y = address(this);
+
+    constructor() {
+        x = msg.sender;
+    }
+}
