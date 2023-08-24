@@ -125,21 +125,21 @@ export function transformConstructor(isNamespaced?: (source: string) => boolean)
         useNamespaces && varInitNodes.length > 0 && !constructorUsesStorage
           ? [`${namespace} storage $ = _get${namespace}();`]
           : [],
-        varInitNodes.map(v => {
+        varInitNodes.flatMap(v => {
           const prefix = useNamespaces ? '$.' : '';
           const newExpr = parseNewExpression(v.value!);
           if (!newExpr) {
-            return `${prefix}${v.name} = ${helper.read(v.value!)};`;
+            return [`${prefix}${v.name} = ${helper.read(v.value!)};`];
           } else {
             const { typeName, newCall, initializeCall } = newExpr;
             const createdContract = resolver.resolveContract(typeName.referencedDeclaration);
             if (createdContract) {
               getData(createdContract).isUsedInNewStatement = true;
             }
-            return `${prefix}${v.name} = ${newCall(helper)};\n        ${initializeCall(
-              v.name,
-              helper,
-            )};`;
+            return [
+              `${prefix}${v.name} = ${newCall(helper)};`,
+              `${initializeCall(v.name, helper)};`,
+            ];
           }
         }),
         `}`,
