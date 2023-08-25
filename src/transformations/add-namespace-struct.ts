@@ -50,37 +50,37 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
         }
       }
 
-      for (const [s, v] of nonStorageVars) {
-        const bounds = { start: s, length: getRealEndIndex(v) + 1 - s };
-        let removed = '';
-
-        yield {
-          kind: 'relocate-nonstorage-var-remove',
-          ...bounds,
-          transform: source => {
-            removed = source;
-            return '';
-          },
-        };
-
-        yield {
-          kind: 'relocate-nonstorage-var-reinsert',
-          start,
-          length: 0,
-          text: removed,
-        };
-      }
-
-      if (nonStorageVars.length > 0) {
-        yield {
-          kind: 'relocate-nonstorage-var-newline',
-          start,
-          length: 0,
-          text: '\n',
-        };
-      }
-
       if (storageVars.length > 0) {
+        for (const [s, v] of nonStorageVars) {
+          const bounds = { start: s, length: getRealEndIndex(v) + 1 - s };
+          let removed = '';
+
+          yield {
+            kind: 'relocate-nonstorage-var-remove',
+            ...bounds,
+            transform: source => {
+              removed = source;
+              return '';
+            },
+          };
+
+          yield {
+            kind: 'relocate-nonstorage-var-reinsert',
+            start,
+            length: 0,
+            text: removed,
+          };
+        }
+
+        if (nonStorageVars.length > 0) {
+          yield {
+            kind: 'relocate-nonstorage-var-newline',
+            start,
+            length: 0,
+            text: '\n',
+          };
+        }
+
         for (const v of storageVars) {
           const { start, length } = getNodeBounds(v);
           yield {
