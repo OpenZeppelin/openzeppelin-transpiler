@@ -3,10 +3,10 @@ import { findAll } from 'solidity-ast/utils';
 import { getNodeBounds } from '../solc/ast-utils';
 import { TransformerTools } from '../transform';
 import { Transformation } from './type';
-import { newFunctionPosition } from './utils/new-function-position';
 import { formatLines } from './utils/format-lines';
 import { isStorageVariable } from './utils/is-storage-variable';
 import { erc7201Location } from '../utils/erc7201';
+import { contractStartPosition } from './utils/contract-start-position';
 import { Node } from 'solidity-ast/node';
 
 export function getNamespaceStructName(contractName: string): string {
@@ -22,7 +22,7 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
     const { error, resolver } = tools;
 
     for (const contract of findAll('ContractDefinition', sourceUnit)) {
-      let start = newFunctionPosition(contract, tools);
+      let start = contractStartPosition(contract, tools);
 
       let finished = false;
 
