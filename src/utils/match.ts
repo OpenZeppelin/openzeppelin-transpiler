@@ -26,7 +26,9 @@ function matchWithFlags(
   if (m) {
     const start = index + Buffer.from(str.slice(0, m.index), 'utf8').length;
     const length = Buffer.from(str.slice(m.index, m.index + m[0].length), 'utf8').length;
-    const captureLengths = m.slice(1).map(c => c === undefined ? c : Buffer.from(c, 'utf8').length);
+    const captureLengths = m
+      .slice(1)
+      .map(c => (c === undefined ? c : Buffer.from(c, 'utf8').length));
     return { start, length, captureLengths };
   }
 }

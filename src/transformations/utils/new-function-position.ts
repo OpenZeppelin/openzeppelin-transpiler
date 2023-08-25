@@ -1,15 +1,10 @@
 import { ContractDefinition } from 'solidity-ast';
 
 import { TransformerTools } from '../../transform';
-import { getNodeBounds } from '../../solc/ast-utils';
-import { matchBufferFrom } from '../../utils/match';
 import { isNodeType } from 'solidity-ast/utils';
 import { contractStartPosition } from './contract-start-position';
 
-export function newFunctionPosition(
-  contract: ContractDefinition,
-  tools: TransformerTools,
-): number {
+export function newFunctionPosition(contract: ContractDefinition, tools: TransformerTools): number {
   const firstFunctionIndex = contract.nodes.findIndex(isNodeType('FunctionDefinition'));
 
   if (firstFunctionIndex <= 0) {
