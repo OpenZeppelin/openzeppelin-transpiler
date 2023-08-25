@@ -28,6 +28,8 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
       const nonStorageVars: [number, VariableDeclaration][] = [];
       const storageVars: VariableDeclaration[] = [];
 
+      // We look for the start of the source code block in the contract
+      // where variables are written
       for (const n of contract.nodes) {
         if (
           n.nodeType === 'VariableDeclaration' &&
@@ -44,13 +46,19 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
             storageVars.push(n);
           }
         } else if (storageVars.length > 0) {
+          // We've seen storage variables before and the current node is not a
+          // variable, so we consider the block to have finished
           finished = true;
         } else {
+          // We haven't found storage variables yet. We assume the block of
+          // variables will start after the current node
           start = getRealEndIndex(n) + 1;
         }
       }
 
       if (storageVars.length > 0) {
+        // We first move non-storage variables from their location to the beginning of
+        // the block, so they are excluded from the namespace struct
         for (const [s, v] of nonStorageVars) {
           const bounds = { start: s, length: getRealEndIndex(v) + 1 - s };
           let removed = '';
@@ -101,9 +109,11 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
           start,
           length: end - start,
           transform: source => {
-            const [, leading, rest] = source.match(/^((?:[ \t\v\f]*[\n\r]+)*)(.*)$/s)!;
+            // We extract the newlines at the beginning of the block so we can leave
+            // them outside of the struct definition
+            const [, leadingNewlines, rest] = source.match(/^((?:[ \t\v\f]*[\n\r])*)(.*)$/s)!;
             return (
-              leading +
+              leadingNewlines +
               formatLines(1, [
                 `/// @custom:storage-location erc7201:${id}`,
                 `struct ${namespace} {`,
