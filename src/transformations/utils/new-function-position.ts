@@ -3,25 +3,22 @@ import { ContractDefinition } from 'solidity-ast';
 import { TransformerTools } from '../../transform';
 import { getNodeBounds } from '../../solc/ast-utils';
 import { matchBufferFrom } from '../../utils/match';
+import { isNodeType } from 'solidity-ast/utils';
+import { contractStartPosition } from './contract-start-position';
 
 export function newFunctionPosition(
   contract: ContractDefinition,
-  { readOriginal }: TransformerTools,
+  tools: TransformerTools,
 ): number {
-  const offset = getNodeBounds(contract).start;
-  let searchStart = 0;
+  const firstFunctionIndex = contract.nodes.findIndex(isNodeType('FunctionDefinition'));
 
-  if (contract.baseContracts.length > 0) {
-    const [lastParent] = contract.baseContracts.slice(-1);
-    const pb = getNodeBounds(lastParent);
-    searchStart = pb.start + pb.length - offset;
+  if (firstFunctionIndex <= 0) {
+    return contractStartPosition(contract, tools);
+  } else {
+    const prevNode = contract.nodes[firstFunctionIndex - 1];
+    // VariableDeclaration node bounds don't include the semicolon, so we look for it
+    // in case prevNode is that type of node
+    const m = tools.matchOriginalAfter(prevNode, /(\s*;)?([ \t\v\f]*[\n\r])*/)!;
+    return m.start + m.length;
   }
-
-  const brace = matchBufferFrom(readOriginal(contract, 'buffer'), /\{\n?/, searchStart);
-
-  if (!brace) {
-    throw new Error(`Can't find start of contract ${contract.name}`);
-  }
-
-  return offset + brace.start + brace.length;
 }
