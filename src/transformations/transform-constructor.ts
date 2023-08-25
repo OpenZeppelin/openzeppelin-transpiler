@@ -122,9 +122,13 @@ export function transformConstructor(isNamespaced?: (source: string) => boolean)
           ...modifiers.map(m => helper.read(m)),
           `{`,
         ].join(' '),
-        useNamespaces && varInitNodes.length > 0 && !constructorUsesStorage
+
+        // To correctly place the namespace variable before variable initilaization
+        // nodes, for the constructor it must be emitted here rather than in addNamespaceStruct
+        useNamespaces && (varInitNodes.length > 0 || constructorUsesStorage)
           ? [`${namespace} storage $ = _get${namespace}();`]
           : [],
+
         varInitNodes.flatMap(v => {
           const prefix = useNamespaces ? '$.' : '';
           const newExpr = parseNewExpression(v.value!);

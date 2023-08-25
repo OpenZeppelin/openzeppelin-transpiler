@@ -149,7 +149,8 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
               }
             }
 
-            if (foundReferences) {
+            if (fnDef.kind !== 'constructor' && foundReferences) {
+              // The constructor is handled in transformConstructor
               const { start: fnBodyStart } = getNodeBounds(fnDef.body);
               yield {
                 kind: 'add-namespace-base-ref',
