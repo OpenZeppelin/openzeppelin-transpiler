@@ -7,7 +7,10 @@ import { Transform } from './transform';
 
 import { removeStateVarInits } from './transformations/purge-var-inits';
 import { addNamespaceStruct } from './transformations/add-namespace-struct';
-import { removeLeftoverConstructorHead, transformConstructor } from './transformations/transform-constructor';
+import {
+  removeLeftoverConstructorHead,
+  transformConstructor,
+} from './transformations/transform-constructor';
 
 const test = _test as TestFn<Context>;
 
