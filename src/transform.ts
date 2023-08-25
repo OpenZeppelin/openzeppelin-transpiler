@@ -11,7 +11,7 @@ import { applyTransformation } from './transformations/apply';
 import { compareTransformations, compareContainment } from './transformations/compare';
 import { Bounds, Transformation, WithSrc } from './transformations/type';
 import { ASTResolver } from './ast-resolver';
-import { matchBufferAt } from './utils/match';
+import { ByteMatch, matchBufferAt } from './utils/match';
 
 type Transformer = (sourceUnit: SourceUnit, tools: TransformerTools) => Generator<Transformation>;
 
@@ -24,11 +24,11 @@ export interface TransformerTools {
   originalSource: string;
   originalSourceBuf: Buffer;
   readOriginal: ReadOriginal;
+  matchOriginalAfter: (node: Node, re: RegExp) => ByteMatch | undefined;
   resolver: ASTResolver;
   getData: (node: Node) => Partial<TransformData>;
   getLayout: LayoutGetter;
   error: (node: Node, msg: string) => Error;
-  getRealEndIndex: (node: Node) => number;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -94,7 +94,7 @@ export class Transform {
       const readOriginal = this.readOriginal.bind(this);
       const getData = this.getData.bind(this);
       const error = this.error.bind(this);
-      const getRealEndIndex = this.getRealEndIndex.bind(this);
+      const matchOriginalAfter = this.matchOriginalAfter.bind(this);
       const tools: TransformerTools = {
         originalSource,
         originalSourceBuf,
@@ -103,7 +103,7 @@ export class Transform {
         getData,
         getLayout,
         error,
-        getRealEndIndex,
+        matchOriginalAfter,
       };
 
       for (const t of transform(ast, tools)) {
@@ -173,28 +173,10 @@ export class Transform {
     return error;
   }
 
-  getRealEndIndex(node: Node): number {
+  matchOriginalAfter(node: Node, re: RegExp): ByteMatch | undefined {
     const { source, start, length } = this.decodeSrc(node.src);
     const buf = this.state[source].originalBuf;
-
-    let end = start + length - 1;
-
-    if (node.nodeType === 'VariableDeclaration') {
-      // VariableDeclaration node bounds don't include the semicolon so we manually look for it
-      const semicolonMatch = matchBufferAt(buf, /\s*;/, end + 1);
-      if (semicolonMatch === undefined) {
-        throw this.error(node, 'Could not find end of node');
-      }
-      end += semicolonMatch.length;
-    }
-
-    const commentMatch = matchBufferAt(buf, /[ \t]*\/\/.*/, end + 1);
-
-    if (commentMatch) {
-      end += commentMatch.length;
-    }
-
-    return end;
+    return matchBufferAt(buf, re, start + length);
   }
 
   results(): { [file in string]: string } {

@@ -7,6 +7,7 @@ import { newFunctionPosition } from './utils/new-function-position';
 import { formatLines } from './utils/format-lines';
 import { isStorageVariable } from './utils/is-storage-variable';
 import { erc7201Location } from '../utils/erc7201';
+import { Node } from 'solidity-ast/node';
 
 export function getNamespaceStructName(contractName: string): string {
   return contractName + 'Storage';
@@ -18,7 +19,7 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
       return;
     }
 
-    const { error, resolver, getRealEndIndex } = tools;
+    const { error, resolver } = tools;
 
     for (const contract of findAll('ContractDefinition', sourceUnit)) {
       let start = newFunctionPosition(contract, tools);
@@ -40,7 +41,7 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
           }
 
           if (!isStorageVariable(n, resolver)) {
-            const varStart = getRealEndIndex(storageVars.at(-1)!) + 1;
+            const varStart = getRealEndIndex(storageVars.at(-1)!, tools) + 1;
             nonStorageVars.push([varStart, n]);
           } else {
             storageVars.push(n);
@@ -52,7 +53,7 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
         } else {
           // We haven't found storage variables yet. We assume the block of
           // variables will start after the current node
-          start = getRealEndIndex(n) + 1;
+          start = getRealEndIndex(n, tools) + 1;
         }
       }
 
@@ -60,7 +61,7 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
         // We first move non-storage variables from their location to the beginning of
         // the block, so they are excluded from the namespace struct
         for (const [s, v] of nonStorageVars) {
-          const bounds = { start: s, length: getRealEndIndex(v) + 1 - s };
+          const bounds = { start: s, length: getRealEndIndex(v, tools) + 1 - s };
           let removed = '';
 
           yield {
@@ -102,7 +103,7 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
         const namespace = getNamespaceStructName(contract.name);
         const id = 'openzeppelin.storage.' + contract.name;
 
-        const end = getRealEndIndex(storageVars.at(-1)!) + 1;
+        const end = getRealEndIndex(storageVars.at(-1)!, tools) + 1;
 
         yield {
           kind: 'add-namespace-struct',
@@ -174,4 +175,12 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
       }
     }
   };
+}
+
+function getRealEndIndex(node: Node, tools: TransformerTools): number {
+  // VariableDeclaration node bounds don't include the semicolon, so we look for it,
+  // and include a comment if there is one after the node.
+  // This regex always matches at least the empty string.
+  const { start, length } = tools.matchOriginalAfter(node, /(\s*;)?([ \t]*\/\/[^\n\r]*)?/)!;
+  return start + length - 1;
 }
