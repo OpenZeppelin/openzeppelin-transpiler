@@ -243,5 +243,5 @@ function insertSortedAndValidate(
   }
 }
 function byteToLineNumber(buf: Buffer, byteIndex: number): number {
-  return 1 + [...buf.slice(0, byteIndex).toString('utf8').matchAll(/\n/g)].length;
+  return buf.slice(0, byteIndex).toString('utf8').split('\n').length;
 }
