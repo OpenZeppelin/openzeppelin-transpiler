@@ -11,6 +11,7 @@ import { applyTransformation } from './transformations/apply';
 import { compareTransformations, compareContainment } from './transformations/compare';
 import { Bounds, Transformation, WithSrc } from './transformations/type';
 import { ASTResolver } from './ast-resolver';
+import { matchBufferAt } from './utils/match';
 
 type Transformer = (sourceUnit: SourceUnit, tools: TransformerTools) => Generator<Transformation>;
 
@@ -176,43 +177,21 @@ export class Transform {
     const { source, start, length } = this.decodeSrc(node.src);
     const buf = this.state[source].originalBuf;
 
-    let end: number | undefined;
+    let end = start + length - 1;
 
-    if (node.nodeType !== 'VariableDeclaration') {
-      end = start + length;
-    } else {
+    if (node.nodeType === 'VariableDeclaration') {
       // VariableDeclaration node bounds don't include the semicolon so we manually look for it
-      for (let i = start + length; i < buf.length; i++) {
-        const c = buf.toString('utf8', i, i + 1);
-        if (c === ';') {
-          end = i;
-          break;
-        } else if (/\S/.test(c)) {
-          throw this.error(node, 'Found unexpected content before semicolon');
-        }
+      const semicolonMatch = matchBufferAt(buf, /\s*;/, end + 1);
+      if (semicolonMatch === undefined) {
+        throw this.error(node, 'Could not find end of node');
       }
-      if (end === undefined) {
-        throw this.error(node, 'could not find end of node');
-      }
+      end += semicolonMatch.length;
     }
 
-    let foundComment = false;
+    const commentMatch = matchBufferAt(buf, /[ \t]*\/\/.*/, end + 1);
 
-    for (let i = end + 1; i < buf.length; i++) {
-      // look ahead 2 bytes to search for '//'
-      const next = buf.toString('utf8', i, i + 2);
-      if (foundComment) {
-        if (/[^\n\r]/.test(next[0])) {
-          end = i;
-        } else {
-          break;
-        }
-      } else if (next === '//') {
-        end = i + 1;
-        foundComment = true;
-      } else if (/[^ \t]/.test(next[0])) {
-        break;
-      }
+    if (commentMatch) {
+      end += commentMatch.length;
     }
 
     return end;
