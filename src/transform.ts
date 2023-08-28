@@ -9,8 +9,9 @@ import { layoutGetter, LayoutGetter } from './solc/layout-getter';
 import { Shift, shiftBounds } from './shifts';
 import { applyTransformation } from './transformations/apply';
 import { compareTransformations, compareContainment } from './transformations/compare';
-import { Transformation, WithSrc } from './transformations/type';
+import { Bounds, Transformation, WithSrc } from './transformations/type';
 import { ASTResolver } from './ast-resolver';
+import { ByteMatch, matchBufferAt } from './utils/match';
 
 type Transformer = (sourceUnit: SourceUnit, tools: TransformerTools) => Generator<Transformation>;
 
@@ -23,15 +24,18 @@ export interface TransformerTools {
   originalSource: string;
   originalSourceBuf: Buffer;
   readOriginal: ReadOriginal;
+  matchOriginalAfter: (node: Node, re: RegExp) => ByteMatch | undefined;
   resolver: ASTResolver;
   getData: (node: Node) => Partial<TransformData>;
   getLayout: LayoutGetter;
+  error: (node: Node, msg: string) => Error;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface TransformData {}
 
 interface TransformState {
+  id: number;
   ast: SourceUnit;
   transformations: Transformation[];
   shifts: Shift[];
@@ -72,6 +76,7 @@ export class Transform {
 
       const contentBuf = Buffer.from(s.content);
       this.state[source] = {
+        id: output.sources[source].id,
         ast: output.sources[source].ast,
         original: s.content,
         originalBuf: contentBuf,
@@ -88,6 +93,8 @@ export class Transform {
       const { resolver, getLayout } = this;
       const readOriginal = this.readOriginal.bind(this);
       const getData = this.getData.bind(this);
+      const error = this.error.bind(this);
+      const matchOriginalAfter = this.matchOriginalAfter.bind(this);
       const tools: TransformerTools = {
         originalSource,
         originalSourceBuf,
@@ -95,11 +102,15 @@ export class Transform {
         readOriginal,
         getData,
         getLayout,
+        error,
+        matchOriginalAfter,
       };
 
       for (const t of transform(ast, tools)) {
-        const { content, shifts, transformations } = this.state[source];
-        insertSortedAndValidate(transformations, t);
+        const { id, content, shifts, transformations } = this.state[source];
+        const error = (byteIndex: number, msg: string) =>
+          this.error({ src: `${byteIndex}:0:${id}` }, msg);
+        insertSortedAndValidate(transformations, t, error);
 
         const { result, shift } = applyTransformation(t, content, shifts, this);
 
@@ -133,8 +144,15 @@ export class Transform {
   }
 
   read(node: WithSrc): string {
+    const { source } = this.decodeSrc(node.src);
+    const { content } = this.state[source];
+    const sb = this.getShiftedBounds(node);
+    return content.slice(sb.start, sb.start + sb.length).toString();
+  }
+
+  getShiftedBounds(node: WithSrc): Bounds {
     const { source, ...bounds } = this.decodeSrc(node.src);
-    const { shifts, transformations, content } = this.state[source];
+    const { shifts, transformations } = this.state[source];
 
     const incompatible = (t: Transformation) => {
       const c = compareContainment(t, bounds);
@@ -144,8 +162,21 @@ export class Transform {
       throw new Error(`Can't read from segment that has been partially transformed`);
     }
 
-    const sb = shiftBounds(shifts, bounds);
-    return content.slice(sb.start, sb.start + sb.length).toString();
+    return shiftBounds(shifts, bounds);
+  }
+
+  error(node: WithSrc, msg: string): Error {
+    const { source, start } = this.decodeSrc(node.src);
+    const line = byteToLineNumber(this.state[source].originalBuf, start);
+    const error = new Error(`${msg} (${source}:${line})`);
+    Error.captureStackTrace(error, this.error); // capture stack trace without this function
+    return error;
+  }
+
+  matchOriginalAfter(node: Node, re: RegExp): ByteMatch | undefined {
+    const { source, start, length } = this.decodeSrc(node.src);
+    const buf = this.state[source].originalBuf;
+    return matchBufferAt(buf, re, start + length);
   }
 
   results(): { [file in string]: string } {
@@ -157,14 +188,21 @@ export class Transform {
   }
 }
 
-function insertSortedAndValidate(transformations: Transformation[], t: Transformation): void {
+function insertSortedAndValidate(
+  transformations: Transformation[],
+  t: Transformation,
+  error: (byteIndex: number, msg: string) => Error,
+): void {
   transformations.push(t);
   transformations.sort(compareTransformations); // checks for overlaps
   for (let i = transformations.indexOf(t) + 1; i < transformations.length; i += 1) {
     const s = transformations[i];
     const c = compareContainment(t, s);
     if (typeof c === 'number' && c < 0) {
-      throw new Error(`A bigger area has already been transformed (${s.kind} > ${t.kind})`);
+      throw error(s.start, `A bigger area has already been transformed (${s.kind} > ${t.kind})`);
     }
   }
+}
+function byteToLineNumber(buf: Buffer, byteIndex: number): number {
+  return buf.slice(0, byteIndex).toString('utf8').split('\n').length;
 }

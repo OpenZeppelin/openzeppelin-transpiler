@@ -1,8 +1,7 @@
-import { SourceUnit, ContractDefinition, VariableDeclaration } from 'solidity-ast';
+import { SourceUnit, ContractDefinition } from 'solidity-ast';
 import { findAll, isNodeType } from 'solidity-ast/utils';
 
 import { formatLines } from './utils/format-lines';
-import { hasOverride } from '../utils/upgrades-overrides';
 import { getNodeBounds } from '../solc/ast-utils';
 import { StorageLayout } from '../solc/input-output';
 import { Transformation } from './type';
@@ -11,6 +10,7 @@ import { extractNatspec } from '../utils/extractNatspec';
 import { decodeTypeIdentifier } from '../utils/type-id';
 import { parseTypeId } from '../utils/parse-type-id';
 import { ASTResolver } from '../ast-resolver';
+import { isStorageVariable } from './utils/is-storage-variable';
 
 // By default, make the contract a total of 50 slots (storage + gap)
 const DEFAULT_SLOT_COUNT = 50;
@@ -58,17 +58,6 @@ export function* addStorageGaps(
         text,
       };
     }
-  }
-}
-
-function isStorageVariable(varDecl: VariableDeclaration, resolver: ASTResolver): boolean {
-  switch (varDecl.mutability) {
-    case 'constant':
-      return false;
-    case 'immutable':
-      return !hasOverride(varDecl, 'state-variable-immutable', resolver);
-    default:
-      return true;
   }
 }
 

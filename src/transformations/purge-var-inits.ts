@@ -5,6 +5,7 @@ import { TransformerTools } from '../transform';
 import { hasConstructorOverride, hasOverride } from '../utils/upgrades-overrides';
 
 import { Transformation } from './type';
+import { isStorageVariable } from './utils/is-storage-variable';
 
 export function* removeStateVarInits(
   sourceUnit: SourceUnit,
@@ -16,7 +17,7 @@ export function* removeStateVarInits(
     }
 
     for (const varDecl of findAll('VariableDeclaration', contractNode)) {
-      if (varDecl.stateVariable && varDecl.value && !varDecl.constant) {
+      if (varDecl.value && isStorageVariable(varDecl, resolver)) {
         if (hasOverride(varDecl, 'state-variable-assignment', resolver)) {
           continue;
         }

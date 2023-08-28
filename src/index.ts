@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { mapValues } from 'lodash';
+import minimatch from 'minimatch';
 
 import { matcher } from './utils/matcher';
 import { renamePath, isRenamed } from './rename';
@@ -20,6 +21,7 @@ import { appendInitializableImport } from './transformations/append-initializabl
 import { fixNewStatement } from './transformations/fix-new-statement';
 import { addRequiredPublicInitializer } from './transformations/add-required-public-initializers';
 import { addStorageGaps } from './transformations/add-storage-gaps';
+import { addNamespaceStruct } from './transformations/add-namespace-struct';
 import { renameInheritdoc } from './transformations/rename-inheritdoc';
 import {
   transformConstructor,
@@ -43,6 +45,8 @@ interface TranspileOptions {
   publicInitializers?: string[];
   solcVersion?: string;
   skipWithInit?: boolean;
+  namespaced?: boolean;
+  namespaceExclude?: string[];
 }
 
 function getExtraOutputPaths(
@@ -76,6 +80,12 @@ export async function transpile(
   const excludeSet = new Set([...alreadyInitializable, ...Object.values(outputPaths)]);
   const excludeMatch = matcher(options?.exclude ?? []);
 
+  const namespaceInclude = (source: string) => {
+    const namespaced = options?.namespaced ?? false;
+    const namespaceExclude = options?.namespaceExclude ?? [];
+    return namespaced && !namespaceExclude.some(p => minimatch(source, p));
+  };
+
   const transform = new Transform(solcInput, solcOutput, {
     exclude: source => excludeSet.has(source) || (excludeMatch(source) ?? isRenamed(source)),
   });
@@ -87,13 +97,18 @@ export async function transpile(
   transform.apply(fixImportDirectives);
   transform.apply(appendInitializableImport(outputPaths.initializable));
   transform.apply(fixNewStatement);
-  transform.apply(transformConstructor);
+  transform.apply(transformConstructor(namespaceInclude));
   transform.apply(removeLeftoverConstructorHead);
   transform.apply(addRequiredPublicInitializer(options?.publicInitializers));
   transform.apply(removeInheritanceListArguments);
   transform.apply(removeStateVarInits);
   transform.apply(removeImmutable);
-  transform.apply(addStorageGaps);
+
+  if (options?.namespaced) {
+    transform.apply(addNamespaceStruct(namespaceInclude));
+  } else {
+    transform.apply(addStorageGaps);
+  }
 
   // build a final array of files to return
   const outputFiles: OutputFile[] = [];

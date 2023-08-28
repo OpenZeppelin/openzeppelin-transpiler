@@ -1,5 +1,12 @@
 import { ContractDefinition } from 'solidity-ast';
-import { astDereferencer, ASTDereferencer, ASTDereferencerError } from 'solidity-ast/utils';
+import {
+  astDereferencer,
+  ASTDereferencer,
+  ASTDereferencerError,
+  ExtendedNodeType,
+  ExtendedNodeTypeMap,
+  isNodeType,
+} from 'solidity-ast/utils';
 import { NodeType, NodeTypeMap } from 'solidity-ast/node';
 
 import { SolcOutput } from './solc/input-output';
@@ -15,7 +22,7 @@ export class ASTResolver {
     return this.tryResolveNode('ContractDefinition', id);
   }
 
-  resolveNode<T extends NodeType>(nodeType: T, id: number): NodeTypeMap[T] {
+  resolveNode<T extends ExtendedNodeType>(nodeType: T, id: number): ExtendedNodeTypeMap[T] {
     const { node, sourceUnit } = this.deref.withSourceUnit(nodeType, id);
     const source = sourceUnit.absolutePath;
     if (this.exclude?.(source)) {
@@ -27,7 +34,10 @@ export class ASTResolver {
 
   tryResolveNode<T extends NodeType>(nodeType: T, id: number): NodeTypeMap[T] | undefined {
     try {
-      return this.resolveNode(nodeType, id);
+      const node = this.resolveNode('*', id);
+      if (isNodeType(nodeType, node)) {
+        return node;
+      }
     } catch (e) {
       if (e instanceof ASTDereferencerError) {
         return undefined;

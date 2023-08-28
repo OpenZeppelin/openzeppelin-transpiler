@@ -11,7 +11,7 @@ import { findAlreadyInitializable } from './find-already-initializable';
 
 async function getPaths() {
   const hardhat = require.resolve('hardhat', { paths: [process.cwd()] });
-  const hre: HardhatRuntimeEnvironment = await import(hardhat);
+  const hre: HardhatRuntimeEnvironment = (await import(hardhat)).default;
   return hre.config.paths;
 }
 
@@ -22,6 +22,8 @@ interface Options {
   skipWithInit: boolean;
   exclude: string[];
   publicInitializers: string[];
+  namespaced: boolean;
+  namespaceExclude: string[];
 }
 
 function readCommandFlags(resolveRootRelative: (p: string) => string): Options {
@@ -32,11 +34,15 @@ function readCommandFlags(resolveRootRelative: (p: string) => string): Options {
     D: deleteOriginals = false,
     x: exclude = [],
     W: skipWithInit = false,
+    n: namespaced = false,
+    N: namespaceExclude = [],
   } = minimist(process.argv.slice(2));
   return {
     buildInfo,
     deleteOriginals,
     skipWithInit,
+    namespaced,
+    namespaceExclude: ensureArray(namespaceExclude).map(resolveRootRelative),
     initializablePath: initializablePath && resolveRootRelative(initializablePath),
     publicInitializers: ensureArray(publicInitializers).map(resolveRootRelative),
     exclude: ensureArray(exclude).map(p =>

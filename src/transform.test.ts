@@ -146,7 +146,7 @@ test('append initializable import custom', t => {
 
 test('transform constructor', t => {
   const file = 'contracts/TransformConstructor.sol';
-  t.context.transform.apply(transformConstructor);
+  t.context.transform.apply(transformConstructor());
   t.context.transform.apply(removeLeftoverConstructorHead);
   t.snapshot(t.context.transform.results()[file]);
 });
@@ -155,19 +155,19 @@ test('invalid constructors', t => {
   const tVarSubexpr = t.context.transformFile(
     'contracts/invalid/TransformConstructorVarSubexpr.sol',
   );
-  t.throws(() => tVarSubexpr.apply(transformConstructor), {
+  t.throws(() => tVarSubexpr.apply(transformConstructor()), {
     message: `Can't transpile non-trivial expression in parent constructor argument (y + 1)`,
   });
 
   const tVarSubexprVar = t.context.transformFile(
     'contracts/invalid/TransformConstructorVarSubexprVar.sol',
   );
-  t.throws(() => tVarSubexprVar.apply(transformConstructor), {
+  t.throws(() => tVarSubexprVar.apply(transformConstructor()), {
     message: `Can't transpile non-trivial expression in parent constructor argument (y + 1)`,
   });
 
   const tDupExpr = t.context.transformFile('contracts/invalid/TransformConstructorDupExpr.sol');
-  t.throws(() => tDupExpr.apply(transformConstructor), {
+  t.throws(() => tDupExpr.apply(transformConstructor()), {
     message: `Can't transpile non-trivial expression in parent constructor argument (t.mint())`,
   });
 });
@@ -181,7 +181,7 @@ test('fix new statement', t => {
 
 test('fix new statement in var init', t => {
   const file = 'contracts/TransformNewVarInit.sol';
-  t.context.transform.apply(transformConstructor);
+  t.context.transform.apply(transformConstructor());
   t.context.transform.apply(removeStateVarInits);
   t.context.transform.apply(removeLeftoverConstructorHead);
   t.context.transform.apply(addRequiredPublicInitializer([]));
