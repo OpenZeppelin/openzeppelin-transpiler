@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.26 (2023-08-28)
+
+- Change location of initializer functions when the original contract doesn't have a constructor. Previously it would be the start of the contract, before state variables. It is now placed immediately before the first function of the contract, if the contract has functions.
+- Add namespaced storage as an alternative to gaps `-n` enables namespaces, and `-N` excludes specific files from namespaces.
+
 ## 0.3.25 (2023-07-05)
 
 - Allow immutable variable assignment given `unsafe-allow state-variable-immutable`. Previously `unsafe-allow state-variable-assignment` was required as well.
