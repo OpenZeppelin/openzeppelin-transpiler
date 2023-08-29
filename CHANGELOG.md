@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.27 (2023-08-29)
+
+- Throw error when using `@custom:storage-size` along with namespaced storage.
+
 ## 0.3.26 (2023-08-28)
 
 - Change location of initializer functions when the original contract doesn't have a constructor. Previously it would be the start of the contract, before state variables. It is now placed immediately before the first function of the contract, if the contract has functions.

@@ -8,6 +8,7 @@ import { isStorageVariable } from './utils/is-storage-variable';
 import { erc7201Location } from '../utils/erc7201';
 import { contractStartPosition } from './utils/contract-start-position';
 import { Node } from 'solidity-ast/node';
+import { extractContractStorageSize } from '../utils/natspec';
 
 export function getNamespaceStructName(contractName: string): string {
   return contractName + 'Storage';
@@ -22,6 +23,12 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
     const { error, resolver } = tools;
 
     for (const contract of findAll('ContractDefinition', sourceUnit)) {
+      const specifiesStorageSize = extractContractStorageSize(contract) !== undefined;
+
+      if (specifiesStorageSize) {
+        throw tools.error(contract, "Cannot combine namespaces with @custom:storage-size annotations");
+      }
+
       let start = contractStartPosition(contract, tools);
 
       let finished = false;

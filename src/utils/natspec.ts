@@ -1,4 +1,4 @@
-import { StructuredDocumentation } from 'solidity-ast';
+import { ContractDefinition, StructuredDocumentation } from 'solidity-ast';
 import { execall } from './execall';
 
 interface NatspecTag {
@@ -25,4 +25,14 @@ export function* extractNatspec(node: {
       };
     }
   }
+}
+
+export function extractContractStorageSize(contract: ContractDefinition): number | undefined {
+  let targetSlots;
+  for (const entry of extractNatspec(contract)) {
+    if (entry.title === 'custom' && entry.tag === 'storage-size') {
+      targetSlots = parseInt(entry.args);
+    }
+  }
+  return targetSlots;
 }

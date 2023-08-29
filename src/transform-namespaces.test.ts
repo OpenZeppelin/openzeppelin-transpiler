@@ -17,7 +17,7 @@ const test = _test as TestFn<Context>;
 interface Context {
   solcInput: SolcInput;
   solcOutput: SolcOutput;
-  transform: Transform;
+  transformFile: (file: string) => Transform;
 }
 
 test.serial.before('compile', async t => {
@@ -28,14 +28,27 @@ test.serial.before('compile', async t => {
 });
 
 test.beforeEach('transform', async t => {
-  t.context.transform = new Transform(t.context.solcInput, t.context.solcOutput);
+  t.context.transformFile = (file: string) =>
+    new Transform(t.context.solcInput, t.context.solcOutput, {
+      exclude: source => source !== file,
+    });
 });
 
 test('add namespace', t => {
   const file = 'contracts/namespaces.sol';
-  t.context.transform.apply(transformConstructor(() => true));
-  t.context.transform.apply(removeLeftoverConstructorHead);
-  t.context.transform.apply(removeStateVarInits);
-  t.context.transform.apply(addNamespaceStruct(() => true));
-  t.snapshot(t.context.transform.results()[file]);
+  const transform = t.context.transformFile(file);
+  transform.apply(transformConstructor(() => true));
+  transform.apply(removeLeftoverConstructorHead);
+  transform.apply(removeStateVarInits);
+  transform.apply(addNamespaceStruct(() => true));
+  t.snapshot(transform.results()[file]);
+});
+
+test('error with @custom:storage-size', t => {
+  const file = 'contracts/namespaces-error-storage-size.sol';
+  const transform = t.context.transformFile(file);
+  t.throws(
+    () => transform.apply(addNamespaceStruct(() => true)),
+    { message: 'Cannot combine namespaces with @custom:storage-size annotations (contracts/namespaces-error-storage-size.sol:5)' },
+  );
 });

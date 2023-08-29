@@ -6,7 +6,7 @@ import { getNodeBounds } from '../solc/ast-utils';
 import { StorageLayout } from '../solc/input-output';
 import { Transformation } from './type';
 import { TransformerTools } from '../transform';
-import { extractNatspec } from '../utils/extractNatspec';
+import { extractContractStorageSize } from '../utils/natspec';
 import { decodeTypeIdentifier } from '../utils/type-id';
 import { parseTypeId } from '../utils/parse-type-id';
 import { ASTResolver } from '../ast-resolver';
@@ -21,12 +21,7 @@ export function* addStorageGaps(
 ): Generator<Transformation> {
   for (const contract of findAll('ContractDefinition', sourceUnit)) {
     if (contract.contractKind === 'contract') {
-      let targetSlots = DEFAULT_SLOT_COUNT;
-      for (const entry of extractNatspec(contract)) {
-        if (entry.title === 'custom' && entry.tag === 'storage-size') {
-          targetSlots = parseInt(entry.args);
-        }
-      }
+      const targetSlots = extractContractStorageSize(contract) ?? DEFAULT_SLOT_COUNT;
 
       const gapSize = targetSlots - getContractSlotCount(contract, getLayout(contract), resolver);
 
