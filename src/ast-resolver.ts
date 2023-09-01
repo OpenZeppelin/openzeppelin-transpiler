@@ -14,7 +14,10 @@ import { SolcOutput } from './solc/input-output';
 export class ASTResolver {
   private deref: ASTDereferencer;
 
-  constructor(readonly output: SolcOutput, readonly exclude?: (source: string) => boolean) {
+  constructor(
+    readonly output: SolcOutput,
+    readonly exclude?: (source: string) => boolean,
+  ) {
     this.deref = astDereferencer(output);
   }
 
