@@ -1,6 +1,6 @@
 import { SourceUnit } from 'solidity-ast';
 import { findAll } from 'solidity-ast/utils';
-import minimatch from 'minimatch';
+import { minimatch } from 'minimatch';
 
 import { newFunctionPosition } from './utils/new-function-position';
 import { buildPublicInitialize } from './utils/build-pulic-initialize';
