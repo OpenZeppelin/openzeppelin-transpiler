@@ -26,7 +26,10 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
       const specifiesStorageSize = extractContractStorageSize(contract) !== undefined;
 
       if (specifiesStorageSize) {
-        throw tools.error(contract, "Cannot combine namespaces with @custom:storage-size annotations");
+        throw tools.error(
+          contract,
+          'Cannot combine namespaces with @custom:storage-size annotations',
+        );
       }
 
       let start = contractStartPosition(contract, tools);

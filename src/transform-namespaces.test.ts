@@ -47,8 +47,8 @@ test('add namespace', t => {
 test('error with @custom:storage-size', t => {
   const file = 'contracts/namespaces-error-storage-size.sol';
   const transform = t.context.transformFile(file);
-  t.throws(
-    () => transform.apply(addNamespaceStruct(() => true)),
-    { message: 'Cannot combine namespaces with @custom:storage-size annotations (contracts/namespaces-error-storage-size.sol:5)' },
-  );
+  t.throws(() => transform.apply(addNamespaceStruct(() => true)), {
+    message:
+      'Cannot combine namespaces with @custom:storage-size annotations (contracts/namespaces-error-storage-size.sol:5)',
+  });
 });
