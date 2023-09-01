@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { mapValues } from 'lodash';
-import minimatch from 'minimatch';
+import { minimatch } from 'minimatch';
 
 import { matcher } from './utils/matcher';
 import { renamePath, isRenamed } from './rename';
