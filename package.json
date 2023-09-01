@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.14.165",
-    "@types/minimatch": "^3.0.3",
+    "@types/minimatch": "^5.0.0",
     "@types/minimist": "^1.2.1",
     "@types/mocha": "^7.0.2",
     "@types/node": "^10.17.44",
