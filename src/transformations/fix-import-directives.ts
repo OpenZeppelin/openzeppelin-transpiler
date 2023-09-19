@@ -7,9 +7,11 @@ import { TransformerTools } from '../transform';
 
 export function* fixImportDirectives(
   ast: SourceUnit,
-  { resolver }: TransformerTools,
+  { resolver, peerImports }: TransformerTools,
 ): Generator<Transformation> {
   for (const imp of findAll('ImportDirective', ast)) {
+    const peerPath = peerImports[imp.absolutePath];
+
     const referencedSourceUnit = resolver.resolveNode('SourceUnit', imp.sourceUnit);
 
     const aliases = imp.symbolAliases.map(a => {
@@ -19,7 +21,7 @@ export function* fixImportDirectives(
       }
       let alias = '';
       const contract = resolver.resolveContract(id);
-      if (contract === undefined) {
+      if (peerPath || contract === undefined) {
         alias += a.foreign.name;
       } else {
         alias += renameContract(a.foreign.name);
@@ -34,7 +36,7 @@ export function* fixImportDirectives(
     if (aliases.length > 0) {
       statement.push(`{ ${aliases.join(', ')} } from`);
     }
-    statement.push(`"${renamePath(imp.file)}";`);
+    statement.push(`"${peerPath ?? renamePath(imp.file)}";`);
 
     yield {
       kind: 'fix-import-directives',

@@ -24,6 +24,7 @@ interface Options {
   publicInitializers: string[];
   namespaced: boolean;
   namespaceExclude: string[];
+  peerProject?: string;
 }
 
 function readCommandFlags(resolveRootRelative: (p: string) => string): Options {
@@ -36,12 +37,14 @@ function readCommandFlags(resolveRootRelative: (p: string) => string): Options {
     W: skipWithInit = false,
     n: namespaced = false,
     N: namespaceExclude = [],
+    P: peerProject = false,
   } = minimist(process.argv.slice(2));
   return {
     buildInfo,
     deleteOriginals,
     skipWithInit,
     namespaced,
+    peerProject,
     namespaceExclude: ensureArray(namespaceExclude).map(resolveRootRelative),
     initializablePath: initializablePath && resolveRootRelative(initializablePath),
     publicInitializers: ensureArray(publicInitializers).map(resolveRootRelative),

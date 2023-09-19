@@ -47,6 +47,7 @@ interface TranspileOptions {
   skipWithInit?: boolean;
   namespaced?: boolean;
   namespaceExclude?: string[];
+  peerProject?: string;
 }
 
 function getExtraOutputPaths(
@@ -88,6 +89,7 @@ export async function transpile(
 
   const transform = new Transform(solcInput, solcOutput, {
     exclude: source => excludeSet.has(source) || (excludeMatch(source) ?? isRenamed(source)),
+    peerProject: options?.peerProject,
   });
 
   transform.apply(renameIdentifiers);

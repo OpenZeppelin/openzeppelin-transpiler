@@ -1,6 +1,7 @@
 import { mapValues } from 'lodash';
-
+import path from 'path';
 import { SourceUnit } from 'solidity-ast';
+import { findAll } from 'solidity-ast/utils';
 import { Node } from 'solidity-ast/node';
 import { SolcInput, SolcOutput } from './solc/input-output';
 import { srcDecoder, SrcDecoder } from './solc/src-decoder';
@@ -28,6 +29,7 @@ export interface TransformerTools {
   resolver: ASTResolver;
   getData: (node: Node) => Partial<TransformData>;
   getLayout: LayoutGetter;
+  peerImports: { [absPath in string]: string };
   error: (node: Node, msg: string) => Error;
 }
 
@@ -46,6 +48,7 @@ interface TransformState {
 
 interface TransformOptions {
   exclude?: (source: string) => boolean;
+  peerProject?: string;
 }
 
 export class Transform {
@@ -58,15 +61,33 @@ export class Transform {
   readonly decodeSrc: SrcDecoder;
   readonly getLayout: LayoutGetter;
   readonly resolver: ASTResolver;
+  readonly peerImports: { [absPath in string]: string };
 
   constructor(input: SolcInput, output: SolcOutput, options?: TransformOptions) {
     this.decodeSrc = srcDecoder(output);
     this.getLayout = layoutGetter(output);
     this.resolver = new ASTResolver(output, options?.exclude);
+    this.peerImports = {};
 
     for (const source in input.sources) {
       if (options?.exclude?.(source)) {
         continue;
+      }
+
+      if (options?.peerProject) {
+        const contracts = [...findAll('ContractDefinition', output.sources[source].ast)];
+        const onlyContracts = contracts.every(({ contractKind }) => contractKind === 'contract');
+        const noContracts = contracts.every(({ contractKind }) => contractKind !== 'contract');
+
+        if (!onlyContracts && !noContracts) {
+          throw new Error(
+            `Partial transpilation error: ${source} contains a mix of contracts and non contracts`,
+          );
+        }
+        if (noContracts) {
+          this.peerImports[source] = path.join(options.peerProject, source);
+          continue;
+        }
       }
 
       const s = input.sources[source];
@@ -96,6 +117,7 @@ export class Transform {
       const error = this.error.bind(this);
       const matchOriginalAfter = this.matchOriginalAfter.bind(this);
       const tools: TransformerTools = {
+        peerImports: this.peerImports,
         originalSource,
         originalSourceBuf,
         resolver,
