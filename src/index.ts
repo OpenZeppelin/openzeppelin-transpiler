@@ -96,7 +96,7 @@ export async function transpile(
   transform.apply(renameContractDefinition);
   transform.apply(renameInheritdoc);
   transform.apply(prependInitializableBase);
-  transform.apply(fixImportDirectives);
+  transform.apply(fixImportDirectives(!!options?.peerProject));
   transform.apply(appendInitializableImport(outputPaths.initializable));
   transform.apply(fixNewStatement);
   transform.apply(transformConstructor(namespaceInclude));

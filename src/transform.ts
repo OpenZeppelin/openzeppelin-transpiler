@@ -29,12 +29,13 @@ export interface TransformerTools {
   resolver: ASTResolver;
   getData: (node: Node) => Partial<TransformData>;
   getLayout: LayoutGetter;
-  peerImports: { [absPath in string]: string };
   error: (node: Node, msg: string) => Error;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface TransformData {}
+export interface TransformData {
+  importPath?: string;
+}
 
 interface TransformState {
   id: number;
@@ -61,13 +62,11 @@ export class Transform {
   readonly decodeSrc: SrcDecoder;
   readonly getLayout: LayoutGetter;
   readonly resolver: ASTResolver;
-  readonly peerImports: { [absPath in string]: string };
 
   constructor(input: SolcInput, output: SolcOutput, options?: TransformOptions) {
     this.decodeSrc = srcDecoder(output);
     this.getLayout = layoutGetter(output);
     this.resolver = new ASTResolver(output, options?.exclude);
-    this.peerImports = {};
 
     for (const source in input.sources) {
       if (options?.exclude?.(source)) {
@@ -76,16 +75,12 @@ export class Transform {
 
       if (options?.peerProject) {
         const contracts = [...findAll('ContractDefinition', output.sources[source].ast)];
-        const onlyContracts = contracts.every(({ contractKind }) => contractKind === 'contract');
-        const noContracts = contracts.every(({ contractKind }) => contractKind !== 'contract');
 
-        if (!onlyContracts && !noContracts) {
-          throw new Error(
-            `Partial transpilation error: ${source} contains a mix of contracts and non contracts`,
-          );
+        for (const noContract of contracts.filter(({ contractKind }) => contractKind !== 'contract')) {
+          this.getData(noContract).importPath = path.join(options.peerProject, source);
         }
-        if (noContracts) {
-          this.peerImports[source] = path.join(options.peerProject, source);
+
+        if (contracts.every(({ contractKind }) => contractKind !== 'contract')) {
           continue;
         }
       }
@@ -117,7 +112,6 @@ export class Transform {
       const error = this.error.bind(this);
       const matchOriginalAfter = this.matchOriginalAfter.bind(this);
       const tools: TransformerTools = {
-        peerImports: this.peerImports,
         originalSource,
         originalSourceBuf,
         resolver,

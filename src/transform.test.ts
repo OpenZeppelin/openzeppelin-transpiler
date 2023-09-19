@@ -121,14 +121,14 @@ test('skip contract rename when Upgradeable suffix', t => {
 
 test('fix import directives', t => {
   const file = 'contracts/solc-0.6/Local.sol';
-  t.context.transform.apply(fixImportDirectives);
+  t.context.transform.apply(fixImportDirectives(false));
   t.snapshot(t.context.transform.results()[file]);
 });
 
 test('fix import directives complex', t => {
   const file = 'contracts/TransformImport2.sol';
   t.context.transform.apply(renameIdentifiers);
-  t.context.transform.apply(fixImportDirectives);
+  t.context.transform.apply(fixImportDirectives(false));
   t.snapshot(t.context.transform.results()[file]);
 });
 
