@@ -53,7 +53,7 @@ interface TranspileOptions {
 
 function getExtraOutputPaths(
   paths: Paths,
-  options?: TranspileOptions,
+  options: TranspileOptions = {},
 ): Record<'initializable' | 'withInit', string> {
   const outputPaths = mapValues(
     {
@@ -63,8 +63,8 @@ function getExtraOutputPaths(
     s => path.relative(paths.root, path.join(paths.sources, s)),
   );
 
-  if (options?.initializablePath) {
-    outputPaths.initializable = options?.initializablePath;
+  if (options.initializablePath) {
+    outputPaths.initializable = options.initializablePath;
   }
 
   return outputPaths;
@@ -74,41 +74,41 @@ export async function transpile(
   solcInput: SolcInput,
   solcOutput: SolcOutput,
   paths: Paths,
-  options?: TranspileOptions,
+  options: TranspileOptions = {},
 ): Promise<OutputFile[]> {
   const outputPaths = getExtraOutputPaths(paths, options);
-  const alreadyInitializable = findAlreadyInitializable(solcOutput, options?.initializablePath);
+  const alreadyInitializable = findAlreadyInitializable(solcOutput, options.initializablePath);
 
   const excludeSet = new Set([...alreadyInitializable, ...Object.values(outputPaths)]);
-  const excludeMatch = matcher(options?.exclude ?? []);
+  const excludeMatch = matcher(options.exclude ?? []);
 
   const namespaceInclude = (source: string) => {
-    const namespaced = options?.namespaced ?? false;
-    const namespaceExclude = options?.namespaceExclude ?? [];
+    const namespaced = options.namespaced ?? false;
+    const namespaceExclude = options.namespaceExclude ?? [];
     return namespaced && !namespaceExclude.some(p => minimatch(source, p));
   };
 
   const transform = new Transform(solcInput, solcOutput, {
     exclude: source => excludeSet.has(source) || (excludeMatch(source) ?? isRenamed(source)),
-    peerProject: options?.peerProject,
+    peerProject: options.peerProject,
   });
 
   transform.apply(renameIdentifiers);
   transform.apply(renameContractDefinition);
   transform.apply(renameInheritdoc);
   transform.apply(prependInitializableBase);
-  transform.apply(fixImportDirectives(!!options?.peerProject));
+  transform.apply(fixImportDirectives(!!options.peerProject));
   transform.apply(appendInitializableImport(outputPaths.initializable));
   transform.apply(fixNewStatement);
   transform.apply(transformConstructor(namespaceInclude));
   transform.apply(removeLeftoverConstructorHead);
-  transform.apply(addRequiredPublicInitializer(options?.publicInitializers));
+  transform.apply(addRequiredPublicInitializer(options.publicInitializers));
   transform.apply(removeInheritanceListArguments);
   transform.apply(removeStateVarInits);
   transform.apply(removeImmutable);
   transform.apply(removePartial);
 
-  if (options?.namespaced) {
+  if (options.namespaced) {
     transform.apply(addNamespaceStruct(namespaceInclude));
   } else {
     transform.apply(addStorageGaps);
@@ -130,8 +130,8 @@ export async function transpile(
   }
 
   const initializableSource =
-    options?.initializablePath !== undefined
-      ? transpileInitializable(solcInput, solcOutput, paths, options?.initializablePath)
+    options.initializablePath !== undefined
+      ? transpileInitializable(solcInput, solcOutput, paths, { ...options, initializablePath: options.initializablePath })
       : fs.readFileSync(require.resolve('../Initializable.sol'), 'utf8');
 
   outputFiles.push({
@@ -140,9 +140,9 @@ export async function transpile(
     fileName: path.basename(outputPaths.initializable),
   });
 
-  if (!options?.skipWithInit) {
+  if (!options.skipWithInit) {
     outputFiles.push({
-      source: generateWithInit(transform, outputPaths.withInit, options?.solcVersion),
+      source: generateWithInit(transform, outputPaths.withInit, options.solcVersion),
       path: outputPaths.withInit,
       fileName: path.basename(outputPaths.withInit),
     });
@@ -155,16 +155,16 @@ function transpileInitializable(
   solcInput: SolcInput,
   solcOutput: SolcOutput,
   paths: Paths,
-  initializablePath: string,
+  options: TranspileOptions & Pick<Required<TranspileOptions>, "initializablePath">,
 ): string {
   const transform = new Transform(solcInput, solcOutput);
 
   transform.apply(function* (ast, tools) {
-    if (ast.absolutePath === initializablePath) {
+    if (ast.absolutePath === options.initializablePath) {
       yield* renameIdentifiers(ast, tools);
-      yield* fixImportDirectives(ast, tools);
+      yield* fixImportDirectives(!!options.peerProject)(ast, tools);
     }
   });
 
-  return transform.results()[initializablePath];
+  return transform.results()[options.initializablePath];
 }
