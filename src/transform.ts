@@ -32,9 +32,8 @@ export interface TransformerTools {
   error: (node: Node, msg: string) => Error;
 }
 
-export interface TransformData {
-  importPath?: string;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface TransformData {}
 
 interface TransformState {
   id: number;

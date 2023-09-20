@@ -5,6 +5,12 @@ import { Transformation } from './type';
 import { renameContract, renamePath } from '../rename';
 import { TransformerTools } from '../transform';
 
+declare module '../transform' {
+  interface TransformData {
+    importPath: string;
+  }
+}
+
 export function fixImportDirectives(withPeerProject?: boolean) {
   return function* (
     ast: SourceUnit,
