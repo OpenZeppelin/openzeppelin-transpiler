@@ -41,7 +41,7 @@ export function fixImportDirectives(withPeerProject?: boolean) {
         imports[importPath].push(
           [
             forceImport || contract === undefined ? a.foreign.name : renameContract(a.foreign.name),
-            a.local !== null && a.local !== a.foreign.name ? ` as ${a.local}` : '',
+            [null, undefined, a.foreign.name].includes(a.local) ? '' : ` as ${a.local}`,
           ].join(''),
         );
       }
