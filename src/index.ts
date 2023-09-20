@@ -131,7 +131,10 @@ export async function transpile(
 
   const initializableSource =
     options.initializablePath !== undefined
-      ? transpileInitializable(solcInput, solcOutput, paths, { ...options, initializablePath: options.initializablePath })
+      ? transpileInitializable(solcInput, solcOutput, paths, {
+          ...options,
+          initializablePath: options.initializablePath,
+        })
       : fs.readFileSync(require.resolve('../Initializable.sol'), 'utf8');
 
   outputFiles.push({
@@ -155,7 +158,7 @@ function transpileInitializable(
   solcInput: SolcInput,
   solcOutput: SolcOutput,
   paths: Paths,
-  options: TranspileOptions & Pick<Required<TranspileOptions>, "initializablePath">,
+  options: TranspileOptions & Required<Pick<TranspileOptions, 'initializablePath'>>,
 ): string {
   const transform = new Transform(solcInput, solcOutput);
 

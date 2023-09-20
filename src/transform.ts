@@ -76,7 +76,9 @@ export class Transform {
       if (options?.peerProject) {
         const contracts = [...findAll('ContractDefinition', output.sources[source].ast)];
 
-        for (const noContract of contracts.filter(({ contractKind }) => contractKind !== 'contract')) {
+        for (const noContract of contracts.filter(
+          ({ contractKind }) => contractKind !== 'contract',
+        )) {
           this.getData(noContract).importPath = path.join(options.peerProject, source);
         }
 
