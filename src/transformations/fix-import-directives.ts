@@ -48,7 +48,7 @@ export function fixImportDirectives(withPeerProject?: boolean) {
 
       const statement = [];
       for (const [path, aliases] of Object.entries(imports)) {
-        statement.push(`import { ${aliases.join(', ')} } from "${path}";`);
+        statement.push(`import {${aliases.join(', ')}} from "${path}";`);
       }
       if (imp.symbolAliases.length == 0) {
         statement.push(`import "${renamePath(imp.file)}";`);

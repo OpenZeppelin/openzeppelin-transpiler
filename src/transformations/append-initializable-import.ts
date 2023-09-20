@@ -35,7 +35,7 @@ export function appendInitializableImport(initializablePath: string) {
       start,
       length: 0,
       kind: 'append-initializable-import',
-      text: `\nimport "${relativeImportPath}";`,
+      text: `\nimport {Initializable} from "${relativeImportPath}";`,
     };
   };
 }
