@@ -74,6 +74,7 @@ function getExtraOutputPaths(
 
   return outputPaths;
 }
+
 function excludeAndImportPathsForPeer(
   solcOutput: SolcOutput,
   peerProject: string,
