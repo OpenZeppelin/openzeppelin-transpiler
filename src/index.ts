@@ -54,6 +54,8 @@ interface TranspileOptions {
   peerProject?: string;
 }
 
+type NodeTransformData = { node: Node; data: Partial<TransformData> };
+
 function getExtraOutputPaths(
   paths: Paths,
   options: TranspileOptions = {},
@@ -72,6 +74,31 @@ function getExtraOutputPaths(
 
   return outputPaths;
 }
+function excludeAndImportPathsForPeer(
+  solcOutput: SolcOutput,
+  peerProject: string,
+): [Set<string>, NodeTransformData[]] {
+  const data: NodeTransformData[] = [];
+  const exclude: Set<string> = new Set();
+
+  for (const [source, { ast }] of Object.entries(solcOutput.sources)) {
+    const importFromPeer = path.join(peerProject, source);
+
+    let shouldExclude = true;
+    for (const node of findAll('ContractDefinition', ast)) {
+      if (node.contractKind === 'contract') {
+        shouldExclude = false;
+      } else {
+        data.push({ node, data: { importFromPeer } });
+      }
+    }
+    if (shouldExclude) {
+      exclude.add(source);
+    }
+  }
+
+  return [exclude, data];
+}
 
 export async function transpile(
   solcInput: SolcInput,
@@ -79,13 +106,13 @@ export async function transpile(
   paths: Paths,
   options: TranspileOptions = {},
 ): Promise<OutputFile[]> {
-  const nodeData: { node: Node; data: Partial<TransformData> }[] = [];
+  const nodeData: NodeTransformData[] = [];
 
   const outputPaths = getExtraOutputPaths(paths, options);
   const alreadyInitializable = findAlreadyInitializable(solcOutput, options.initializablePath);
 
   const excludeSet = new Set([...alreadyInitializable, ...Object.values(outputPaths)]);
-  const peerExcludedSet = new Set<string>();
+  const softExcludeSet = new Set();
   const excludeMatch = matcher(options.exclude ?? []);
 
   const namespaceInclude = (source: string) => {
@@ -94,30 +121,23 @@ export async function transpile(
     return namespaced && !namespaceExclude.some(p => minimatch(source, p));
   };
 
+  // if partial transpilation, extract the list of soft exclude, and the peer import paths.
   if (options.peerProject !== undefined) {
-    for (const [source, { ast }] of Object.entries(solcOutput.sources)) {
-      const importFromPeer = path.join(options.peerProject, source);
-      const contracts = [...findAll('ContractDefinition', ast)];
-
-      // populate nodeData
-      nodeData.push(
-        ...contracts
-          .filter(node => node.contractKind !== 'contract')
-          .map(node => ({ node, data: { importFromPeer } })),
-      );
-
-      // soft exclude files that have no
-      if (contracts.every(({ contractKind }) => contractKind !== 'contract')) {
-        peerExcludedSet.add(source);
-      }
-    }
+    const [peerSoftExcludedSet, importFromPeerData] = excludeAndImportPathsForPeer(
+      solcOutput,
+      options.peerProject,
+    );
+    peerSoftExcludedSet.forEach(source => softExcludeSet.add(source));
+    nodeData.push(...importFromPeerData);
   }
 
   const transform = new Transform(solcInput, solcOutput, {
     exclude: source =>
-      peerExcludedSet.has(source)
+      excludeSet.has(source) || (excludeMatch(source) ?? isRenamed(source))
+        ? true
+        : softExcludeSet.has(source)
         ? 'soft'
-        : excludeSet.has(source) || (excludeMatch(source) ?? isRenamed(source)),
+        : false,
   });
 
   nodeData.forEach(({ node, data }) => Object.assign(transform.getData(node), data));
