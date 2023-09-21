@@ -27,7 +27,7 @@ export function* renameIdentifiers(
   const rename = new Set(
     Object.keys(candidates).filter(name => {
       const contract = resolver.resolveContract(candidates[name]);
-      return contract !== undefined && !getData(contract).importPath;
+      return contract !== undefined && getData(contract).importPath === undefined;
     }),
   );
 
