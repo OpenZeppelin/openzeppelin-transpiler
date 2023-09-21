@@ -1,7 +1,5 @@
 import { mapValues } from 'lodash';
-import path from 'path';
 import { SourceUnit } from 'solidity-ast';
-import { findAll } from 'solidity-ast/utils';
 import { Node } from 'solidity-ast/node';
 import { SolcInput, SolcOutput } from './solc/input-output';
 import { srcDecoder, SrcDecoder } from './solc/src-decoder';
@@ -46,8 +44,7 @@ interface TransformState {
 }
 
 interface TransformOptions {
-  exclude?: (source: string) => boolean;
-  peerProject?: string;
+  exclude?: (source: string) => boolean | 'soft';
 }
 
 export class Transform {
@@ -61,28 +58,15 @@ export class Transform {
   readonly getLayout: LayoutGetter;
   readonly resolver: ASTResolver;
 
-  constructor(input: SolcInput, output: SolcOutput, options?: TransformOptions) {
+  constructor(input: SolcInput, output: SolcOutput, options: TransformOptions = {}) {
     this.decodeSrc = srcDecoder(output);
     this.getLayout = layoutGetter(output);
-    this.resolver = new ASTResolver(output, options?.exclude);
+    this.resolver = new ASTResolver(output, options.exclude);
 
     for (const source in input.sources) {
-      if (options?.exclude?.(source)) {
+      const excluded = options.exclude?.(source);
+      if (excluded === true || excluded === 'soft') {
         continue;
-      }
-
-      if (options?.peerProject) {
-        const contracts = [...findAll('ContractDefinition', output.sources[source].ast)];
-
-        for (const noContract of contracts.filter(
-          ({ contractKind }) => contractKind !== 'contract',
-        )) {
-          this.getData(noContract).importFromPeer = path.join(options.peerProject, source);
-        }
-
-        if (contracts.every(({ contractKind }) => contractKind !== 'contract')) {
-          continue;
-        }
       }
 
       const s = input.sources[source];

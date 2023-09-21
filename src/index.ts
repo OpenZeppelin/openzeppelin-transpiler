@@ -3,10 +3,13 @@ import fs from 'fs';
 import { mapValues } from 'lodash';
 import { minimatch } from 'minimatch';
 
+import { findAll } from 'solidity-ast/utils';
+import { Node } from 'solidity-ast/node';
+
 import { matcher } from './utils/matcher';
 import { renamePath, isRenamed } from './rename';
 import { SolcOutput, SolcInput } from './solc/input-output';
-import { Transform } from './transform';
+import { Transform, TransformData } from './transform';
 import { generateWithInit } from './generate-with-init';
 import { findAlreadyInitializable } from './find-already-initializable';
 
@@ -76,10 +79,13 @@ export async function transpile(
   paths: Paths,
   options: TranspileOptions = {},
 ): Promise<OutputFile[]> {
+  const nodeData: { node: Node; data: Partial<TransformData> }[] = [];
+
   const outputPaths = getExtraOutputPaths(paths, options);
   const alreadyInitializable = findAlreadyInitializable(solcOutput, options.initializablePath);
 
   const excludeSet = new Set([...alreadyInitializable, ...Object.values(outputPaths)]);
+  const peerExcludedSet = new Set<string>();
   const excludeMatch = matcher(options.exclude ?? []);
 
   const namespaceInclude = (source: string) => {
@@ -88,10 +94,33 @@ export async function transpile(
     return namespaced && !namespaceExclude.some(p => minimatch(source, p));
   };
 
+  if (options.peerProject !== undefined) {
+    for (const [source, { ast }] of Object.entries(solcOutput.sources)) {
+      const importFromPeer = path.join(options.peerProject, source);
+      const contracts = [...findAll('ContractDefinition', ast)];
+
+      // populate nodeData
+      nodeData.push(
+        ...contracts
+          .filter(node => node.contractKind !== 'contract')
+          .map(node => ({ node, data: { importFromPeer } })),
+      );
+
+      // soft exclude files that have no
+      if (contracts.every(({ contractKind }) => contractKind !== 'contract')) {
+        peerExcludedSet.add(source);
+      }
+    }
+  }
+
   const transform = new Transform(solcInput, solcOutput, {
-    exclude: source => excludeSet.has(source) || (excludeMatch(source) ?? isRenamed(source)),
-    peerProject: options.peerProject,
+    exclude: source =>
+      peerExcludedSet.has(source)
+        ? 'soft'
+        : excludeSet.has(source) || (excludeMatch(source) ?? isRenamed(source)),
   });
+
+  nodeData.forEach(({ node, data }) => Object.assign(transform.getData(node), data));
 
   transform.apply(renameIdentifiers);
   transform.apply(renameContractDefinition);

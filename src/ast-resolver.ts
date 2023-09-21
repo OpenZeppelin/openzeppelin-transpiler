@@ -16,7 +16,7 @@ export class ASTResolver {
 
   constructor(
     readonly output: SolcOutput,
-    readonly exclude?: (source: string) => boolean,
+    readonly exclude?: (source: string) => boolean | 'soft',
   ) {
     this.deref = astDereferencer(output);
   }
@@ -28,7 +28,7 @@ export class ASTResolver {
   resolveNode<T extends ExtendedNodeType>(nodeType: T, id: number): ExtendedNodeTypeMap[T] {
     const { node, sourceUnit } = this.deref.withSourceUnit(nodeType, id);
     const source = sourceUnit.absolutePath;
-    if (this.exclude?.(source)) {
+    if (this.exclude?.(source) == true) {
       throw new Error(`Symbol #${id} was imported from an excluded file (${source})`);
     } else {
       return node;
