@@ -10,12 +10,12 @@ export function* removePartial(
   { getData }: TransformerTools,
 ): Generator<Transformation> {
   for (const contract of findAll('ContractDefinition', sourceUnit)) {
-    const { importPath } = getData(contract);
-    if (importPath !== undefined) {
+    const { importFromPeer } = getData(contract);
+    if (importFromPeer !== undefined) {
       yield {
         ...getNodeBounds(contract),
         kind: 'remove-libraries-and-interfaces',
-        transform: () => `import { ${contract.name} } from "${importPath}";`,
+        transform: () => `import { ${contract.name} } from "${importFromPeer}";`,
       };
     }
   }

@@ -7,7 +7,7 @@ import { TransformerTools } from '../transform';
 
 declare module '../transform' {
   interface TransformData {
-    importPath: string;
+    importFromPeer: string;
   }
 }
 
@@ -34,13 +34,13 @@ export function fixImportDirectives(withPeerProject?: boolean) {
         }
 
         const contract = resolver.resolveContract(id);
-        const forceImport = contract && getData(contract).importPath !== undefined;
-        const importPath = forceImport ?? renamePath(imp.file);
+        const importFromPeer = contract && getData(contract).importFromPeer;
+        const importPath = importFromPeer ?? renamePath(imp.file);
 
         imports[importPath] ??= [];
         imports[importPath].push(
           [
-            forceImport || contract === undefined ? a.foreign.name : renameContract(a.foreign.name),
+            contract !== undefined && importFromPeer === undefined ? renameContract(a.foreign.name) : a.foreign.name,
             [null, undefined, a.foreign.name].includes(a.local) ? '' : ` as ${a.local}`,
           ].join(''),
         );

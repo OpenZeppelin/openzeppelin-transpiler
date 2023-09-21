@@ -77,7 +77,7 @@ export class Transform {
         for (const noContract of contracts.filter(
           ({ contractKind }) => contractKind !== 'contract',
         )) {
-          this.getData(noContract).importPath = path.join(options.peerProject, source);
+          this.getData(noContract).importFromPeer = path.join(options.peerProject, source);
         }
 
         if (contracts.every(({ contractKind }) => contractKind !== 'contract')) {
