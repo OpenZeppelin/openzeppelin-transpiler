@@ -11,7 +11,7 @@ export function* removePartial(
 ): Generator<Transformation> {
   for (const contract of findAll('ContractDefinition', sourceUnit)) {
     const { importPath } = getData(contract);
-    if (importPath) {
+    if (importPath !== undefined) {
       yield {
         ...getNodeBounds(contract),
         kind: 'remove-libraries-and-interfaces',

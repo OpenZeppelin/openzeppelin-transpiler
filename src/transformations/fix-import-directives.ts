@@ -34,7 +34,7 @@ export function fixImportDirectives(withPeerProject?: boolean) {
         }
 
         const contract = resolver.resolveContract(id);
-        const forceImport = contract && getData(contract).importPath;
+        const forceImport = contract && getData(contract).importPath !== undefined;
         const importPath = forceImport ?? renamePath(imp.file);
 
         imports[importPath] ??= [];
