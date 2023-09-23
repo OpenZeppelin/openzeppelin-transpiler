@@ -135,7 +135,7 @@ export async function transpile(
   const transform = new Transform(solcInput, solcOutput, {
     exclude: source =>
       excludeSet.has(source) || (excludeMatch(source) ?? isRenamed(source))
-        ? true
+        ? 'hard'
         : softExcludeSet.has(source)
         ? 'soft'
         : false,
