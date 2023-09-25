@@ -15,7 +15,7 @@ const projectDir = 'contracts/project';
 const peerProject = '@openzeppelin/test/..';
 
 test.serial.before('compile', async t => {
-  const buildInfo = await getBuildInfo('0.6');
+  const buildInfo = await getBuildInfo('0.8');
   const solcInput = buildInfo.input;
   const solcOutput = buildInfo.output as SolcOutput;
   const exclude = Object.keys(solcOutput.sources).filter(path => !path.startsWith(projectDir));

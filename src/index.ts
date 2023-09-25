@@ -84,11 +84,32 @@ function getExcludeAndImportPathsForPeer(
   for (const [source, { ast }] of Object.entries(solcOutput.sources)) {
     let shouldExclude = true;
     for (const node of ast.nodes) {
-      if (node.nodeType === 'ContractDefinition' && node.contractKind === 'contract') {
-        shouldExclude = false;
-      } else {
-        const importFromPeer = path.join(peerProject, source);
-        data.push({ node, data: { importFromPeer } });
+      switch (node.nodeType) {
+        case 'ContractDefinition': {
+          if (node.contractKind === 'contract') {
+            shouldExclude = false;
+          } else {
+            const importFromPeer = path.join(peerProject, source);
+            data.push({ node, data: { importFromPeer } });
+          }
+          break;
+        }
+        case 'EnumDefinition':
+        case 'ErrorDefinition':
+        case 'FunctionDefinition':
+        case 'StructDefinition':
+        case 'UserDefinedValueTypeDefinition': {
+          const importFromPeer = path.join(peerProject, source);
+          data.push({ node, data: { importFromPeer } });
+          break;
+        }
+        case 'ImportDirective':
+        case 'PragmaDirective':
+        case 'UsingForDirective':
+        case 'VariableDeclaration': {
+          // NOTE: how should VariableDeclaration be dealt with ?
+          break;
+        }
       }
     }
     if (shouldExclude) {

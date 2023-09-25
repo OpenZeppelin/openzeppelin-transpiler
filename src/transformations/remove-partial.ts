@@ -1,5 +1,4 @@
 import { SourceUnit } from 'solidity-ast';
-import { findAll } from 'solidity-ast/utils';
 import { getNodeBounds } from '../solc/ast-utils';
 import { TransformerTools } from '../transform';
 
@@ -9,14 +8,30 @@ export function* removePartial(
   sourceUnit: SourceUnit,
   { getData }: TransformerTools,
 ): Generator<Transformation> {
-  for (const contract of findAll('ContractDefinition', sourceUnit)) {
-    const { importFromPeer } = getData(contract);
-    if (importFromPeer !== undefined) {
-      yield {
-        ...getNodeBounds(contract),
-        kind: 'remove-libraries-and-interfaces',
-        text: `import { ${contract.name} } from "${importFromPeer}";`,
-      };
+  for (const node of sourceUnit.nodes) {
+    switch (node.nodeType) {
+      case 'ContractDefinition':
+      case 'EnumDefinition':
+      case 'ErrorDefinition':
+      case 'FunctionDefinition':
+      case 'StructDefinition':
+      case 'UserDefinedValueTypeDefinition': {
+        const { importFromPeer } = getData(node);
+        if (importFromPeer !== undefined) {
+          yield {
+            ...getNodeBounds(node),
+            kind: 'remove-libraries-and-interfaces',
+            text: `import { ${node.name} } from "${importFromPeer}";`,
+          };
+        }
+        break;
+      }
+      case 'ImportDirective':
+      case 'PragmaDirective':
+      case 'UsingForDirective':
+      case 'VariableDeclaration': {
+        break;
+      }
     }
   }
 }
