@@ -17,7 +17,7 @@ import { renameIdentifiers } from './transformations/rename-identifiers';
 import { prependInitializableBase } from './transformations/prepend-initializable-base';
 import { removeStateVarInits } from './transformations/purge-var-inits';
 import { removeImmutable } from './transformations/remove-immutable';
-import { removePartial } from './transformations/remove-partial';
+import { peerImport } from './transformations/peer-import';
 import { removeInheritanceListArguments } from './transformations/remove-inheritance-list-args';
 import { renameContractDefinition } from './transformations/rename-contract-definition';
 import { appendInitializableImport } from './transformations/append-initializable-import';
@@ -98,16 +98,15 @@ function getExcludeAndImportPathsForPeer(
         case 'ErrorDefinition':
         case 'FunctionDefinition':
         case 'StructDefinition':
-        case 'UserDefinedValueTypeDefinition': {
+        case 'UserDefinedValueTypeDefinition':
+        case 'VariableDeclaration': {
           const importFromPeer = path.join(peerProject, source);
           data.push({ node, data: { importFromPeer } });
           break;
         }
         case 'ImportDirective':
         case 'PragmaDirective':
-        case 'UsingForDirective':
-        case 'VariableDeclaration': {
-          // NOTE: how should VariableDeclaration be dealt with ?
+        case 'UsingForDirective': {
           break;
         }
       }
@@ -177,7 +176,7 @@ export async function transpile(
   transform.apply(removeInheritanceListArguments);
   transform.apply(removeStateVarInits);
   transform.apply(removeImmutable);
-  transform.apply(removePartial);
+  transform.apply(peerImport);
 
   if (options.namespaced) {
     transform.apply(addNamespaceStruct(namespaceInclude));

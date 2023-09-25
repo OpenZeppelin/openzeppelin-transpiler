@@ -4,7 +4,7 @@ import { TransformerTools } from '../transform';
 
 import { Transformation } from './type';
 
-export function* removePartial(
+export function* peerImport(
   sourceUnit: SourceUnit,
   { getData }: TransformerTools,
 ): Generator<Transformation> {
@@ -15,12 +15,13 @@ export function* removePartial(
       case 'ErrorDefinition':
       case 'FunctionDefinition':
       case 'StructDefinition':
-      case 'UserDefinedValueTypeDefinition': {
+      case 'UserDefinedValueTypeDefinition':
+      case 'VariableDeclaration': {
         const { importFromPeer } = getData(node);
         if (importFromPeer !== undefined) {
           yield {
             ...getNodeBounds(node),
-            kind: 'remove-libraries-and-interfaces',
+            kind: 'replace-declaration-with-peer-import',
             text: `import { ${node.name} } from "${importFromPeer}";`,
           };
         }
@@ -28,8 +29,7 @@ export function* removePartial(
       }
       case 'ImportDirective':
       case 'PragmaDirective':
-      case 'UsingForDirective':
-      case 'VariableDeclaration': {
+      case 'UsingForDirective': {
         break;
       }
     }
