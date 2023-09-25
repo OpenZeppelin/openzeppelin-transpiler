@@ -33,14 +33,14 @@ export function fixImportDirectives(withPeerProject?: boolean) {
           throw new Error(`Can't find symbol imported in ${ast.absolutePath}`);
         }
 
-        const contract = resolver.resolveContract(id);
-        const importFromPeer = contract && getData(contract).importFromPeer;
+        const node = resolver.resolveNode('*', id);
+        const importFromPeer = getData(node).importFromPeer;
         const importPath = importFromPeer ?? renamePath(imp.file);
 
         imports[importPath] ??= [];
         imports[importPath].push(
           [
-            contract !== undefined && importFromPeer === undefined
+            importFromPeer === undefined
               ? renameContract(a.foreign.name)
               : a.foreign.name,
             [null, undefined, a.foreign.name].includes(a.local) ? '' : ` as ${a.local}`,
