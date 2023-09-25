@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.28
+
+- Add an option to skip transpilation of items that don't need it (e.g. interfaces), by fetching them from a "peer project". This is set by using the new `-q` flag.
+
 ## 0.3.27 (2023-08-29)
 
 - Throw error when using `@custom:storage-size` along with namespaced storage.
