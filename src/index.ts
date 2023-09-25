@@ -141,7 +141,9 @@ export async function transpile(
         : false,
   });
 
-  nodeData.forEach(({ node, data }) => Object.assign(transform.getData(node), data));
+  for (const { node, data } of nodeData) {
+    Object.assign(transform.getData(node), data);
+  }
 
   transform.apply(renameIdentifiers);
   transform.apply(renameContractDefinition);
