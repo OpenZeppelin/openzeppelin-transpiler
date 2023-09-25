@@ -39,13 +39,13 @@ test.serial.before('compile', async t => {
 
   t.context.transformFile = (file: string) =>
     new Transform(t.context.solcInput, t.context.solcOutput, {
-      exclude: source => source !== file,
+      exclude: source => (source !== file ? 'hard' : false),
     });
 });
 
 test.beforeEach('transform', async t => {
   t.context.transform = new Transform(t.context.solcInput, t.context.solcOutput, {
-    exclude: source => source.startsWith('contracts/invalid/'),
+    exclude: source => (source.startsWith('contracts/invalid/') ? 'hard' : false),
   });
 });
 
@@ -121,14 +121,14 @@ test('skip contract rename when Upgradeable suffix', t => {
 
 test('fix import directives', t => {
   const file = 'contracts/solc-0.6/Local.sol';
-  t.context.transform.apply(fixImportDirectives);
+  t.context.transform.apply(fixImportDirectives(false));
   t.snapshot(t.context.transform.results()[file]);
 });
 
 test('fix import directives complex', t => {
   const file = 'contracts/TransformImport2.sol';
   t.context.transform.apply(renameIdentifiers);
-  t.context.transform.apply(fixImportDirectives);
+  t.context.transform.apply(fixImportDirectives(false));
   t.snapshot(t.context.transform.results()[file]);
 });
 
@@ -191,7 +191,7 @@ test('fix new statement in var init', t => {
 test('exclude', t => {
   const file = 'contracts/TransformInitializable.sol';
   const transform = new Transform(t.context.solcInput, t.context.solcOutput, {
-    exclude: s => s === file,
+    exclude: s => (s === file ? 'hard' : false),
   });
   // eslint-disable-next-line require-yield
   transform.apply(function* (s) {
