@@ -4,7 +4,6 @@ import { mapValues } from 'lodash';
 import { minimatch } from 'minimatch';
 
 import { Node } from 'solidity-ast/node';
-
 import { matcher } from './utils/matcher';
 import { renamePath, isRenamed } from './rename';
 import { SolcOutput, SolcInput } from './solc/input-output';

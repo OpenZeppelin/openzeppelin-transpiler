@@ -1,7 +1,7 @@
 import { SourceUnit } from 'solidity-ast';
+import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
 import { TransformerTools } from '../transform';
-import { getNodeBounds } from '../solc/ast-utils';
 
 export function* peerImport(
   ast: SourceUnit,
