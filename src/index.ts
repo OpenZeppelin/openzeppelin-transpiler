@@ -75,7 +75,7 @@ function getExtraOutputPaths(
   return outputPaths;
 }
 
-function excludeAndImportPathsForPeer(
+function getExcludeAndImportPathsForPeer(
   solcOutput: SolcOutput,
   peerProject: string,
 ): [Set<string>, NodeTransformData[]] {
@@ -124,11 +124,11 @@ export async function transpile(
 
   // if partial transpilation, extract the list of soft exclude, and the peer import paths.
   if (options.peerProject !== undefined) {
-    const [peerSoftExcludedSet, importFromPeerData] = excludeAndImportPathsForPeer(
+    const [peerSoftExcludeSet, importFromPeerData] = getExcludeAndImportPathsForPeer(
       solcOutput,
       options.peerProject,
     );
-    peerSoftExcludedSet.forEach(source => softExcludeSet.add(source));
+    peerSoftExcludeSet.forEach(source => softExcludeSet.add(source));
     nodeData.push(...importFromPeerData);
   }
 
