@@ -61,7 +61,7 @@ export class Transform {
   constructor(input: SolcInput, output: SolcOutput, options: TransformOptions = {}) {
     this.decodeSrc = srcDecoder(output);
     this.getLayout = layoutGetter(output);
-    this.resolver = new ASTResolver(output, source => options.exclude?.(source) == 'hard');
+    this.resolver = new ASTResolver(output, source => options.exclude?.(source) === 'hard');
 
     for (const source in input.sources) {
       if (options.exclude?.(source)) {

@@ -15,7 +15,7 @@ export function* removePartial(
       yield {
         ...getNodeBounds(contract),
         kind: 'remove-libraries-and-interfaces',
-        transform: () => `import { ${contract.name} } from "${importFromPeer}";`,
+        text: `import { ${contract.name} } from "${importFromPeer}";`,
       };
     }
   }
