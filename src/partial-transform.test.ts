@@ -26,7 +26,7 @@ test.serial.before('compile', async t => {
   });
 });
 
-for (const fileName of ['ISomeInterface.sol', 'SomeLibrary.sol']) {
+for (const fileName of ['ISomeInterface.sol', 'SomeLibrary.sol', 'SomeContractNotTranspiled']) {
   test(`do not transpile ${fileName}`, t => {
     const file = t.context.files.find(f => f.fileName === fileName);
     t.is(file, undefined, 'file should not be transpiled');

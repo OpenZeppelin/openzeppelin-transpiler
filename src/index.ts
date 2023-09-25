@@ -10,6 +10,7 @@ import { SolcOutput, SolcInput } from './solc/input-output';
 import { Transform, TransformData } from './transform';
 import { generateWithInit } from './generate-with-init';
 import { findAlreadyInitializable } from './find-already-initializable';
+import { extractContractNeedNotTranspile } from './utils/natspec';
 
 import { fixImportDirectives } from './transformations/fix-import-directives';
 import { renameIdentifiers } from './transformations/rename-identifiers';
@@ -85,7 +86,10 @@ function getExcludeAndImportPathsForPeer(
     for (const node of ast.nodes) {
       switch (node.nodeType) {
         case 'ContractDefinition': {
-          if (node.contractKind === 'contract') {
+          if (
+            node.contractKind === 'contract' &&
+            !extractContractNeedNotTranspile(node).includes('peer')
+          ) {
             shouldExclude = false;
           } else {
             const importFromPeer = path.join(peerProject, source);

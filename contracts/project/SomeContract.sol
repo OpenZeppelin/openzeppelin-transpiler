@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import { ISomeInterface } from "./ISomeInterface.sol";
 import { SomeLibrary } from "./SomeLibrary.sol";
+import { SomeContractNotTranspiled } from "./SomeContractNotTranspiled.sol";
 
 interface ISomeContract is ISomeInterface {}
 

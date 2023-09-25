@@ -36,3 +36,13 @@ export function extractContractStorageSize(contract: ContractDefinition): number
   }
   return targetSlots;
 }
+
+export function extractContractNeedNotTranspile(contract: ContractDefinition): string[] {
+  const modes = [];
+  for (const entry of extractNatspec(contract)) {
+    if (entry.title === 'custom' && entry.tag === 'need-not-transpile') {
+      modes.push(entry.args);
+    }
+  }
+  return modes;
+}
