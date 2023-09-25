@@ -40,9 +40,7 @@ export function fixImportDirectives(withPeerProject?: boolean) {
         imports[importPath] ??= [];
         imports[importPath].push(
           [
-            importFromPeer === undefined
-              ? renameContract(a.foreign.name)
-              : a.foreign.name,
+            importFromPeer === undefined ? renameContract(a.foreign.name) : a.foreign.name,
             [null, undefined, a.foreign.name].includes(a.local) ? '' : ` as ${a.local}`,
           ].join(''),
         );

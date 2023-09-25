@@ -3,7 +3,6 @@ import fs from 'fs';
 import { mapValues } from 'lodash';
 import { minimatch } from 'minimatch';
 
-import { findAll } from 'solidity-ast/utils';
 import { Node } from 'solidity-ast/node';
 
 import { matcher } from './utils/matcher';
