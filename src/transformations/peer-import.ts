@@ -1,14 +1,13 @@
 import { SourceUnit } from 'solidity-ast';
-import { getNodeBounds } from '../solc/ast-utils';
-import { TransformerTools } from '../transform';
-
 import { Transformation } from './type';
+import { TransformerTools } from '../transform';
+import { getNodeBounds } from '../solc/ast-utils';
 
 export function* peerImport(
-  sourceUnit: SourceUnit,
+  ast: SourceUnit,
   { getData }: TransformerTools,
 ): Generator<Transformation> {
-  for (const node of sourceUnit.nodes) {
+  for (const node of ast.nodes) {
     switch (node.nodeType) {
       case 'ContractDefinition':
       case 'EnumDefinition':
