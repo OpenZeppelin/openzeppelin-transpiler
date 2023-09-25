@@ -83,13 +83,12 @@ function getExcludeAndImportPathsForPeer(
   const exclude: Set<string> = new Set();
 
   for (const [source, { ast }] of Object.entries(solcOutput.sources)) {
-    const importFromPeer = path.join(peerProject, source);
-
     let shouldExclude = true;
     for (const node of findAll('ContractDefinition', ast)) {
       if (node.contractKind === 'contract') {
         shouldExclude = false;
       } else {
+        const importFromPeer = path.join(peerProject, source);
         data.push({ node, data: { importFromPeer } });
       }
     }
