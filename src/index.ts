@@ -4,6 +4,8 @@ import { mapValues } from 'lodash';
 import { minimatch } from 'minimatch';
 
 import { Node } from 'solidity-ast/node';
+import { ContractDefinition } from 'solidity-ast/types';
+import { ASTResolver } from './ast-resolver';
 import { matcher } from './utils/matcher';
 import { renamePath, isRenamed } from './rename';
 import { SolcOutput, SolcInput } from './solc/input-output';
@@ -30,6 +32,7 @@ import {
   transformConstructor,
   removeLeftoverConstructorHead,
 } from './transformations/transform-constructor';
+import { isStorageVariable } from './transformations/utils/is-storage-variable';
 
 interface Paths {
   root: string;
@@ -74,12 +77,31 @@ function getExtraOutputPaths(
   return outputPaths;
 }
 
+function validateStatelessness(
+  contract: ContractDefinition,
+  resolver: ASTResolver,
+): string | undefined {
+  if (extractContractStorageSize(contract) !== undefined) {
+    return 'Contract marked as stateless should not have a associated storage size';
+  }
+  for (const node of contract.nodes) {
+    if (node.nodeType == 'VariableDeclaration' && isStorageVariable(node, resolver)) {
+      return 'Contract marked as stateless should not contain storage variable declarations';
+    }
+    if (node.nodeType == 'FunctionDefinition' && node.kind == 'constructor') {
+      return 'Contract marked as stateless should not have a constructor';
+    }
+  }
+  return undefined;
+}
+
 function getExcludeAndImportPathsForPeer(
   solcOutput: SolcOutput,
   peerProject: string,
 ): [Set<string>, NodeTransformData[]] {
   const data: NodeTransformData[] = [];
   const exclude: Set<string> = new Set();
+  const resolver = new ASTResolver(solcOutput);
 
   for (const [source, { ast }] of Object.entries(solcOutput.sources)) {
     let shouldExclude = true;
@@ -90,13 +112,10 @@ function getExcludeAndImportPathsForPeer(
             if (!extractContractStateless(node)) {
               shouldExclude = false;
               break;
-            } else {
-              if (extractContractStorageSize(node) !== undefined) {
-                throw new Error(
-                  `${source}:${node.name}: Contract marked as stateless should not have a associated storage size`,
-                );
-              }
-              // TODO: do an actual storage check?
+            }
+            const error = validateStatelessness(node, resolver);
+            if (error !== undefined) {
+              throw new Error(`${source}:${node.name}: ${error}`);
             }
           }
           const importFromPeer = path.join(peerProject, source);
