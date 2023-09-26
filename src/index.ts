@@ -10,10 +10,7 @@ import { SolcOutput, SolcInput } from './solc/input-output';
 import { Transform, TransformData } from './transform';
 import { generateWithInit } from './generate-with-init';
 import { findAlreadyInitializable } from './find-already-initializable';
-import {
-  extractContractStorageSize,
-  extractContractStateless,
-} from './utils/natspec';
+import { extractContractStorageSize, extractContractStateless } from './utils/natspec';
 
 import { fixImportDirectives } from './transformations/fix-import-directives';
 import { renameIdentifiers } from './transformations/rename-identifiers';
@@ -95,7 +92,9 @@ function getExcludeAndImportPathsForPeer(
               break;
             } else {
               if (extractContractStorageSize(node) !== undefined) {
-                throw new Error(`${source}:${node.name}: Contract marked as stateless should not have a associated storage size`);
+                throw new Error(
+                  `${source}:${node.name}: Contract marked as stateless should not have a associated storage size`,
+                );
               }
               // TODO: do an actual storage check?
             }
