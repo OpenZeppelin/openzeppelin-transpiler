@@ -18,7 +18,7 @@ export function preparePeerProject(transform: Transform, peerProject: string) {
             if (extractContractStorageSize(node) !== undefined) {
               throw transform.error(
                 node,
-                'Contract marked as stateless should not have a associated storage size',
+                'Contract marked as stateless should not have an associated storage size',
               );
             }
             for (const decl of node.nodes) {
