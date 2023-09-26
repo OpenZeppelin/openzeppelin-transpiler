@@ -3,16 +3,13 @@ import fs from 'fs';
 import { mapValues } from 'lodash';
 import { minimatch } from 'minimatch';
 
-import { Node } from 'solidity-ast/node';
-import { ContractDefinition } from 'solidity-ast/types';
-import { ASTResolver } from './ast-resolver';
 import { matcher } from './utils/matcher';
 import { renamePath, isRenamed } from './rename';
 import { SolcOutput, SolcInput } from './solc/input-output';
-import { Transform, TransformData } from './transform';
+import { Transform } from './transform';
 import { generateWithInit } from './generate-with-init';
 import { findAlreadyInitializable } from './find-already-initializable';
-import { extractContractStorageSize, extractContractStateless } from './utils/natspec';
+import { preparePeerProject } from './prepare-peer-project';
 
 import { fixImportDirectives } from './transformations/fix-import-directives';
 import { renameIdentifiers } from './transformations/rename-identifiers';
@@ -32,7 +29,6 @@ import {
   transformConstructor,
   removeLeftoverConstructorHead,
 } from './transformations/transform-constructor';
-import { isStorageVariable } from './transformations/utils/is-storage-variable';
 
 interface Paths {
   root: string;
@@ -56,8 +52,6 @@ interface TranspileOptions {
   peerProject?: string;
 }
 
-type NodeTransformData = { node: Node; data: Partial<TransformData> };
-
 function getExtraOutputPaths(
   paths: Paths,
   options: TranspileOptions = {},
@@ -77,89 +71,16 @@ function getExtraOutputPaths(
   return outputPaths;
 }
 
-function validateStatelessness(
-  contract: ContractDefinition,
-  resolver: ASTResolver,
-): string | undefined {
-  if (extractContractStorageSize(contract) !== undefined) {
-    return 'Contract marked as stateless should not have a associated storage size';
-  }
-  for (const node of contract.nodes) {
-    if (node.nodeType == 'VariableDeclaration' && isStorageVariable(node, resolver)) {
-      return 'Contract marked as stateless should not contain storage variable declarations';
-    }
-    if (node.nodeType == 'FunctionDefinition' && node.kind == 'constructor') {
-      return 'Contract marked as stateless should not have a constructor';
-    }
-  }
-  return undefined;
-}
-
-function getExcludeAndImportPathsForPeer(
-  solcOutput: SolcOutput,
-  peerProject: string,
-): [Set<string>, NodeTransformData[]] {
-  const data: NodeTransformData[] = [];
-  const exclude: Set<string> = new Set();
-  const resolver = new ASTResolver(solcOutput);
-
-  for (const [source, { ast }] of Object.entries(solcOutput.sources)) {
-    let shouldExclude = true;
-    for (const node of ast.nodes) {
-      switch (node.nodeType) {
-        case 'ContractDefinition': {
-          if (node.contractKind === 'contract') {
-            if (!extractContractStateless(node)) {
-              shouldExclude = false;
-              break;
-            }
-            const error = validateStatelessness(node, resolver);
-            if (error !== undefined) {
-              throw new Error(`${source}:${node.name}: ${error}`);
-            }
-          }
-          const importFromPeer = path.join(peerProject, source);
-          data.push({ node, data: { importFromPeer } });
-          break;
-        }
-        case 'EnumDefinition':
-        case 'ErrorDefinition':
-        case 'FunctionDefinition':
-        case 'StructDefinition':
-        case 'UserDefinedValueTypeDefinition':
-        case 'VariableDeclaration': {
-          const importFromPeer = path.join(peerProject, source);
-          data.push({ node, data: { importFromPeer } });
-          break;
-        }
-        case 'ImportDirective':
-        case 'PragmaDirective':
-        case 'UsingForDirective': {
-          break;
-        }
-      }
-    }
-    if (shouldExclude) {
-      exclude.add(source);
-    }
-  }
-
-  return [exclude, data];
-}
-
 export async function transpile(
   solcInput: SolcInput,
   solcOutput: SolcOutput,
   paths: Paths,
   options: TranspileOptions = {},
 ): Promise<OutputFile[]> {
-  const nodeData: NodeTransformData[] = [];
-
   const outputPaths = getExtraOutputPaths(paths, options);
   const alreadyInitializable = findAlreadyInitializable(solcOutput, options.initializablePath);
 
   const excludeSet = new Set([...alreadyInitializable, ...Object.values(outputPaths)]);
-  const softExcludeSet = new Set();
   const excludeMatch = matcher(options.exclude ?? []);
 
   const namespaceInclude = (source: string) => {
@@ -168,27 +89,12 @@ export async function transpile(
     return namespaced && !namespaceExclude.some(p => minimatch(source, p));
   };
 
-  // if partial transpilation, extract the list of soft exclude, and the peer import paths.
-  if (options.peerProject !== undefined) {
-    const [peerSoftExcludeSet, importFromPeerData] = getExcludeAndImportPathsForPeer(
-      solcOutput,
-      options.peerProject,
-    );
-    peerSoftExcludeSet.forEach(source => softExcludeSet.add(source));
-    nodeData.push(...importFromPeerData);
-  }
-
   const transform = new Transform(solcInput, solcOutput, {
-    exclude: source =>
-      excludeSet.has(source) || (excludeMatch(source) ?? isRenamed(source))
-        ? 'hard'
-        : softExcludeSet.has(source)
-        ? 'soft'
-        : false,
+    exclude: source => excludeSet.has(source) || (excludeMatch(source) ?? isRenamed(source)),
   });
 
-  for (const { node, data } of nodeData) {
-    Object.assign(transform.getData(node), data);
+  if (options.peerProject !== undefined) {
+    preparePeerProject(transform, options.peerProject);
   }
 
   transform.apply(renameIdentifiers);

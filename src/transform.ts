@@ -45,7 +45,7 @@ interface TransformState {
 }
 
 interface TransformOptions {
-  exclude?: (source: string) => 'hard' | 'soft' | false;
+  exclude?: (source: string) => boolean;
 }
 
 export class Transform {
@@ -62,7 +62,7 @@ export class Transform {
   constructor(input: SolcInput, output: SolcOutput, options: TransformOptions = {}) {
     this.decodeSrc = srcDecoder(output);
     this.getLayout = layoutGetter(output);
-    this.resolver = new ASTResolver(output, source => options.exclude?.(source) === 'hard');
+    this.resolver = new ASTResolver(output, options.exclude);
 
     for (const source in input.sources) {
       if (options.exclude?.(source)) {
@@ -185,6 +185,10 @@ export class Transform {
 
   asts(): SourceUnit[] {
     return Object.values(this.state).map(s => s.ast);
+  }
+
+  exclude(source: string) {
+    delete this.state[source];
   }
 }
 
