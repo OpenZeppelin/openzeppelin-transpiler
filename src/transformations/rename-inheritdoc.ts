@@ -26,7 +26,7 @@ export function* renameInheritdoc(
           kind: 'rename-inheritdoc',
           transform: source => {
             const ref = baseContracts.find(c => c?.canonicalName == source);
-            return (ref !== undefined && getData(ref).importFromPeer !== undefined)
+            return ref !== undefined && getData(ref).importFromPeer !== undefined
               ? source
               : source.replace(/[a-zA-Z0-9$_]+$/, renameContract);
           },
