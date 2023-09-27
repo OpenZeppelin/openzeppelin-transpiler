@@ -15,18 +15,27 @@ struct SomeStruct {
     uint member;
 }
 
-contract SomeContract is ISomeContract {
+contract SomeBaseContract {
+    function test(ISomeInterface other) public virtual returns (bool) {
+        return SomeLibrary.bothFunctions(other);
+    }
+}
+
+contract SomeContract is ISomeContract, SomeBaseContract {
     SomeStruct s;
 
+    /// @inheritdoc ISomeInterface
     function someFunction() public pure override returns (bool) {
         return false;
     }
 
+    /// @inheritdoc ISomeInterface
     function someOtherFunction() public pure override returns (bool) {
         return true;
     }
 
-    function test(ISomeInterface other) public returns (bool) {
-        return SomeLibrary.bothFunctions(this) && SomeLibrary.bothFunctions(other);
+    /// @inheritdoc SomeBaseContract
+    function test(ISomeInterface other) public override returns (bool) {
+        return SomeLibrary.bothFunctions(this) && super.test(other);
     }
 }
