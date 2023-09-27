@@ -37,7 +37,7 @@ function readCommandFlags(resolveRootRelative: (p: string) => string): Options {
     W: skipWithInit = false,
     n: namespaced = false,
     N: namespaceExclude = [],
-    q: peerProject = false,
+    q: peerProject,
   } = minimist(process.argv.slice(2));
   return {
     buildInfo,
