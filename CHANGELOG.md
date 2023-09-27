@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.30 (2023-09-27)
+
+- Fix `@inheritdoc` in peer project mode.
+
 ## 0.3.29 (2023-09-26)
 
 - Add a NatSpec annotation `@custom:stateless` to skip transpiling annotated contracts in peer project mode.
