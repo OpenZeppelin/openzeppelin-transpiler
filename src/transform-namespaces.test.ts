@@ -30,7 +30,7 @@ test.serial.before('compile', async t => {
 test.beforeEach('transform', async t => {
   t.context.transformFile = (file: string) =>
     new Transform(t.context.solcInput, t.context.solcOutput, {
-      exclude: source => (source !== file ? 'hard' : false),
+      exclude: source => source !== file,
     });
 });
 

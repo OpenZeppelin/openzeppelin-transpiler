@@ -14,7 +14,7 @@ export function* extractNatspec(node: {
     typeof node.documentation === 'string' ? node.documentation : node.documentation?.text ?? '';
 
   for (const { groups } of execall(
-    /^\s*(?:@(?<title>\w+)(?::(?<tag>[a-z][a-z-]*))? )?(?<args>(?:(?!^\s@\w+)[^])*)/m,
+    /^\s*(?:@(?<title>\w+)(?::(?<tag>[a-z][a-z-]*))?)?(?: (?<args>(?:(?!^\s@\w+)[^])*))?/m,
     doc,
   )) {
     if (groups) {
@@ -35,4 +35,13 @@ export function extractContractStorageSize(contract: ContractDefinition): number
     }
   }
   return targetSlots;
+}
+
+export function extractContractStateless(contract: ContractDefinition): boolean {
+  for (const entry of extractNatspec(contract)) {
+    if (entry.title === 'custom' && entry.tag === 'stateless') {
+      return true;
+    }
+  }
+  return false;
 }

@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import { ISomeInterface } from "./ISomeInterface.sol";
 import { SomeLibrary } from "./SomeLibrary.sol";
+import { SomeStatelessContract } from "./SomeStatelessContract.sol";
 
 interface ISomeContract is ISomeInterface {}
 
@@ -17,11 +18,11 @@ struct SomeStruct {
 contract SomeContract is ISomeContract {
     SomeStruct s;
 
-    function someFunction() public override returns (bool) {
+    function someFunction() public pure override returns (bool) {
         return false;
     }
 
-    function someOtherFunction() public override returns (bool) {
+    function someOtherFunction() public pure override returns (bool) {
         return true;
     }
 
