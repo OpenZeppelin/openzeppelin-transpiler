@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.29 (2023-09-26)
+
+- Add a NatSpec annotation `@custom:stateless` to skip transpiling annotated contracts in peer project mode.
+
 ## 0.3.28 (2023-09-25)
 
 - Add an option to skip transpilation of items that don't need it (e.g. interfaces), by fetching them from a "peer project". This is set by using the new `-q` flag.
