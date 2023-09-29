@@ -101,7 +101,7 @@ export async function transpile(
   transform.apply(renameContractDefinition);
   transform.apply(renameInheritdoc);
   transform.apply(prependInitializableBase);
-  transform.apply(fixImportDirectives(options.peerProject !== undefined));
+  transform.apply(fixImportDirectives);
   transform.apply(appendInitializableImport(outputPaths.initializable));
   transform.apply(fixNewStatement);
   transform.apply(transformConstructor(namespaceInclude));
@@ -169,7 +169,7 @@ function transpileInitializable(
   transform.apply(function* (ast, tools) {
     if (ast.absolutePath === options.initializablePath) {
       yield* renameIdentifiers(ast, tools);
-      yield* fixImportDirectives(options.peerProject !== undefined)(ast, tools);
+      yield* fixImportDirectives(ast, tools);
     }
   });
 

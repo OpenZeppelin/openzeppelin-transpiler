@@ -5,60 +5,41 @@ import { Transformation } from './type';
 import { renameContract, renamePath } from '../rename';
 import { TransformerTools } from '../transform';
 
-declare module '../transform' {
-  interface TransformData {
-    importFromPeer: string;
-  }
-}
+export function* fixImportDirectives (
+  ast: SourceUnit,
+  { resolver }: TransformerTools,
+) {
+  for (const imp of findAll('ImportDirective', ast)) {
+    const referencedSourceUnit = resolver.resolveNode('SourceUnit', imp.sourceUnit);
 
-export function fixImportDirectives(withPeerProject?: boolean) {
-  return function* (
-    ast: SourceUnit,
-    { resolver, getData }: TransformerTools,
-  ): Generator<Transformation> {
-    for (const imp of findAll('ImportDirective', ast)) {
-      const referencedSourceUnit = resolver.resolveNode('SourceUnit', imp.sourceUnit);
-
-      if (withPeerProject && imp.symbolAliases.length == 0) {
-        throw new Error(
-          `Transpile with peer doesn't support import without aliases in ${imp.absolutePath}`,
-        );
+    const aliases = imp.symbolAliases.map(a => {
+      const id = referencedSourceUnit.exportedSymbols[a.foreign.name]?.[0];
+      if (id === undefined) {
+        throw new Error(`Can't find symbol imported in ${ast.absolutePath}`);
       }
-
-      const imports: Record<string, string[]> = {};
-
-      for (const a of imp.symbolAliases) {
-        const id = referencedSourceUnit.exportedSymbols[a.foreign.name]?.[0];
-        if (id === undefined) {
-          throw new Error(`Can't find symbol imported in ${ast.absolutePath}`);
-        }
-
-        const node = resolver.resolveNode('*', id);
-        const importFromPeer = getData(node).importFromPeer;
-        const importPath = importFromPeer ?? renamePath(imp.file);
-
-        imports[importPath] ??= [];
-        imports[importPath].push(
-          [
-            importFromPeer === undefined ? renameContract(a.foreign.name) : a.foreign.name,
-            [null, undefined, a.foreign.name].includes(a.local) ? '' : ` as ${a.local}`,
-          ].join(''),
-        );
+      let alias = '';
+      const contract = resolver.resolveContract(id);
+      if (contract === undefined) {
+        alias += a.foreign.name;
+      } else {
+        alias += renameContract(a.foreign.name);
       }
-
-      const statement = [];
-      for (const [path, aliases] of Object.entries(imports)) {
-        statement.push(`import {${aliases.join(', ')}} from "${path}";`);
+      if (a.local != null && a.local !== a.foreign.name) {
+        alias += ` as ${a.local}`;
       }
-      if (imp.symbolAliases.length == 0) {
-        statement.push(`import "${renamePath(imp.file)}";`);
-      }
+      return alias;
+    });
 
-      yield {
-        kind: 'fix-import-directives',
-        text: statement.join('\n'),
-        ...getNodeBounds(imp),
-      };
+    const statement = ['import'];
+    if (aliases.length > 0) {
+      statement.push(`{${aliases.join(', ')}} from`);
     }
-  };
+    statement.push(`"${renamePath(imp.file)}";`);
+
+    yield {
+      kind: 'fix-import-directives',
+      text: statement.join(' '),
+      ...getNodeBounds(imp),
+    };
+  }
 }
