@@ -25,7 +25,9 @@ export function* renameIdentifiers(
 ): Generator<Transformation> {
   const candidates = getTransitiveRenameCandidates(sourceUnit, resolver);
   const rename = new Set(
-    Object.keys(candidates).filter(name => resolver.resolveContract(candidates[name]) !== undefined),
+    Object.keys(candidates).filter(
+      name => resolver.resolveContract(candidates[name]) !== undefined,
+    ),
   );
 
   for (const ident of findAllIdentifiers(sourceUnit)) {
