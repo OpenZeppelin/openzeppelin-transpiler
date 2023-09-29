@@ -110,13 +110,12 @@ export async function transpile(
   transform.apply(removeInheritanceListArguments);
   transform.apply(removeStateVarInits);
   transform.apply(removeImmutable);
-  transform.apply(peerImport);
-
   if (options.namespaced) {
     transform.apply(addNamespaceStruct(namespaceInclude));
   } else {
     transform.apply(addStorageGaps);
   }
+  transform.apply(peerImport);
 
   // build a final array of files to return
   const outputFiles: OutputFile[] = [];

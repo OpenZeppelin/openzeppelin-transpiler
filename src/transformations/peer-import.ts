@@ -21,7 +21,7 @@ export function* peerImport(
       assert('name' in node);
       yield {
         ...getNodeBounds(node),
-        kind: 'replace-declaration-with-peer-import',
+        kind: 'peer-import',
         text: `import {${node.name} as ${renameContract(node.name)}} from "${importFromPeer}";`,
       };
     }
