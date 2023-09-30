@@ -18,6 +18,14 @@ export function* peerImport(
   for (const node of ast.nodes) {
     const { importFromPeer } = getData(node);
     if (importFromPeer !== undefined) {
+      if ('documentation' in node && node.documentation) {
+        yield {
+          ...getNodeBounds(node.documentation),
+          kind: 'peer-import-remove-doc',
+          text: '',
+        };
+      }
+
       assert('name' in node);
       yield {
         ...getNodeBounds(node),
