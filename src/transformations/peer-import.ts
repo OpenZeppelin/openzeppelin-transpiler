@@ -1,8 +1,15 @@
 import { SourceUnit } from 'solidity-ast';
 import { getNodeBounds } from '../solc/ast-utils';
+import { renameContract } from '../rename';
 import { Transformation } from './type';
 import { TransformerTools } from '../transform';
 import assert from 'assert';
+
+declare module '../transform' {
+  interface TransformData {
+    importFromPeer: string;
+  }
+}
 
 export function* peerImport(
   ast: SourceUnit,
@@ -11,11 +18,19 @@ export function* peerImport(
   for (const node of ast.nodes) {
     const { importFromPeer } = getData(node);
     if (importFromPeer !== undefined) {
+      if ('documentation' in node && node.documentation) {
+        yield {
+          ...getNodeBounds(node.documentation),
+          kind: 'peer-import-remove-doc',
+          text: '',
+        };
+      }
+
       assert('name' in node);
       yield {
         ...getNodeBounds(node),
-        kind: 'replace-declaration-with-peer-import',
-        text: `import { ${node.name} } from "${importFromPeer}";`,
+        kind: 'peer-import',
+        text: `import {${node.name} as ${renameContract(node.name)}} from "${importFromPeer}";`,
       };
     }
   }

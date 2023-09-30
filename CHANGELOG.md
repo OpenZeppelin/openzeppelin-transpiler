@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.31 (2023-09-30)
+
+- Simplify peer project mode by renaming imported peer symbols.
+
 ## 0.3.30 (2023-09-27)
 
 - Fix `@inheritdoc` in peer project mode.

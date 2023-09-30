@@ -186,10 +186,6 @@ export class Transform {
   asts(): SourceUnit[] {
     return Object.values(this.state).map(s => s.ast);
   }
-
-  exclude(source: string) {
-    delete this.state[source];
-  }
 }
 
 function insertSortedAndValidate(

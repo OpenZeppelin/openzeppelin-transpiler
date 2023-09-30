@@ -23,7 +23,11 @@ export function generateWithInit(
 
   for (const sourceUnit of transform.asts()) {
     for (const contract of findAll('ContractDefinition', sourceUnit)) {
-      if (contract.contractKind !== 'contract' || !contract.fullyImplemented) {
+      if (
+        contract.contractKind !== 'contract' ||
+        !contract.fullyImplemented ||
+        transform.getData(contract).importFromPeer !== undefined
+      ) {
         continue;
       }
 
