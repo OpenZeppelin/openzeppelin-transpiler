@@ -21,11 +21,14 @@ function* findAllIdentifiers(node: Node) {
 
 export function* renameIdentifiers(
   sourceUnit: SourceUnit,
-  { resolver }: TransformerTools,
+  { resolver, getData }: TransformerTools,
 ): Generator<Transformation> {
   const candidates = getTransitiveRenameCandidates(sourceUnit, resolver);
   const rename = new Set(
-    Object.keys(candidates).filter(name => resolver.resolveContract(candidates[name])),
+    Object.keys(candidates).filter(name => {
+      const contract = resolver.resolveContract(candidates[name]);
+      return contract !== undefined && getData(contract).importFromPeer === undefined;
+    }),
   );
 
   for (const ident of findAllIdentifiers(sourceUnit)) {

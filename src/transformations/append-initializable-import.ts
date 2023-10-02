@@ -7,17 +7,11 @@ import { relativePath } from '../utils/relative-path';
 
 import { getNodeBounds } from '../solc/ast-utils';
 import { Transformation } from './type';
-import { TransformerTools } from '../transform';
 
 export function appendInitializableImport(initializablePath: string) {
-  return function* (
-    sourceUnit: SourceUnit,
-    { getData }: TransformerTools,
-  ): Generator<Transformation> {
+  return function* (sourceUnit: SourceUnit): Generator<Transformation> {
     const contracts = [...findAll('ContractDefinition', sourceUnit)];
-    if (
-      !contracts.some(c => c.contractKind === 'contract' && getData(c).importFromPeer === undefined)
-    ) {
+    if (!contracts.some(c => c.contractKind === 'contract')) {
       return;
     }
 

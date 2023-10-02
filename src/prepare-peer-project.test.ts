@@ -29,13 +29,17 @@ test.serial.before('compile', async t => {
   });
 });
 
-for (const fileName of [
-  'ISomeInterface.sol',
-  'SomeLibrary.sol',
-  'SomeStatelessContract.sol',
-  'SomeContract.sol',
-  'SomeOtherContract.sol',
-]) {
+for (const fileName of ['ISomeInterface.sol', 'SomeLibrary.sol', 'SomeStatelessContract.sol']) {
+  test(`do not transpile ${fileName}`, t => {
+    const file = t.context.files.find(f => f.fileName === fileName);
+    // source file exists
+    t.true(t.context.inputs.includes(path.join(projectDir, fileName)));
+    // transpiled file does not exist
+    t.is(file, undefined, 'file should not be transpiled');
+  });
+}
+
+for (const fileName of ['SomeContract.sol', 'SomeOtherContract.sol']) {
   test(`transpile ${fileName}`, t => {
     const file = t.context.files.find(f => f.fileName === fileName);
     // source file exists

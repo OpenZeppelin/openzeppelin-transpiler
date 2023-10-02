@@ -1,8 +1,12 @@
 # Changelog
 
+## 0.3.32 (2023-09-30)
+
+- Revert 0.3.31 changes.
+
 ## 0.3.31 (2023-09-30)
 
-- Simplify peer project mode by renaming imported peer symbols.
+- (Reverted in 0.3.32) ~Simplify peer project mode by renaming imported peer symbols.~
 
 ## 0.3.30 (2023-09-27)
 

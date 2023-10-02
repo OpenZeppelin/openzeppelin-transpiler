@@ -6,12 +6,14 @@ import { isStorageVariable } from './transformations/utils/is-storage-variable';
 
 export function preparePeerProject(transform: Transform, peerProject: string) {
   for (const ast of transform.asts()) {
+    let shouldExclude = true;
     for (const node of ast.nodes) {
       switch (node.nodeType) {
         case 'ContractDefinition': {
           if (node.contractKind === 'contract') {
             if (!extractContractStateless(node)) {
-              continue;
+              shouldExclude = false;
+              break;
             }
             if (extractContractStorageSize(node) !== undefined) {
               throw transform.error(
@@ -55,6 +57,9 @@ export function preparePeerProject(transform: Transform, peerProject: string) {
           break;
         }
       }
+    }
+    if (shouldExclude) {
+      transform.exclude(ast.absolutePath);
     }
   }
 }

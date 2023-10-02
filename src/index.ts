@@ -101,7 +101,7 @@ export async function transpile(
   transform.apply(renameContractDefinition);
   transform.apply(renameInheritdoc);
   transform.apply(prependInitializableBase);
-  transform.apply(fixImportDirectives);
+  transform.apply(fixImportDirectives(options.peerProject !== undefined));
   transform.apply(appendInitializableImport(outputPaths.initializable));
   transform.apply(fixNewStatement);
   transform.apply(transformConstructor(namespaceInclude));
@@ -110,12 +110,13 @@ export async function transpile(
   transform.apply(removeInheritanceListArguments);
   transform.apply(removeStateVarInits);
   transform.apply(removeImmutable);
+  transform.apply(peerImport);
+
   if (options.namespaced) {
     transform.apply(addNamespaceStruct(namespaceInclude));
   } else {
     transform.apply(addStorageGaps);
   }
-  transform.apply(peerImport);
 
   // build a final array of files to return
   const outputFiles: OutputFile[] = [];
@@ -168,7 +169,7 @@ function transpileInitializable(
   transform.apply(function* (ast, tools) {
     if (ast.absolutePath === options.initializablePath) {
       yield* renameIdentifiers(ast, tools);
-      yield* fixImportDirectives(ast, tools);
+      yield* fixImportDirectives(options.peerProject !== undefined)(ast, tools);
     }
   });
 
