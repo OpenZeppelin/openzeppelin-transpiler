@@ -37,7 +37,7 @@ export function fixImportDirectives(withPeerProject?: boolean) {
         const importFromPeer = getData(node).importFromPeer;
         const importPath = importFromPeer ?? renamePath(imp.file);
 
-        imports[importPath] ??= [];
+        imports[importPath] ||= [];
         imports[importPath].push(
           [
             importFromPeer === undefined ? renameContract(a.foreign.name) : a.foreign.name,

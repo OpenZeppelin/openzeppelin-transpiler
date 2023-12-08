@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.33 (2023-12-8)
+
+- Improve code compatibility with older versions of node.
+
 ## 0.3.32 (2023-09-30)
 
 - Revert 0.3.31 changes.
