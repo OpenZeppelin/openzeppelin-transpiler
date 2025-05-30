@@ -132,7 +132,10 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
                 `}`,
                 ``,
                 `function _${namespace}Location() internal pure virtual returns (bytes32) {`,
-                [`// keccak256(abi.encode(uint256(keccak256("${id}")) - 1)) & ~bytes32(uint256(0xff))`,`return ${erc7201Location(id)};`],
+                [
+                  `// keccak256(abi.encode(uint256(keccak256("${id}")) - 1)) & ~bytes32(uint256(0xff))`,
+                  `return ${erc7201Location(id)};`,
+                ],
                 `}`,
                 ``,
                 `function _get${namespace}() private pure returns (${namespace} storage $) {`,
