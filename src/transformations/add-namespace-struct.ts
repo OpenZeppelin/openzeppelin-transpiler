@@ -131,11 +131,17 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
                 ...rest.split('\n'),
                 `}`,
                 ``,
-                `// keccak256(abi.encode(uint256(keccak256("${id}")) - 1)) & ~bytes32(uint256(0xff))`,
-                `bytes32 private constant ${namespace}Location = ${erc7201Location(id)};`,
+                `/// @dev Consider updating the struct's storage location annotation`,
+                `/// See https://docs.openzeppelin.com/upgrades-plugins/writing-upgradeable#namespaced-storage-layout`,
+                `function _${namespace}Location() internal pure virtual returns (bytes32) {`,
+                [
+                  `// keccak256(abi.encode(uint256(keccak256("${id}")) - 1)) & ~bytes32(uint256(0xff))`,
+                  `return ${erc7201Location(id)};`,
+                ],
+                `}`,
                 ``,
                 `function _get${namespace}() private pure returns (${namespace} storage $) {`,
-                [`assembly {`, [`$.slot := ${namespace}Location`], `}`],
+                [`bytes32 slot = _${namespace}Location();`, `assembly {`, [`$.slot := slot`], `}`],
                 `}`,
               ]).trimEnd()
             );
