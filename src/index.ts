@@ -90,7 +90,7 @@ export async function transpile(
   };
 
   const transform = new Transform(solcInput, solcOutput, {
-    exclude: source => excludeSet.has(source) || excludeMatch(source),
+    exclude: source => excludeSet.has(source) || !!excludeMatch(source),
   });
 
   if (options.peerProject !== undefined) {
