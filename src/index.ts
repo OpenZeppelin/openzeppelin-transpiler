@@ -4,7 +4,7 @@ import { mapValues } from 'lodash';
 import { minimatch } from 'minimatch';
 
 import { matcher } from './utils/matcher';
-import { renamePath, isRenamed } from './rename';
+import { renamePath } from './rename';
 import { SolcOutput, SolcInput } from './solc/input-output';
 import { Transform } from './transform';
 import { generateWithInit } from './generate-with-init';
@@ -90,7 +90,7 @@ export async function transpile(
   };
 
   const transform = new Transform(solcInput, solcOutput, {
-    exclude: source => excludeSet.has(source) || (excludeMatch(source) ?? isRenamed(source)),
+    exclude: source => excludeSet.has(source) || !!excludeMatch(source),
   });
 
   if (options.peerProject !== undefined) {
@@ -102,7 +102,7 @@ export async function transpile(
   transform.apply(renameInheritdoc);
   transform.apply(prependInitializableBase);
   transform.apply(fixImportDirectives(options.peerProject !== undefined));
-  transform.apply(appendInitializableImport(outputPaths.initializable));
+  transform.apply(appendInitializableImport(outputPaths.initializable, options.peerProject));
   transform.apply(fixNewStatement);
   transform.apply(transformConstructor(namespaceInclude));
   transform.apply(removeLeftoverConstructorHead);
@@ -133,19 +133,19 @@ export async function transpile(
     });
   }
 
-  const initializableSource =
-    options.initializablePath !== undefined
-      ? transpileInitializable(solcInput, solcOutput, paths, {
-          ...options,
-          initializablePath: options.initializablePath,
-        })
-      : fs.readFileSync(require.resolve('../Initializable.sol'), 'utf8');
-
-  outputFiles.push({
-    source: initializableSource,
-    path: outputPaths.initializable,
-    fileName: path.basename(outputPaths.initializable),
-  });
+  if (!options.peerProject) {
+    outputFiles.push({
+      source:
+        options.initializablePath !== undefined
+          ? transpileInitializable(solcInput, solcOutput, paths, {
+              ...options,
+              initializablePath: options.initializablePath,
+            })
+          : fs.readFileSync(require.resolve('../Initializable.sol'), 'utf8'),
+      path: outputPaths.initializable,
+      fileName: path.basename(outputPaths.initializable),
+    });
+  }
 
   if (!options.skipWithInit) {
     outputFiles.push({
