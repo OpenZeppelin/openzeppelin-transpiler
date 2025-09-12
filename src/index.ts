@@ -4,7 +4,7 @@ import { mapValues } from 'lodash';
 import { minimatch } from 'minimatch';
 
 import { matcher } from './utils/matcher';
-import { renamePath, isRenamed } from './rename';
+import { renamePath } from './rename';
 import { SolcOutput, SolcInput } from './solc/input-output';
 import { Transform } from './transform';
 import { generateWithInit } from './generate-with-init';
@@ -90,7 +90,7 @@ export async function transpile(
   };
 
   const transform = new Transform(solcInput, solcOutput, {
-    exclude: source => excludeSet.has(source) || (excludeMatch(source) ?? isRenamed(source)),
+    exclude: source => excludeSet.has(source) || !!excludeMatch(source),
   });
 
   if (options.peerProject !== undefined) {

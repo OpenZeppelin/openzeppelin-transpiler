@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0 (Unreleased)
+
+- Breaking: Do not automatically exclude files ending in `Upgradeable.sol`.
+
 ## 0.3.33 (2023-12-8)
 
 - Improve code compatibility with older versions of node.
