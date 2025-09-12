@@ -113,7 +113,9 @@ async function main() {
     const keep = new Set(
       [
         ...transpiled.map(t => t.path),
-        ...(options.peerProject === undefined ? findAlreadyInitializable(solcOutput, options.initializablePath) : []),
+        ...(options.peerProject === undefined
+          ? findAlreadyInitializable(solcOutput, options.initializablePath)
+          : []),
       ].map(p => path.join(paths.root, p)),
     );
     if (options.initializablePath && options.peerProject === undefined) {
