@@ -102,13 +102,7 @@ export async function transpile(
   transform.apply(renameInheritdoc);
   transform.apply(prependInitializableBase);
   transform.apply(fixImportDirectives(options.peerProject !== undefined));
-  transform.apply(
-    appendInitializableImport(
-      outputPaths.initializable,
-      options.peerProject !== undefined &&
-        outputPaths.initializable.startsWith(options.peerProject),
-    ),
-  );
+  transform.apply(appendInitializableImport(outputPaths.initializable, options.peerProject));
   transform.apply(fixNewStatement);
   transform.apply(transformConstructor(namespaceInclude));
   transform.apply(removeLeftoverConstructorHead);
@@ -139,19 +133,19 @@ export async function transpile(
     });
   }
 
-  const initializableSource =
-    options.initializablePath !== undefined
-      ? transpileInitializable(solcInput, solcOutput, paths, {
-          ...options,
-          initializablePath: options.initializablePath,
-        })
-      : fs.readFileSync(require.resolve('../Initializable.sol'), 'utf8');
-
-  outputFiles.push({
-    source: initializableSource,
-    path: outputPaths.initializable,
-    fileName: path.basename(outputPaths.initializable),
-  });
+  if (!options.peerProject) {
+    outputFiles.push({
+      source:
+        options.initializablePath !== undefined
+          ? transpileInitializable(solcInput, solcOutput, paths, {
+              ...options,
+              initializablePath: options.initializablePath,
+            })
+          : fs.readFileSync(require.resolve('../Initializable.sol'), 'utf8'),
+      path: outputPaths.initializable,
+      fileName: path.basename(outputPaths.initializable),
+    });
+  }
 
   if (!options.skipWithInit) {
     outputFiles.push({
