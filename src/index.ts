@@ -102,7 +102,13 @@ export async function transpile(
   transform.apply(renameInheritdoc);
   transform.apply(prependInitializableBase);
   transform.apply(fixImportDirectives(options.peerProject !== undefined));
-  transform.apply(appendInitializableImport(outputPaths.initializable, options.peerProject !== undefined && outputPaths.initializable.startsWith(options.peerProject)));
+  transform.apply(
+    appendInitializableImport(
+      outputPaths.initializable,
+      options.peerProject !== undefined &&
+        outputPaths.initializable.startsWith(options.peerProject),
+    ),
+  );
   transform.apply(fixNewStatement);
   transform.apply(transformConstructor(namespaceInclude));
   transform.apply(removeLeftoverConstructorHead);
