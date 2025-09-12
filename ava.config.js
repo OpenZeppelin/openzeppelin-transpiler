@@ -1,5 +1,7 @@
 module.exports = {
   extensions: ['ts'],
   require: ['ts-node/register'],
-  ignoredByWatcher: ['**/cache/*', '**/artifacts/*'],
+  watchMode: {
+    ignoreChanges: ['**/cache/*', '**/artifacts/*'],
+  },
 };
