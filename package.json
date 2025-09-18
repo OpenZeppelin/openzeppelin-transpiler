@@ -19,8 +19,8 @@
     "compile": "tsc",
     "prepare": "rimraf dist && npm run compile",
     "watch": "tsc -w",
-    "lint": "npx prettier '**/*.{js,ts}' --check && eslint .",
-    "lint:fix": "npx prettier '**/*.{js,ts}' --write && eslint . --fix"
+    "lint": "prettier '**/*.{js,ts}' --check && eslint .",
+    "lint:fix": "prettier '**/*.{js,ts}' --write && eslint . --fix"
   },
   "repository": "github:OpenZeppelin/openzeppelin-transpiler",
   "keywords": [
