@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1 (2025-09-18)
+
+- Revert part 0.4.0: Do not automatically delete initialisable contracts when "delete originals" is enabled (in perr project mode).
+
 ## 0.4.0 (2025-09-18)
 
 - Breaking: Do not automatically exclude files ending in `Upgradeable.sol`.
