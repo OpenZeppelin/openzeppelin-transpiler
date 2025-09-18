@@ -2,7 +2,7 @@
 
 ## 0.4.1 (2025-09-18)
 
-- Revert part 0.4.0: Do not automatically delete initialisable contracts when "delete originals" is enabled (in perr project mode).
+- Revert part 0.4.0: Do not automatically delete initialisable contracts when "delete originals" is enabled (in peer project mode).
 
 ## 0.4.0 (2025-09-18)
 
