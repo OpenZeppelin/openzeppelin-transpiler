@@ -26,14 +26,18 @@ test('ok', t => {
 test('mixed', t => {
   t.throws(
     () => findAlreadyInitializable(t.context.solcOutput, 'contracts/find-already-init/Init2.sol'),
-    { message: /contains both Initializable and non-Initializable/ },
+    {
+      message: /contains both Initializable and non-Initializable/,
+    },
   );
 });
 
 test('no Initializable contract', t => {
   t.throws(
     () => findAlreadyInitializable(t.context.solcOutput, 'contracts/find-already-init/NoInit.sol'),
-    { message: /does not contain Initializable/ },
+    {
+      message: /does not contain Initializable/,
+    },
   );
 });
 
@@ -41,6 +45,8 @@ test('more than Initializable contract', t => {
   t.throws(
     () =>
       findAlreadyInitializable(t.context.solcOutput, 'contracts/find-already-init/InitPlus.sol'),
-    { message: /contains contracts other than Initializable/ },
+    {
+      message: /contains contracts other than Initializable/,
+    },
   );
 });
