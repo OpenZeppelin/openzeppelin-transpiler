@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.4.0 (Unreleased)
+## 0.4.0 (2025-09-18)
 
 - Breaking: Do not automatically exclude files ending in `Upgradeable.sol`.
 - Breaking: When in peer project mode, use Initializable from the peer. If the "delete originals" option is enabled, do not keep Initializable and the already initialisable contracts.
