@@ -3,7 +3,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import minimist from 'minimist';
-import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 
 import { transpile } from '.';
 import { SolcOutput, SolcInput } from './solc/input-output';
@@ -11,7 +10,7 @@ import { findAlreadyInitializable } from './find-already-initializable';
 
 async function getPaths() {
   const hardhat = require.resolve('hardhat', { paths: [process.cwd()] });
-  const hre: HardhatRuntimeEnvironment = (await import(hardhat)).default;
+  const hre = (await import(hardhat)).default;
   return hre.config.paths;
 }
 
