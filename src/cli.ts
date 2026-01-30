@@ -8,13 +8,20 @@ import { transpile } from '.';
 import { SolcOutput, SolcInput } from './solc/input-output';
 import { findAlreadyInitializable } from './find-already-initializable';
 
-async function getPaths() {
+interface Paths {
+  root: string;
+  sources: string;
+  artifacts: string;
+}
+
+async function getPaths(): Promise<Paths> {
   const hardhat = require.resolve('hardhat', { paths: [process.cwd()] });
   const hre = (await import(hardhat)).default;
   return hre.config.paths;
 }
 
 interface Options {
+  paths: Paths;
   initializablePath?: string;
   buildInfo?: string;
   deleteOriginals: boolean;
@@ -26,7 +33,7 @@ interface Options {
   peerProject?: string;
 }
 
-function readCommandFlags(resolveRootRelative: (p: string) => string): Options {
+async function readCommandFlags(): Promise<Options> {
   const {
     b: buildInfo,
     i: initializablePath,
@@ -37,8 +44,12 @@ function readCommandFlags(resolveRootRelative: (p: string) => string): Options {
     n: namespaced = false,
     N: namespaceExclude = [],
     q: peerProject,
+    paths: pathsString,
   } = minimist(process.argv.slice(2));
+  const paths = pathsString === undefined ? await getPaths() : JSON.parse(pathsString);
+  const resolveRootRelative = (p: string) => path.relative(paths.root, path.resolve(p));
   return {
+    paths,
     buildInfo,
     deleteOriginals,
     skipWithInit,
@@ -73,9 +84,8 @@ async function getVersion() {
 async function main() {
   console.error(await getVersion());
 
-  const paths = await getPaths();
-  const resolveRootRelative = (p: string) => path.relative(paths.root, path.resolve(p));
-  const options = readCommandFlags(resolveRootRelative);
+  const options = await readCommandFlags();
+  const { paths } = options;
 
   let buildInfo = options.buildInfo;
 
