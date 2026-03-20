@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Tranform migration function: Add the onlyInitializer modifier to any function which name end with `_migrate`.
+- Tranform migration function: Add the `onlyInitializer` modifier to any function which name ends with `_migrate`.
 
 ## 0.4.1 (2025-09-18)
 
