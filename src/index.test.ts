@@ -19,6 +19,7 @@ const fileNames = [
   'Deep.sol',
   'ElementaryTypes.sol',
   'ElementaryTypesWithConstructor.sol',
+  'ElementaryTypesWithConstructorAndMigration.sol',
   'Imported.sol',
   'Local.sol',
   'SimpleInheritance.sol',
