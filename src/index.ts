@@ -29,7 +29,7 @@ import {
   transformConstructor,
   removeLeftoverConstructorHead,
 } from './transformations/transform-constructor';
-import { addModifiers } from './transformations/add-modifiers';
+import { transformOptionalInitializer } from './transformations/transform-optional-initializer';
 
 interface Paths {
   root: string;
@@ -108,7 +108,7 @@ export async function transpile(
   transform.apply(transformConstructor(namespaceInclude));
   transform.apply(removeLeftoverConstructorHead);
   transform.apply(addRequiredPublicInitializer(options.publicInitializers));
-  transform.apply(addModifiers);
+  transform.apply(transformOptionalInitializer);
   transform.apply(removeInheritanceListArguments);
   transform.apply(removeStateVarInits);
   transform.apply(removeImmutable);

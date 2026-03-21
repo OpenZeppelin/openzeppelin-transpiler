@@ -15,7 +15,7 @@ import {
 import { renameInheritdoc } from './transformations/rename-inheritdoc';
 import { addStorageGaps } from './transformations/add-storage-gaps';
 import { renameContractDefinition } from './transformations/rename-contract-definition';
-import { addModifiers } from './transformations/add-modifiers';
+import { transformOptionalInitializer } from './transformations/transform-optional-initializer';
 
 const test = _test as TestFn<Context>;
 
@@ -76,7 +76,7 @@ test('add storage gaps', t => {
 });
 
 test('add modifiers', t => {
-  const file = 'contracts/TransformMigrate.sol';
-  t.context.transform.apply(addModifiers);
+  const file = 'contracts/TransformOptionalInitializer.sol';
+  t.context.transform.apply(transformOptionalInitializer);
   t.snapshot(t.context.transform.results()[file]);
 });

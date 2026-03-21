@@ -1,4 +1,4 @@
-import { ContractDefinition, StructuredDocumentation } from 'solidity-ast';
+import { ContractDefinition, FunctionDefinition, StructuredDocumentation } from 'solidity-ast';
 import { execall } from './execall';
 
 interface NatspecTag {
@@ -40,6 +40,15 @@ export function extractContractStorageSize(contract: ContractDefinition): number
 export function extractContractStateless(contract: ContractDefinition): boolean {
   for (const entry of extractNatspec(contract)) {
     if (entry.title === 'custom' && entry.tag === 'stateless') {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function extractOptionalInitializer(fn: FunctionDefinition): boolean {
+  for (const entry of extractNatspec(fn)) {
+    if (entry.title === 'custom' && entry.tag === 'oz-upgrades-optional-initializer') {
       return true;
     }
   }
