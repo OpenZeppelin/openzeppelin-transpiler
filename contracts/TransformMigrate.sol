@@ -1,12 +1,13 @@
-pragma solidity ^0.6;
+pragma solidity ^0.8;
 
 contract Foo {
     uint256 public counter;
 
-    constructor(uint256 initialValue) public {
+    constructor(uint256 initialValue) {
         counter = initialValue;
     }
 
+    /// @custom:add-modifier onlyInitializing
     function __Foo_migrate(uint256 initialValue) internal {
         if (counter == 0) {
             counter = initialValue;
@@ -14,10 +15,26 @@ contract Foo {
     }
 }
 
-abstract contract Bar {
-    uint256 public x;
+contract Bar {
+    address public owner;
+    uint256 public counter;
+    bool public paused;
 
-    constructor(uint _x) public { x = _x; }
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not the owner");
+        _;
+    }
 
-    function __Bar_migrate(uint _x) internal virtual;
+    modifier whenPaused() {
+        require(paused, "Not paused");
+        _;
+    }
+
+    /// @custom:add-modifier onlyOwner
+    /// @custom:add-modifier whenPaused
+    function setCounter(uint256 initialValue) internal {
+        if (counter == 0) {
+            counter = initialValue;
+        }
+    }
 }

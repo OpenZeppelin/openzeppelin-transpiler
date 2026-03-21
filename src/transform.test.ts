@@ -21,7 +21,6 @@ import {
   transformConstructor,
   removeLeftoverConstructorHead,
 } from './transformations/transform-constructor';
-import { transformMigrate } from './transformations/transform-migrate';
 
 const test = _test as TestFn<Context>;
 
@@ -143,12 +142,6 @@ test('transform constructor', t => {
   const file = 'contracts/TransformConstructor.sol';
   t.context.transform.apply(transformConstructor());
   t.context.transform.apply(removeLeftoverConstructorHead);
-  t.snapshot(t.context.transform.results()[file]);
-});
-
-test('transform migrate', t => {
-  const file = 'contracts/TransformMigrate.sol';
-  t.context.transform.apply(transformMigrate);
   t.snapshot(t.context.transform.results()[file]);
 });
 
