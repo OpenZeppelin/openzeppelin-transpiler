@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Tranform migration function: Add the `onlyInitializer` modifier to any function which name ends with `_migrate`.
+- Add the `onlyInitializer` modifier to function marked as @custom:oz-upgrades-optional-initializer
 
 ## 0.4.1 (2025-09-18)
 
