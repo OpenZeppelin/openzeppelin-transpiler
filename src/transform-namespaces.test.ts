@@ -44,7 +44,7 @@ test('add namespace', t => {
   t.snapshot(transform.results()[file]);
 });
 
-test('namespace override with @custom:override-namespace-id', t => {
+test('namespace override with @custom:oz-transpile-namespace', t => {
   const file = 'contracts/namespaces-override.sol';
   const transform = t.context.transformFile(file);
   transform.apply(transformConstructor(() => true));
