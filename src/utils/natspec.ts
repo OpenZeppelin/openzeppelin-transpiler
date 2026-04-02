@@ -45,3 +45,13 @@ export function extractContractStateless(contract: ContractDefinition): boolean 
   }
   return false;
 }
+
+export function extractTranspileNamespace(contract: ContractDefinition): string | undefined {
+  for (const entry of extractNatspec(contract)) {
+    if (entry.title === 'custom' && entry.tag === 'oz-transpile-namespace') {
+      const value = entry.args.trim();
+      if (value) return value;
+    }
+  }
+  return undefined;
+}
