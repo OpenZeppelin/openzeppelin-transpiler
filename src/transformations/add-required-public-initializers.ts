@@ -3,7 +3,7 @@ import { findAll } from 'solidity-ast/utils';
 import { minimatch } from 'minimatch';
 
 import { newFunctionPosition } from './utils/new-function-position';
-import { buildPublicInitialize } from './utils/build-pulic-initialize';
+import { buildPublicInitialize } from './utils/build-public-initialize';
 import { Transformation } from './type';
 import { TransformerTools } from '../transform';
 
@@ -16,7 +16,7 @@ export function addRequiredPublicInitializer(publicInitializers: string[] | unde
     for (const contract of findAll('ContractDefinition', sourceUnit)) {
       if (
         getData(contract).isUsedInNewStatement ||
-        (requested && contract.contractKind === 'contract')
+        (requested && contract.contractKind === 'contract' && !contract.abstract)
       ) {
         const start = newFunctionPosition(contract, tools);
 

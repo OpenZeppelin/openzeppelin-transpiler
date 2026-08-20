@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- No longer add public initializers to abstract contracts. Only to concrete ones.
+
 ## 0.4.1 (2025-09-18)
 
 - Revert part 0.4.0: Do not automatically delete initialisable contracts when "delete originals" is enabled (in peer project mode).
