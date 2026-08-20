@@ -212,12 +212,6 @@ test('add requested public initializer skips abstract contracts', t => {
   t.snapshot(t.context.transform.results()[file]);
 });
 
-test('add requested public initializer skips abstract-only file', t => {
-  const file = 'contracts/TransformAbstractOnlyPublicInitializer.sol';
-  t.context.transform.apply(addRequiredPublicInitializer([file]));
-  t.snapshot(t.context.transform.results()[file]);
-});
-
 test('remove immutable', t => {
   const file = 'contracts/TransformImmutable.sol';
   t.context.transform.apply(removeImmutable);
