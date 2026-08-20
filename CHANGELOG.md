@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.4.2 (2026-08-20)
 
 - Skip abstract contracts when generating public initializers from the `publicInitializers` list.
 
