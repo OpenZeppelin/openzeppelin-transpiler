@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- No longer add public initializers to abstract contracts. Only to concrete ones.
+- Skip abstract contracts when generating public initializers from the `publicInitializers` list.
 
 ## 0.4.1 (2025-09-18)
 
