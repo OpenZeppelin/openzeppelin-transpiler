@@ -78,3 +78,14 @@ contract C11 {
     address y;
     bytes32 transient u;
 }
+
+contract C12 {
+    uint256 x;
+    uint256 transient t;
+    uint256 y;
+    uint256 transient u;
+
+    function sum() public view returns (uint256) {
+        return x + t + y + u;
+    }
+}
