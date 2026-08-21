@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Support transient state variables. Transient variable are kept at the contract level and are not moved to namespace. Gap is built following the storage layout, which is independant from the transient storage layout. During an upgrade, the transient layout can temporarily be broken (for the duration of the transaction).
+
 ## 0.4.2 (2026-08-20)
 
 - Skip abstract contracts when generating public initializers from the `publicInitializers` list.

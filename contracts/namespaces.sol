@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.28;
 
 contract C1 {
 }
@@ -58,5 +58,42 @@ contract C8 {
 
     constructor() {
         x = msg.sender;
+    }
+}
+
+contract C9 {
+    bytes32 transient t;
+}
+
+contract C10 {
+    bytes32 transient t;
+    address x;
+    bytes32 transient u;
+    address y;
+}
+
+contract C11 {
+    address x;
+    bytes32 transient t;
+    address y;
+    bytes32 transient u;
+}
+
+contract C12 {
+    uint256 transient t;
+
+    function value() public view returns (uint256) {
+        return t;
+    }
+}
+
+contract C13 {
+    uint256 x;
+    uint256 transient t;
+    uint256 y;
+    uint256 transient u;
+
+    function sum() public view returns (uint256) {
+        return x + t + y + u;
     }
 }

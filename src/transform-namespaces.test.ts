@@ -21,7 +21,7 @@ interface Context {
 }
 
 test.serial.before('compile', async t => {
-  const buildInfo = await getBuildInfo('0.8.20');
+  const buildInfo = await getBuildInfo('0.8');
 
   t.context.solcInput = buildInfo.input;
   t.context.solcOutput = buildInfo.output as SolcOutput;
