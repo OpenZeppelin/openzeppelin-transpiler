@@ -80,6 +80,14 @@ contract C11 {
 }
 
 contract C12 {
+    uint256 transient t;
+
+    function value() public view returns (uint256) {
+        return t;
+    }
+}
+
+contract C13 {
     uint256 x;
     uint256 transient t;
     uint256 y;
