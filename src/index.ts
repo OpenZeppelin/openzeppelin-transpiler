@@ -24,6 +24,7 @@ import { fixNewStatement } from './transformations/fix-new-statement';
 import { addRequiredPublicInitializer } from './transformations/add-required-public-initializers';
 import { addStorageGaps } from './transformations/add-storage-gaps';
 import { addNamespaceStruct } from './transformations/add-namespace-struct';
+import { commentTransientVariables } from './transformations/comment-transient-variables';
 import { renameInheritdoc } from './transformations/rename-inheritdoc';
 import {
   transformConstructor,
@@ -113,6 +114,9 @@ export async function transpile(
   transform.apply(peerImport);
 
   if (options.namespaced) {
+    // Before addNamespaceStruct, so the comment moves with the declaration if it is
+    // relocated out of the namespace struct.
+    transform.apply(commentTransientVariables(namespaceInclude));
     transform.apply(addNamespaceStruct(namespaceInclude));
   } else {
     transform.apply(addStorageGaps);

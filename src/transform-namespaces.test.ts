@@ -7,6 +7,7 @@ import { Transform } from './transform';
 
 import { removeStateVarInits } from './transformations/purge-var-inits';
 import { addNamespaceStruct } from './transformations/add-namespace-struct';
+import { commentTransientVariables } from './transformations/comment-transient-variables';
 import {
   removeLeftoverConstructorHead,
   transformConstructor,
@@ -21,7 +22,7 @@ interface Context {
 }
 
 test.serial.before('compile', async t => {
-  const buildInfo = await getBuildInfo('0.8.20');
+  const buildInfo = await getBuildInfo('0.8');
 
   t.context.solcInput = buildInfo.input;
   t.context.solcOutput = buildInfo.output as SolcOutput;
@@ -40,6 +41,7 @@ test('add namespace', t => {
   transform.apply(transformConstructor(() => true));
   transform.apply(removeLeftoverConstructorHead);
   transform.apply(removeStateVarInits);
+  transform.apply(commentTransientVariables(() => true));
   transform.apply(addNamespaceStruct(() => true));
   t.snapshot(transform.results()[file]);
 });

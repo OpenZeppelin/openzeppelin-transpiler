@@ -5,4 +5,5 @@ type ShortString is bytes32;
 
 contract Foo {
     ShortString immutable s = ShortString.wrap(0);
+    bytes32 transient t;
 }
