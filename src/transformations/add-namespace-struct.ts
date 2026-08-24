@@ -9,6 +9,7 @@ import { erc7201Location } from '../utils/erc7201';
 import { contractStartPosition } from './utils/contract-start-position';
 import { Node } from 'solidity-ast/node';
 import { extractContractStorageSize } from '../utils/natspec';
+import { getRealEndIndex } from './utils/get-real-end-index';
 
 export function getNamespaceStructName(contractName: string): string {
   return contractName + 'Storage';
@@ -42,6 +43,13 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
       // We look for the start of the source code block in the contract
       // where variables are written
       for (const n of contract.nodes) {
+        if (n.nodeType === 'VariableDeclaration' && n.storageLocation === 'transient') {
+          // addTransientSlots removes these, so they neither join the struct nor move
+          // the block boundaries. Their text falls inside the struct's range and is
+          // already gone by the time this transformation is applied.
+          continue;
+        }
+
         if (
           n.nodeType === 'VariableDeclaration' &&
           (storageVars.length > 0 || isStorageVariable(n, resolver))
@@ -185,12 +193,4 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
       }
     }
   };
-}
-
-function getRealEndIndex(node: Node, tools: TransformerTools): number {
-  // VariableDeclaration node bounds don't include the semicolon, so we look for it,
-  // and include a comment if there is one after the node.
-  // This regex always matches at least the empty string.
-  const { start, length } = tools.matchOriginalAfter(node, /(\s*;)?([ \t]*\/\/[^\n\r]*)?/)!;
-  return start + length - 1;
 }

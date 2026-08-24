@@ -23,6 +23,7 @@ import { appendInitializableImport } from './transformations/append-initializabl
 import { fixNewStatement } from './transformations/fix-new-statement';
 import { addRequiredPublicInitializer } from './transformations/add-required-public-initializers';
 import { addStorageGaps } from './transformations/add-storage-gaps';
+import { addTransientSlots } from './transformations/add-transient-slots';
 import { addNamespaceStruct } from './transformations/add-namespace-struct';
 import { renameInheritdoc } from './transformations/rename-inheritdoc';
 import {
@@ -41,6 +42,8 @@ export interface OutputFile {
   path: string;
 }
 
+const DEFAULT_TRANSIENT_SLOT_PATH = 'contracts/utils/TransientSlot.sol';
+
 interface TranspileOptions {
   initializablePath?: string;
   exclude?: string[];
@@ -50,6 +53,7 @@ interface TranspileOptions {
   namespaced?: boolean;
   namespaceExclude?: string[];
   peerProject?: string;
+  transientSlotPath?: string;
 }
 
 function getExtraOutputPaths(
@@ -104,6 +108,18 @@ export async function transpile(
   transform.apply(fixImportDirectives(options.peerProject !== undefined));
   transform.apply(appendInitializableImport(outputPaths.initializable, options.peerProject));
   transform.apply(fixNewStatement);
+  if (options.namespaced) {
+    // Runs before transformConstructor, whose generated initializers are inserted at
+    // the same offset, and before addNamespaceStruct, whose struct range would
+    // otherwise contain the transient declarations this removes.
+    transform.apply(
+      addTransientSlots(
+        options.transientSlotPath ?? DEFAULT_TRANSIENT_SLOT_PATH,
+        namespaceInclude,
+        options.peerProject,
+      ),
+    );
+  }
   transform.apply(transformConstructor(namespaceInclude));
   transform.apply(removeLeftoverConstructorHead);
   transform.apply(addRequiredPublicInitializer(options.publicInitializers));

@@ -9,3 +9,9 @@ export function erc7201Location(id: string): string {
   d[31] = 0;
   return '0x' + bytesToHex(d);
 }
+
+// Derives the location of a slot at `offset` words past `location`.
+export function offsetLocation(location: string, offset: number): string {
+  const value = BigInt(location) + BigInt(offset);
+  return '0x' + value.toString(16).padStart(64, '0');
+}

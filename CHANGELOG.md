@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Namespace transient variables in namespaced mode: declarations are replaced by an ERC-7201 derived slot constant and reads/writes are rewritten onto `TransientSlot`.
+
 ## 0.4.2 (2026-08-20)
 
 - Skip abstract contracts when generating public initializers from the `publicInitializers` list.

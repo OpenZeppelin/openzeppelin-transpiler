@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.28;
 
 contract C1 {
 }
@@ -58,5 +58,58 @@ contract C8 {
 
     constructor() {
         x = msg.sender;
+    }
+}
+
+contract C9 {
+    bytes32 transient t;
+}
+
+contract C10 {
+    bytes32 transient t;
+    address x;
+    bytes32 transient u;
+    address y;
+}
+
+contract C11 {
+    address x;
+    bytes32 transient t;
+    address y;
+    bytes32 transient u;
+}
+
+contract C12 {
+    uint256 private transient t;
+
+    function set(uint256 v) external {
+        t = v;
+    }
+
+    function get() external view returns (uint256) {
+        return t;
+    }
+}
+
+contract C13 {
+    address x;
+    bytes32 private transient t;
+    uint256 private transient u;
+
+    modifier guard() {
+        require(t == bytes32(0));
+        t = bytes32(uint256(1));
+        _;
+        delete t;
+    }
+
+    function bump(uint256 v) external guard {
+        u += v;
+        u++;
+        x = msg.sender;
+    }
+
+    function read() external view returns (bytes32, uint256) {
+        return (t, u);
     }
 }

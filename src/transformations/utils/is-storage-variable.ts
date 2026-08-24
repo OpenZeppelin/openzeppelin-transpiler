@@ -3,7 +3,8 @@ import { ASTResolver } from '../../ast-resolver';
 import { hasOverride } from '../../utils/upgrades-overrides';
 
 export function isStorageVariable(varDecl: VariableDeclaration, resolver: ASTResolver): boolean {
-  if (!varDecl.stateVariable || varDecl.constant) {
+  // Transient variables are state variables but don't occupy storage slots.
+  if (!varDecl.stateVariable || varDecl.constant || varDecl.storageLocation === 'transient') {
     return false;
   } else {
     switch (varDecl.mutability) {
