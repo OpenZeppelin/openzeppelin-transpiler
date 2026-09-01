@@ -58,7 +58,7 @@
     "ava": "^6.4.1",
     "eslint": "^9.35.0",
     "eslint-config-prettier": "^10.1.8",
-    "globals": "^16.4.0",
+    "globals": "^17.0.0",
     "hardhat": "^2.26.3",
     "hardhat-ignore-warnings": "^0.2.9",
     "prettier": "^3.0.0",
