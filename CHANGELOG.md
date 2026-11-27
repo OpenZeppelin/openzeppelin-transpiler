@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add a NatSpec annotation `@custom:namespace-override <id>` to override the ERC-7201 namespace ID (by default `openzeppelin.storage.<ContractName>`) used for a contract's namespaced storage. The value is used as-is.
+
 ## 0.4.2 (2026-08-20)
 
 - Skip abstract contracts when generating public initializers from the `publicInitializers` list.
