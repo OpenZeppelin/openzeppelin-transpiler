@@ -68,7 +68,7 @@ test('error with empty @custom:namespace-override', t => {
   const transform = t.context.transformFile(file);
   t.throws(() => transform.apply(addNamespaceStruct(() => true)), {
     message:
-      '@custom:namespace-override must specify a single namespace id without whitespace (contracts/namespaces-error-override-empty.sol:5)',
+      '@custom:namespace-override must specify a single namespace id without whitespace (contract C1)',
   });
 });
 
@@ -77,6 +77,6 @@ test('error with multiline @custom:namespace-override', t => {
   const transform = t.context.transformFile(file);
   t.throws(() => transform.apply(addNamespaceStruct(() => true)), {
     message:
-      '@custom:namespace-override must specify a single namespace id without whitespace (contracts/namespaces-error-override-multiline.sol:6)',
+      '@custom:namespace-override must specify a single namespace id without whitespace (contract C1)',
   });
 });
