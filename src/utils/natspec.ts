@@ -45,3 +45,18 @@ export function extractContractStateless(contract: ContractDefinition): boolean 
   }
   return false;
 }
+
+export function extractNamespaceOverride(contract: ContractDefinition): string | undefined {
+  for (const entry of extractNatspec(contract)) {
+    if (entry.title === 'custom' && entry.tag === 'namespace-override') {
+      const value = entry.args.trim();
+      if (!/^\S+$/.test(value)) {
+        throw new Error(
+          `@custom:namespace-override must specify a single namespace id without whitespace (contract ${contract.name})`,
+        );
+      }
+      return value;
+    }
+  }
+  return undefined;
+}

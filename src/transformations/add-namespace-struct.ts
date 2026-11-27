@@ -8,7 +8,7 @@ import { isStorageVariable } from './utils/is-storage-variable';
 import { erc7201Location } from '../utils/erc7201';
 import { contractStartPosition } from './utils/contract-start-position';
 import { Node } from 'solidity-ast/node';
-import { extractContractStorageSize } from '../utils/natspec';
+import { extractContractStorageSize, extractNamespaceOverride } from '../utils/natspec';
 
 export function getNamespaceStructName(contractName: string): string {
   return contractName + 'Storage';
@@ -31,6 +31,8 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
           'Cannot combine namespaces with @custom:storage-size annotations',
         );
       }
+
+      const namespaceOverride = extractNamespaceOverride(contract);
 
       let start = contractStartPosition(contract, tools);
 
@@ -65,6 +67,13 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
           // variables will start after the current node
           start = getRealEndIndex(n, tools) + 1;
         }
+      }
+
+      if (storageVars.length === 0 && namespaceOverride !== undefined) {
+        throw error(
+          contract,
+          '@custom:namespace-override requires the contract to have storage variables',
+        );
       }
 
       if (storageVars.length > 0) {
@@ -111,7 +120,7 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
         }
 
         const namespace = getNamespaceStructName(contract.name);
-        const id = 'openzeppelin.storage.' + contract.name;
+        const id = namespaceOverride ?? 'openzeppelin.storage.' + contract.name;
 
         const end = getRealEndIndex(storageVars.at(-1)!, tools) + 1;
 

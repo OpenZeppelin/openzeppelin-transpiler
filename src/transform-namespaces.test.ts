@@ -44,11 +44,48 @@ test('add namespace', t => {
   t.snapshot(transform.results()[file]);
 });
 
+test('namespace override with @custom:namespace-override', t => {
+  const file = 'contracts/namespaces-override.sol';
+  const transform = t.context.transformFile(file);
+  transform.apply(transformConstructor(() => true));
+  transform.apply(removeLeftoverConstructorHead);
+  transform.apply(removeStateVarInits);
+  transform.apply(addNamespaceStruct(() => true));
+  t.snapshot(transform.results()[file]);
+});
+
 test('error with @custom:storage-size', t => {
   const file = 'contracts/namespaces-error-storage-size.sol';
   const transform = t.context.transformFile(file);
   t.throws(() => transform.apply(addNamespaceStruct(() => true)), {
     message:
       'Cannot combine namespaces with @custom:storage-size annotations (contracts/namespaces-error-storage-size.sol:5)',
+  });
+});
+
+test('error with empty @custom:namespace-override', t => {
+  const file = 'contracts/namespaces-error-override-empty.sol';
+  const transform = t.context.transformFile(file);
+  t.throws(() => transform.apply(addNamespaceStruct(() => true)), {
+    message:
+      '@custom:namespace-override must specify a single namespace id without whitespace (contract C1)',
+  });
+});
+
+test('error with multiline @custom:namespace-override', t => {
+  const file = 'contracts/namespaces-error-override-multiline.sol';
+  const transform = t.context.transformFile(file);
+  t.throws(() => transform.apply(addNamespaceStruct(() => true)), {
+    message:
+      '@custom:namespace-override must specify a single namespace id without whitespace (contract C1)',
+  });
+});
+
+test('error with @custom:namespace-override and no storage variables', t => {
+  const file = 'contracts/namespaces-error-override-no-vars.sol';
+  const transform = t.context.transformFile(file);
+  t.throws(() => transform.apply(addNamespaceStruct(() => true)), {
+    message:
+      '@custom:namespace-override requires the contract to have storage variables (contracts/namespaces-error-override-no-vars.sol:5)',
   });
 });
