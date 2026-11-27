@@ -62,3 +62,21 @@ test('error with @custom:storage-size', t => {
       'Cannot combine namespaces with @custom:storage-size annotations (contracts/namespaces-error-storage-size.sol:5)',
   });
 });
+
+test('error with empty @custom:namespace-override', t => {
+  const file = 'contracts/namespaces-error-override-empty.sol';
+  const transform = t.context.transformFile(file);
+  t.throws(() => transform.apply(addNamespaceStruct(() => true)), {
+    message:
+      '@custom:namespace-override must specify a single namespace id without whitespace (contracts/namespaces-error-override-empty.sol:5)',
+  });
+});
+
+test('error with multiline @custom:namespace-override', t => {
+  const file = 'contracts/namespaces-error-override-multiline.sol';
+  const transform = t.context.transformFile(file);
+  t.throws(() => transform.apply(addNamespaceStruct(() => true)), {
+    message:
+      '@custom:namespace-override must specify a single namespace id without whitespace (contracts/namespaces-error-override-multiline.sol:6)',
+  });
+});

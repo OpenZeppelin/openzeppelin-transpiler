@@ -32,6 +32,15 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
         );
       }
 
+      const namespaceOverride = extractNamespaceOverride(contract);
+
+      if (namespaceOverride !== undefined && !/^\S+$/.test(namespaceOverride)) {
+        throw tools.error(
+          contract,
+          '@custom:namespace-override must specify a single namespace id without whitespace',
+        );
+      }
+
       let start = contractStartPosition(contract, tools);
 
       let finished = false;
@@ -111,7 +120,7 @@ export function addNamespaceStruct(include?: (source: string) => boolean) {
         }
 
         const namespace = getNamespaceStructName(contract.name);
-        const id = extractNamespaceOverride(contract) ?? 'openzeppelin.storage.' + contract.name;
+        const id = namespaceOverride ?? 'openzeppelin.storage.' + contract.name;
 
         const end = getRealEndIndex(storageVars.at(-1)!, tools) + 1;
 
