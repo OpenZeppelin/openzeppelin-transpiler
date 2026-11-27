@@ -46,7 +46,7 @@ export function extractContractStateless(contract: ContractDefinition): boolean 
   return false;
 }
 
-export function extractTranspileNamespace(contract: ContractDefinition): string | undefined {
+export function extractNamespaceOverride(contract: ContractDefinition): string | undefined {
   for (const entry of extractNatspec(contract)) {
     if (entry.title === 'custom' && entry.tag === 'namespace-override') {
       const value = entry.args.trim();

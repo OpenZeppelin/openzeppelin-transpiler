@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-/// @custom:namespace-override OverriddenName
+/// @custom:namespace-override openzeppelin.storage.OverriddenName
 contract NamespaceOverride1 {
     address private x;
 }
 
-/// @custom:namespace-override OverriddenName2
+/// @custom:namespace-override openzeppelin.storage.OverriddenName2
 contract NamespaceOverride2 {
     address private x;
     constructor() {
@@ -14,12 +14,12 @@ contract NamespaceOverride2 {
     }
 }
 
-/// @custom:namespace-override OverriddenName3
+/// @custom:namespace-override example.main
 contract NamespaceOverride3 {
     address private x = msg.sender;
 }
 
-/// @custom:namespace-override OverriddenName4
+/// @custom:namespace-override my.custom.namespace
 contract NamespaceOverride4 {
     uint x; // a comment
 

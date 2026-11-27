@@ -14,7 +14,6 @@ import { parseNewExpression } from '../utils/new-expression';
 import { getNamespaceStructName } from './add-namespace-struct';
 import { ASTResolver } from '../ast-resolver';
 import { isStorageVariable } from './utils/is-storage-variable';
-import { extractTranspileNamespace } from '../utils/natspec';
 
 function getArgsList(constructor: FunctionDefinition, helper: TransformHelper): string {
   return helper.read(constructor.parameters).replace(/^\((.*)\)$/s, '$1');
@@ -101,8 +100,7 @@ export function transformConstructor(isNamespaced?: (source: string) => boolean)
         emptyUnchained: emptyConstructor,
       } = getInitializerItems(contractNode, resolver);
 
-      const nameForNamespace = extractTranspileNamespace(contractNode) ?? name;
-      const namespace = getNamespaceStructName(nameForNamespace);
+      const namespace = getNamespaceStructName(name);
       const constructorUsesStorage =
         constructorNode !== undefined && usesStorageVariables(constructorNode, resolver);
 
